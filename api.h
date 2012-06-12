@@ -7,7 +7,8 @@
 #include "api_define.h"
 #include "api_global.h"
 
-#include "api_debug.h"#include "can.h"
+#include "api_debug.h"
+#include "can.h"
 #include <stdint.h>
 
 #define UART_MAX_DATA_ELEMENTS 8
@@ -259,8 +260,8 @@ enum cmdKeyNumber
                commandKeyNumber_CMD2,
                commandKeyNumber_CMD3,
                commandKeyNumber_CMD4,
-               commandKeyNumber_CMD5,
-               commandKeyNumber_CMD6,
+               commandKeyNumber_GNWR,
+               commandKeyNumber_GNRE,
                commandKeyNumber_OW8S,
                commandKeyNumber_TWIS,
                commandKeyNumber_VERS,

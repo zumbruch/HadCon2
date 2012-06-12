@@ -610,7 +610,7 @@ void help(struct uartStruct *ptr_uartStruct)
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: %s [???] "), message, currentReceiveHeader );
            UART0_Send_Message_String(NULL,0);
            break;
-        case commandKeyNumber_CMD5: /* command (dummy name) */
+        case commandKeyNumber_GNWR: /* command (dummy name) */
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s  command (dummy name) "), message );
            UART0_Send_Message_String(NULL,0);
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [???]"), message, currentCommandKeyword );
@@ -618,7 +618,7 @@ void help(struct uartStruct *ptr_uartStruct)
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: %s [???] "), message, currentReceiveHeader );
            UART0_Send_Message_String(NULL,0);
            break;
-        case commandKeyNumber_CMD6: /* command (dummy name) */
+        case commandKeyNumber_GNRE: /* command (dummy name) */
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s  command (dummy name) "), message );
            UART0_Send_Message_String(NULL,0);
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [???]"), message, currentCommandKeyword );

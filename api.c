@@ -39,7 +39,8 @@
 #include "api_define.h"
 #include "api_global.h"
 
-#include "api_debug.h"#include "api_show.h"
+#include "api_debug.h"
+#include "api_show.h"
 #include "api_help.h"
 #include "api_debug.h"
 #include "jtag.h"
@@ -102,8 +103,8 @@ static const char commandKeyword41[] PROGMEM = "CMD1"; /* command (dummy name) *
 static const char commandKeyword42[] PROGMEM = "CMD2"; /* command (dummy name) */
 static const char commandKeyword43[] PROGMEM = "CMD3"; /* command (dummy name) */
 static const char commandKeyword44[] PROGMEM = "CMD4"; /* command (dummy name) */
-static const char commandKeyword45[] PROGMEM = "CMD5"; /* command (dummy name) */
-static const char commandKeyword46[] PROGMEM = "CMD6"; /* command (dummy name) */
+static const char commandKeyword45[] PROGMEM = "GNWR"; /* send <address> <data> for waveform generator */
+static const char commandKeyword46[] PROGMEM = "GNRE"; /* command (dummy name) */
 static const char commandKeyword47[] PROGMEM = "OW8S"; /* set/read state of one wire octal switches */
 static const char commandKeyword48[] PROGMEM = "TWIS"; /* command (dummy name) */
 static const char commandKeyword49[] PROGMEM = "VERS"; /* command (dummy name) */
@@ -210,8 +211,8 @@ static const char commandShortDescription41[] PROGMEM = "[???]"; /* dummy comman
 static const char commandShortDescription42[] PROGMEM = "[???]"; /* dummy command */
 static const char commandShortDescription43[] PROGMEM = "[???]"; /* dummy command */
 static const char commandShortDescription44[] PROGMEM = "[???]"; /* dummy command */
-static const char commandShortDescription45[] PROGMEM = "[???]"; /* dummy command */
-static const char commandShortDescription46[] PROGMEM = "[???]"; /* dummy command */
+static const char commandShortDescription45[] PROGMEM = "<address> <data>"; /* dummy command */
+static const char commandShortDescription46[] PROGMEM = "<address>"; /* dummy command */
 static const char commandShortDescription47[] PROGMEM = "[ID [value]]"; /* set/read state of one wire octal switches */
 static const char commandShortDescription48[] PROGMEM = "<0|1> <I2C address> <data length> <data byte1 ... byte8>"; /* I2C access */
 static const char commandShortDescription49[] PROGMEM = ""; /* code version */
@@ -317,8 +318,8 @@ static const char commandImplementation41[] PROGMEM = "--- not implemented"; /*d
 static const char commandImplementation42[] PROGMEM = "--- not implemented"; /*dummy command*/
 static const char commandImplementation43[] PROGMEM = "--- not implemented"; /*dummy command*/
 static const char commandImplementation44[] PROGMEM = "--- not implemented"; /*dummy command*/
-static const char commandImplementation45[] PROGMEM = "--- not implemented"; /*dummy command*/
-static const char commandImplementation46[] PROGMEM = "--- not implemented"; /*dummy command*/
+static const char commandImplementation45[] PROGMEM = "Waveform Generator send data"; /*dummy command*/
+static const char commandImplementation46[] PROGMEM = "Waveform Generator read data"; /*dummy command*/
 static const char commandImplementation47[] PROGMEM = ""; /* set/read state of one wire octal switches */
 static const char commandImplementation48[] PROGMEM = ""; /*I2C access*/
 static const char commandImplementation49[] PROGMEM = ""; /*code version*/
@@ -1252,10 +1253,19 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
        break;
     case commandKeyNumber_CMD4: /* command (dummy name) */
        break;
-    case commandKeyNumber_CMD5: /* command (dummy name) */
+    case commandKeyNumber_GNWR: /* command (dummy name) */
+      /* command      : RGWR Register Value */
+      /* response now : RECV the value %x has been written in Register */
+      /* response TODO: RECV RGWR Register Value (OldValue) */
+      /* write_double_Register(ptr_uartStruct); /* call function with name writeRegister  */
+      write_double_Register(ptr_uartStruct); /* call function with name write_double_Register  */
        break;
-    case commandKeyNumber_CMD6: /* command (dummy name) */
-       break;
+    case commandKeyNumber_GNRE: /* command (dummy name) */
+      /* command      : GNRE Register*/
+      /* response now : RECV the value %x has been written in Register */
+      /* response TODO: RECV GNWR Register Value */
+      read_waveform_generator_Registers(ptr_uartStruct); /* call function with name  read_waveform_generator_Registers */
+      break;
     case commandKeyNumber_OW8S: /* command (dummy name) */
     	owiOctalSwitches(ptr_uartStruct);
     	break;
