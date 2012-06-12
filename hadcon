@@ -1,0 +1,5 @@
+
+tmux new-session -n hadcon  "slurp_serial $1"  \; split-window -t hadcon -l3 "PERL_RL=' o=0' hadcon_command_only.pl $1" \; attach
+
+
+

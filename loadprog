@@ -1,0 +1,1 @@
+avarice  -c 0,1,0,4 --jtag /dev/ttyUSB0 -B 1000000 --erase --program --file api.elf

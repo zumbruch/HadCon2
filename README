@@ -1,0 +1,18 @@
+
+Set fuses!
+
+# olimex
+avarice  -c 0,1,0,4 --jtag /dev/ttyUSB0 -B 1000000 -W ff19e0 
+avarice  -c 0,1,0,8 --jtag /dev/ttyUSB0 -B 1000000 -W ff19e0 
+# --> "make set_fuses" integrates this into Makefile
+
+#mkII
+avarice -2 -c 0,1,0,4 --jtag usb -B 1000000 -W ff19e0
+
+For Hadcon2: ... and the ttyUSBx interface has also to be set correctly to
+115200 baud and no echo, otherwise there will be an endless loop.
+
+stty -F /dev/ttyUSB1 -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke speed 115200
+
+
+

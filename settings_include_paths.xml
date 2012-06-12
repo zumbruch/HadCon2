@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdtprojectproperties>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.IncludePaths">
+<language name="holder for library settings">
+
+</language>
+<language name="Assembly">
+<includepath>/opt/cross/avr/include</includepath>
+<includepath>/opt/cross/lib/gcc/avr/4.1.2/include</includepath>
+
+</language>
+<language name="GNU C++">
+<includepath>/opt/cross/avr/include</includepath>
+<includepath>/opt/cross/lib/gcc/avr/4.1.2/include</includepath>
+
+</language>
+<language name="GNU C">
+<includepath>/opt/cross/avr/include</includepath>
+<includepath>/opt/cross/lib/gcc/avr/4.1.2/include</includepath>
+
+</language>
+</section>
+</cdtprojectproperties>
