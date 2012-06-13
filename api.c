@@ -29,6 +29,7 @@
 #include "one_wire_octalSwitch.h"
 #include "one_wire_simpleSwitch.h"
 #include "read_write_register.h"
+#include "waveform_generator_registers.h"
 #include "one_wire_temperature.h"
 #include "one_wire_api_settings.h"
 #include "one_wire_octalSwitch.h"
@@ -1257,14 +1258,14 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
       /* command      : RGWR Register Value */
       /* response now : RECV the value %x has been written in Register */
       /* response TODO: RECV RGWR Register Value (OldValue) */
-      /* write_double_Register(ptr_uartStruct); /* call function with name writeRegister  */
-      write_double_Register(ptr_uartStruct); /* call function with name write_double_Register  */
+      /* waveformGeneratorWriteRegister(ptr_uartStruct); /* call function with name writeRegister  */
+      waveformGeneratorWriteRegister(ptr_uartStruct); /* call function with name waveformGeneratorWriteRegister  */
        break;
     case commandKeyNumber_GNRE: /* command (dummy name) */
       /* command      : GNRE Register*/
       /* response now : RECV the value %x has been written in Register */
       /* response TODO: RECV GNWR Register Value */
-      read_waveform_generator_Registers(ptr_uartStruct); /* call function with name  read_waveform_generator_Registers */
+      waveformGeneratorReadRegister(ptr_uartStruct); /* call function with name  waveformGeneratorReadRegister */
       break;
     case commandKeyNumber_OW8S: /* command (dummy name) */
     	owiOctalSwitches(ptr_uartStruct);
