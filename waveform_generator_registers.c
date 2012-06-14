@@ -169,11 +169,10 @@ void waveformGeneratorReadRegister(struct uartStruct *ptr_uartStruct)
 		registers[step] = readFrom8bitRegister((uint8_t) UDR1_register_of_ATMEL_address & 0xFF );
 	} //end for loop
 
-	//declare UART in order to send data with baud=1,025Mbps
+	//declare UART in order to send data with baud=1,025Mbps (twice on purpose!)
+	waveformGeneratorDeclareUARTtoSendData();
 	waveformGeneratorDeclareUARTtoSendData();
 
-    //declare UART in order to send data with baud=1,025Mbps
-	waveformGeneratorDeclareUARTtoSendData();
 
 	// print results
 	switch(ptr_uartStruct->number_of_arguments)
