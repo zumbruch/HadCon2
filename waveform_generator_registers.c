@@ -208,7 +208,7 @@ void waveformGeneratorPrintSingleRegister( uint8_t registerId, uint8_t registers
 		case DELAY1_LSB_REGISTER:
 			snprintf_P(uart_message_string, BUFFER_SIZE - 1,
 					PSTR("%s%x %x Delay1 LSB "), uart_message_string,
-					DELAY2_LSB_REGISTER, registers[DELAY2_LSB_REGISTER_INDEX]);
+					DELAY1_LSB_REGISTER, registers[DELAY1_MIDDLE_REGISTER_INDEX]);
 			break;
 		case DELAY2_MSB_REGISTER:
 			snprintf_P(uart_message_string, BUFFER_SIZE - 1,
