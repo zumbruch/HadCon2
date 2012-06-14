@@ -37,21 +37,6 @@
 #define PULSE 0x83
 #define PSEUDORAND_TIME_PULSE 0x84
 
-enum steps{
-   step1=0,
-   step2,
-   step3,
-   step4,
-   step5,
-   step6,
-   step7,
-   step8,
-   step9,
-   step10,
-   step11,
-   step12
-};
-
 enum registerIndex {
 	DELAY1_MSB_REGISTER_INDEX = 0,
 	DELAY1_MIDDLE_REGISTER_INDEX,
