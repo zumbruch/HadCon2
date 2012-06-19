@@ -157,16 +157,21 @@ void waveformGeneratorReadRegister(struct uartStruct *ptr_uartStruct)
 
 	//control register address
 	writeInto8bitRegister(  UDR1_register_of_ATMEL_address, CONTROL_REGISTER); //0x00
+
 	//control register in read status
 	writeInto8bitRegister(  UDR1_register_of_ATMEL_address, READ); //0xA0
 
 	//declare UART in order to receive data with baud=1,025Mbps
 	waveformGeneratorDeclareUARTtoReceiveData();
 
+	_delay_us(32); //delay in order to synchronize the first recieving byte
+
+
 	// saving value of the registers from FPGA at the table "registers[]"
 	for (step = 0; step < MAX_REGISTER_INDEX; step++)
 	{
 		registers[step] = readFrom8bitRegister((uint8_t) UDR1_register_of_ATMEL_address & 0xFF );
+		_delay_us(16); // delay between each byte
 	} //end for loop
 
 	//declare UART in order to send data with baud=1,025Mbps (twice on purpose!)
