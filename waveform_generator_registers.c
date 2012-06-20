@@ -166,7 +166,6 @@ void waveformGeneratorReadRegister(struct uartStruct *ptr_uartStruct)
 
 	_delay_us(32); //delay in order to synchronize the first recieving byte
 
-
 	// saving value of the registers from FPGA at the table "registers[]"
 	for (step = 0; step < MAX_REGISTER_INDEX; step++)
 	{
