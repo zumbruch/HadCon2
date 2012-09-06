@@ -23,5 +23,6 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 
 uint8_t owiADCMemoryWriteByte(unsigned char bus_pattern, unsigned char * id, uint16_t address, uint8_t data, uint8_t maxTrials);
 
+uint8_t owiADCConvert(unsigned char bus_pattern, unsigned char * id);
 #endif
 
