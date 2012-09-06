@@ -21,7 +21,7 @@ int8_t owiMakeADCConversions( uint8_t *pins );/*this function makes ADC conversi
 
 uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char * id, uint16_t *array_chn, const int8_t size );
 
-uint8_t owiADCMemoryWriteByte(unsigned char bus_pattern, unsigned char * id, uint8_t addressLSB, uint8_t addressMSB, uint8_t data, uint8_t maxTrials);
+uint8_t owiADCMemoryWriteByte(unsigned char bus_pattern, unsigned char * id, uint16_t address, uint8_t data, uint8_t maxTrials);
 
 #endif
 
