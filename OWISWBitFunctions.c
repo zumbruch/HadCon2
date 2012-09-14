@@ -23,6 +23,9 @@
 
 #ifdef OWI_SOFTWARE_DRIVER
 
+#include <stdio.h>
+#include <stdarg.h>
+
 #include <avr/io.h>
 #include <avr/interrupt.h>//before changing it was inavr.h
 #include <util/delay.h>

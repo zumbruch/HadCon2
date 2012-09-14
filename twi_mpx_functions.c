@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include "twi_mpx_functions.h"
 #include "twi_master.h"
 

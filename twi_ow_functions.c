@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include "twi_master.h"
 #include "twi_ow_functions.h"
 

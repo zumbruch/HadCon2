@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 /*
  * VERSION 1.0 Januar 7th 2010 LATE  File: 'one_wire_dualSwitch.c'

@@ -6,6 +6,7 @@
  */
 #include <stdint.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h> 
 #include <stddef.h>
 #include <math.h>
