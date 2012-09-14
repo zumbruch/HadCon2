@@ -53,7 +53,6 @@ uint8_t generateCommonPinsPattern(uint8_t *pins, const uint16_t owiBusMask, cons
 
 uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex);
 
-
 enum owiReadWriteStatus
 {
    owiReadWriteStatus_OK = 0x0,
