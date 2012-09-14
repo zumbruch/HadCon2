@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
@@ -71,8 +72,9 @@ int8_t owiReadDevicesID( uint8_t *pins )
       {
           if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
           {
-              snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) bus: %i passive (pin pattern 0x%x owiBusMask 0x%x)"), __LINE__, __FILE__,
-                      b, pins[b],owiBusMask);
+              snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - bus: %i passive (pin pattern 0x%x owiBusMask 0x%x)"),
+            		  __LINE__, __FILE__, __FUNCTION__,
+            		  b, pins[b],owiBusMask);
               UART0_Send_Message_String(NULL,0);
           }
           continue;
@@ -81,8 +83,9 @@ int8_t owiReadDevicesID( uint8_t *pins )
       {
           if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
           {
-              snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"), __LINE__, __FILE__,
-                      b, pins[b],owiBusMask);
+              snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"),
+            		  __LINE__, __FILE__, __FUNCTION__,
+            		  b, pins[b],owiBusMask);
               UART0_Send_Message_String(NULL,0);
           }
       }
@@ -91,8 +94,9 @@ int8_t owiReadDevicesID( uint8_t *pins )
       {
           if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
           {
-                  snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"), __LINE__, __FILE__,
-                                  b, pins[b],owiBusMask);
+                  snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"),
+                		  __LINE__, __FILE__, __FUNCTION__,
+                		  b, pins[b],owiBusMask);
                   UART0_Send_Message_String(NULL,0);
           }
       }
@@ -106,7 +110,7 @@ int8_t owiReadDevicesID( uint8_t *pins )
 
          if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
          {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) devices detected"), __LINE__, __FILE__);
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - devices detected"), __LINE__, __FILE__, __FUNCTION__);
             UART0_Send_Message_String(NULL,0);
          }
 
@@ -156,9 +160,9 @@ int8_t owiReadDevicesID( uint8_t *pins )
                         owi_IDs[countDEV][6], owi_IDs[countDEV][7]);
 
                snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                          PSTR("DEBUG (%4i, %s) bus: %i (0x%x), search loop total: %i 1/bus: %i ID: %s"),
-                          __LINE__, __FILE__,
-                          b, owi_IDs_pinMask[countDEV],
+                          PSTR("DEBUG (%4i, %s) fcn:%s - bus: %i (0x%x), search loop total: %i 1/bus: %i ID: %s"),
+                         __LINE__, __FILE__, __FUNCTION__,
+                         b, owi_IDs_pinMask[countDEV],
                           countDEV, countDEVbus, owi_id_string );
                UART0_Send_Message_String(NULL,0);
             }
@@ -171,7 +175,8 @@ int8_t owiReadDevicesID( uint8_t *pins )
          if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
          {
             snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) bus: %i found %i devices"),__LINE__, __FILE__,
+                       PSTR("DEBUG (%4i, %s) fcn:%s - bus: %i found %i devices"),
+                       __LINE__, __FILE__, __FUNCTION__,
                        b, countDEVbus);
             UART0_Send_Message_String(NULL,0);
          }
@@ -180,7 +185,7 @@ int8_t owiReadDevicesID( uint8_t *pins )
       {
          if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
          {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) no_device_is_connected_to_the_bus"), __LINE__, __FILE__);
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - no_device_is_connected_to_the_bus"), __LINE__, __FILE__, __FUNCTION__);
             UART0_Send_Message_String(NULL,0);
          }
          continue;
@@ -191,10 +196,11 @@ int8_t owiReadDevicesID( uint8_t *pins )
       general_errorCode = CommunicationError(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, 1, NULL, 0);
    }
 
+
    if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
    {
       snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                 PSTR("DEBUG (%4i, %s) all:  found %i devices"),__LINE__, __FILE__,
+                 PSTR("DEBUG (%4i, %s) fcn:%s - all:  found %i devices"),__LINE__, __FILE__, __FUNCTION__,
                  countDEV);
       UART0_Send_Message_String(NULL,0);
    }
@@ -211,31 +217,38 @@ int8_t owiReadDevicesID( uint8_t *pins )
 
 int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
 {
-#define FOUND_DEVICE_STRING_LENGTH 60
-   char foundDevice[FOUND_DEVICE_STRING_LENGTH]; /*string variable to store all found devices*/
+#define OWI_FOUND_DEVICE_STRING_LENGTH 60
+   char foundDevice[OWI_FOUND_DEVICE_STRING_LENGTH]; /*string variable to store all found devices*/
    uint8_t familyCode = 0;
    uint8_t countFoundFamilyCode = 0;
    uint8_t deviceIndex = 0;
 
    if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
    {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:owiShowDevicesID"), __LINE__, __FILE__);
+      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - fcn:%s"), __LINE__, __FILE__, __FUNCTION__);
       UART0_Send_Message_String(NULL,0);
    }
 
-   //if ( NULL == ptr_myuartStruct ) { ptr_myuartStruct = ptr_uartStruct ;}
+/*
+   if ( NULL == ptr_myuartStruct )
+   {
+	   ptr_myuartStruct = ptr_uartStruct ;
+   }
+*/
+
 
    countDEV = owiReadDevicesID( BUSES );
 
    /* once clear output string (later cleared by output procedure) */
-   clearString(foundDevice, FOUND_DEVICE_STRING_LENGTH);
+   clearString(foundDevice, OWI_FOUND_DEVICE_STRING_LENGTH);
 
    /* check size of family code */
    if ( 0 < ptr_uartStruct->number_of_arguments  && 0xFF < ptr_uartStruct->Uart_Message_ID  )
    {
       if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
       {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) invalid family code %i"), __LINE__, __FILE__,ptr_uartStruct->Uart_Message_ID  );
+         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - invalid family code %i"),__LINE__, __FILE__, __FUNCTION__,
+        		 ptr_uartStruct->Uart_Message_ID  );
          UART0_Send_Message_String(NULL,0);
       }
 
@@ -246,7 +259,8 @@ int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
    {
       if ( eventDebugVerbose <= debug && ((debugMask >> debugOWI) & 1))
       {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) valid family code %i"), __LINE__, __FILE__,ptr_uartStruct->Uart_Message_ID  );
+         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - valid family code %i"),__LINE__, __FILE__, __FUNCTION__,
+        		  ptr_uartStruct->Uart_Message_ID  );
          UART0_Send_Message_String(NULL,0);
       }
 
@@ -282,13 +296,11 @@ int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
                owi_IDs[deviceIndex][4], owi_IDs[deviceIndex][5], owi_IDs[deviceIndex][6], owi_IDs[deviceIndex][7]);
 
       /*send the data to see the list of all found devices*/
-      snprintf_P(foundDevice, FOUND_DEVICE_STRING_LENGTH - 1, PSTR("%sbus mask: "), message, countFoundFamilyCode);
-      snprintf(foundDevice, FOUND_DEVICE_STRING_LENGTH - 1, "%s0x%02X ", foundDevice, owi_IDs_pinMask[deviceIndex]);
-      snprintf_P(foundDevice, FOUND_DEVICE_STRING_LENGTH - 1, PSTR("%sID: %s"), foundDevice, owi_id_string);
-#warning output may hide information by just using '\\r'
-      strncat_P(foundDevice,PSTR("\r"), FOUND_DEVICE_STRING_LENGTH -1);
+      snprintf_P(foundDevice, OWI_FOUND_DEVICE_STRING_LENGTH - 1, PSTR("%sbus mask: "), message, countFoundFamilyCode);
+      snprintf(foundDevice, OWI_FOUND_DEVICE_STRING_LENGTH - 1, "%s0x%02X ", foundDevice, owi_IDs_pinMask[deviceIndex]);
+      snprintf_P(foundDevice, OWI_FOUND_DEVICE_STRING_LENGTH - 1, PSTR("%sID: %s"), foundDevice, owi_id_string);
       /*send the data*/
-      UART0_Send_Message_String_woLF(foundDevice, FOUND_DEVICE_STRING_LENGTH);
+      UART0_Send_Message_String(foundDevice, OWI_FOUND_DEVICE_STRING_LENGTH);
 
       countFoundFamilyCode++;
    } //end of for deviceIndex
@@ -296,8 +308,6 @@ int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
    // if any device has been found, add a newline at the end
    if (0 < countFoundFamilyCode)
    {
-      UART0_Transmit('\n');
-
       clearString(uart_message_string, BUFFER_SIZE);
       snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sfound %i devices"), message, countFoundFamilyCode);
       UART0_Send_Message_String(NULL,0);
@@ -390,8 +400,9 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
       {
          if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 0x1 ) )
           {
-             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:FindFamilyDevicesAndGetValues: no matching ID found"),
-                         __LINE__, __FILE__, owi_IDs_pinMask[deviceIndex], owiBusMask);
+             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - no matching ID found"),
+                        __LINE__, __FILE__, __FUNCTION__,
+                        owi_IDs_pinMask[deviceIndex], owiBusMask);
              UART0_Send_Message_String(NULL,0);
           }
          return 0;
@@ -436,8 +447,9 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
       {
           if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 0x1 ) )
            {
-              snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:FindFamilyDevicesAndGetValues: bus %i doesn't match owiBusMask (0x%x)"),
-                          __LINE__, __FILE__, owi_IDs_pinMask[deviceIndex], owiBusMask);
+              snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - bus %i doesn't match owiBusMask (0x%x)"),
+                         __LINE__, __FILE__, __FUNCTION__,
+                         owi_IDs_pinMask[deviceIndex], owiBusMask);
               UART0_Send_Message_String(NULL,0);
            }
          continue;
@@ -458,7 +470,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
       {
          if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 0x1 ) )
          {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:owiFindFamilyDevicesAndAccessValues: READ ACCESS"), __LINE__, __FILE__);
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - READ ACCESS"), __LINE__, __FILE__, __FUNCTION__);
             UART0_Send_Message_String(NULL, 0);
          }
          switch ( familyCode )
@@ -466,8 +478,9 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
             case FAMILY_DS2450_ADC:
                if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
                {
-                  snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:FindFamilyDevicesAndGetValues bus %i call: ReadADCchannels")
-                             , __LINE__, __FILE__, owi_IDs_pinMask[deviceIndex]);
+                  snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - bus %i call: ReadADCchannels")
+                             ,__LINE__, __FILE__, __FUNCTION__,
+                             owi_IDs_pinMask[deviceIndex]);
                   UART0_Send_Message_String(NULL,0);
                }
 
@@ -476,8 +489,9 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
                if ( eventDebug <= debug )
                {
                   snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                             PSTR("DEBUG (%4i, %s) fcn:FindFamilyDevicesAndGetValues bus %i: returned %i"),
-                             __LINE__, __FILE__, owi_IDs_pinMask[deviceIndex], readValueADC);
+                             PSTR("DEBUG (%4i, %s) fcn:%s - bus %i: returned %i"),
+                            __LINE__, __FILE__, __FUNCTION__,
+                            owi_IDs_pinMask[deviceIndex], readValueADC);
                   UART0_Send_Message_String(NULL,0);
                }
 
@@ -493,8 +507,9 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
                if ( eventDebug <= debug )
                {
                   snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                             PSTR("DEBUG (%4i, %s) fcn:FindFamilyDevicesAndGetValues bus_pattern %x : returned %i"),
-                             __LINE__, __FILE__, owi_IDs_pinMask[deviceIndex], readValueADC);
+                             PSTR("DEBUG (%4i, %s) fcn:%s - bus_pattern %x : returned %i"),
+                            __LINE__, __FILE__, __FUNCTION__,
+                            owi_IDs_pinMask[deviceIndex], readValueADC);
                   UART0_Send_Message_String(NULL,0);
                }
 
@@ -551,7 +566,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
       {
          if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 0x1 ) )
          {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:owiFindFamilyDevicesAndAccessValues: WRITE ACCESS"), __LINE__, __FILE__);
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - WRITE ACCESS"), __LINE__, __FILE__, __FUNCTION__);
             UART0_Send_Message_String(NULL, 0);
          }
 
@@ -733,8 +748,8 @@ uint8_t owiCheckReadWriteReturnStatus( uint32_t status )
       case owiReadStatus_owi_bus_mismatch: /*bus pattern didn't match owiBusMask*/
          if ( eventDebug <= debug )
          {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:owiCheckReadReturnStatus: owi bus mask didn't match"),
-                       __LINE__, __FILE__);
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - owi bus mask didn't match"),
+                       __LINE__, __FILE__, __FUNCTION__);
             UART0_Send_Message_String(NULL, 0);
          }
          return 1;
@@ -811,8 +826,9 @@ uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex)
 
    if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 1 ) )
    {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) ConvertUartDataToOwiStruct: numeric length of argument '%s' is %i"),
-                 __LINE__, __FILE__, setParameter[parameterIndex], numericLength);
+      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - numeric length of argument '%s' is %i"),
+                __LINE__, __FILE__, __FUNCTION__,
+                setParameter[parameterIndex], numericLength);
       UART0_Send_Message_String(NULL,0);
    }
 
@@ -832,7 +848,8 @@ uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex)
       ptr_owiStruct->idSelect_flag = TRUE;
       if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 1 ) )
       {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) ConvertUartDataToOwiStruct: argument %iis an ID:"), __LINE__, __FILE__, parameterIndex);
+         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - argument %iis an ID:"),__LINE__, __FILE__, __FUNCTION__,
+        		   parameterIndex);
          snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %02X%02X%02X%02X%02X%02X%02X%02X", uart_message_string,
                   ptr_owiStruct->id[0], ptr_owiStruct->id[1], ptr_owiStruct->id[2], ptr_owiStruct->id[3],
                   ptr_owiStruct->id[4], ptr_owiStruct->id[5], ptr_owiStruct->id[6], ptr_owiStruct->id[7]);
@@ -845,7 +862,8 @@ uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex)
       ptr_owiStruct->idSelect_flag = FALSE;
       if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 1 ) )
       {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) ConvertUartDataToOwiStruct: argument %i is NOT an ID"), __LINE__, __FILE__, parameterIndex);
+         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - argument %i is NOT an ID"),__LINE__, __FILE__, __FUNCTION__,
+        		 parameterIndex);
          UART0_Send_Message_String(NULL,0);
       }
       return 0;
@@ -925,15 +943,17 @@ uint8_t ConvertUartDataToOwiStruct(void)
 
    if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 1 ) )
    {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) ConvertUartDataToOwiStruct: number of arguments: %i"), __LINE__, __FILE__, numberOfArguments);
+      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - number of arguments: %i"),__LINE__, __FILE__, __FUNCTION__,
+    		  numberOfArguments);
       UART0_Send_Message_String(NULL,0);
    }
 
    if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
    {
       snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                 PSTR("DEBUG (%4i, %s) fcn:ConvertUartDataToOwiStruct: %i argument(s)"),
-                 __LINE__, __FILE__, numberOfArguments);
+                 PSTR("DEBUG (%4i, %s) fcn:%s - %i argument(s)"),
+                __LINE__, __FILE__, __FUNCTION__,
+                numberOfArguments);
       UART0_Send_Message_String(NULL,0);
 
    }
@@ -1010,8 +1030,8 @@ uint8_t ConvertUartDataToOwiStruct(void)
 
                if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 1 ) )
                {
-                  snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) ConvertUartDataToOwiStruct: second argument sets init_flag to: %i "), __LINE__, __FILE__,
-                             ptr_owiStruct->init_flag);
+                  snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - second argument sets init_flag to: %i "),__LINE__, __FILE__, __FUNCTION__,
+                		  ptr_owiStruct->init_flag);
                   UART0_Send_Message_String(NULL,0);
                }
             }
@@ -1034,8 +1054,8 @@ uint8_t ConvertUartDataToOwiStruct(void)
 
                      if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 1 ) )
                      {
-                        snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) ConvertUartDataToOwiStruct: second argument sets init_flag to: %i "), __LINE__, __FILE__,
-                                   ptr_owiStruct->init_flag);
+                        snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s - second argument sets init_flag to: %i "),__LINE__, __FILE__, __FUNCTION__,
+                        		ptr_owiStruct->init_flag);
                         UART0_Send_Message_String(NULL,0);
                      }
                   }
@@ -1176,9 +1196,9 @@ uint8_t checkBusAndDeviceActivityMasks(uint8_t pins, int8_t busPatternIndex, uin
       if ( TRUE == verbose && eventDebugVerbose <= debug && ((debugMask >> debugOWI) & 1))
       {
          snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                    PSTR("DEBUG (%4i, %s) checkBusAndDeviceActivityMasks bus: %i differs (pin pattern 0x%x owiBusMask 0x%x)"),
-                    __LINE__, __FILE__,
-                    busPatternIndex, pins, owiBusMask);
+                    PSTR("DEBUG (%4i, %s) fcn:%s - checkBusAndDeviceActivityMasks bus: %i differs (pin pattern 0x%x owiBusMask 0x%x)"),
+                   __LINE__, __FILE__, __FUNCTION__,
+                   busPatternIndex, pins, owiBusMask);
          UART0_Send_Message_String(NULL,0);
       }
       return 1;
@@ -1188,9 +1208,9 @@ uint8_t checkBusAndDeviceActivityMasks(uint8_t pins, int8_t busPatternIndex, uin
       if ( TRUE == verbose && eventDebug <= debug && ((debugMask >> debugOWI) & 1))
       {
          snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                    PSTR("DEBUG (%4i, %s) checkBusAndDeviceActivityMasks bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"),
-                    __LINE__, __FILE__,
-                    busPatternIndex, pins,owiBusMask);
+                    PSTR("DEBUG (%4i, %s) fcn:%s - checkBusAndDeviceActivityMasks bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"),
+                  __LINE__, __FILE__, __FUNCTION__,
+                  busPatternIndex, pins,owiBusMask);
          UART0_Send_Message_String(NULL,0);
       }
    }
@@ -1201,9 +1221,9 @@ uint8_t checkBusAndDeviceActivityMasks(uint8_t pins, int8_t busPatternIndex, uin
       if ( TRUE == verbose && eventDebugVerbose <= debug && ((debugMask >> debugOWI) & 1))
       {
          snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                    PSTR("DEBUG (%4i, %s) checkBusAndDeviceActivityMasks bus: %i Devices: NONE (pin pattern 0x%x owiDeviceMask 0x%x)"),
-                    __LINE__, __FILE__,
-                    busPatternIndex, pins,owiDeviceMask);
+                    PSTR("DEBUG (%4i, %s) fcn:%s - checkBusAndDeviceActivityMasks bus: %i Devices: NONE (pin pattern 0x%x owiDeviceMask 0x%x)"),
+                   __LINE__, __FILE__, __FUNCTION__,
+                   busPatternIndex, pins,owiDeviceMask);
          UART0_Send_Message_String(NULL,0);
       }
 
@@ -1214,9 +1234,9 @@ uint8_t checkBusAndDeviceActivityMasks(uint8_t pins, int8_t busPatternIndex, uin
       if ( TRUE == verbose && eventDebug <= debug && ((debugMask >> debugOWI) & 1))
       {
          snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                    PSTR("DEBUG (%4i, %s) checkBusAndDeviceActivityMasks bus: %i Devices: some (pin pattern 0x%x owiDeviceMask 0x%x)"),
-                    __LINE__, __FILE__,
-                    busPatternIndex, pins,owiDeviceMask);
+                    PSTR("DEBUG (%4i, %s) fcn:%s - checkBusAndDeviceActivityMasks bus: %i Devices: some (pin pattern 0x%x owiDeviceMask 0x%x)"),
+                   __LINE__, __FILE__, __FUNCTION__,
+                   busPatternIndex, pins,owiDeviceMask);
          UART0_Send_Message_String(NULL,0);
       }
    }
@@ -1224,8 +1244,9 @@ uint8_t checkBusAndDeviceActivityMasks(uint8_t pins, int8_t busPatternIndex, uin
    if ( TRUE == verbose && eventDebug <= debug && ((debugMask >> debugOWI) & 1))
    {
       snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                 PSTR("DEBUG (%4i, %s) checkBusAndDeviceActivityMasks bus: %i passed all criteria)"),
-                 __LINE__, __FILE__, busPatternIndex);
+                 PSTR("DEBUG (%4i, %s) fcn:%s - checkBusAndDeviceActivityMasks bus: %i passed all criteria)"),
+                __LINE__, __FILE__, __FUNCTION__,
+                busPatternIndex);
       UART0_Send_Message_String(NULL,0);
    }
 
@@ -1257,8 +1278,9 @@ uint8_t generateCommonPinsPattern(uint8_t *pins, const uint16_t owiBusMask, cons
    if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
    {
       snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                 PSTR("DEBUG (%4i, %s) fcn:generateCommonPattern bus: owiDeviceMask = 0x%x"),
-                 __LINE__, __FILE__,owiDeviceMask);
+                 PSTR("DEBUG (%4i, %s) fcn:%s - bus: owiDeviceMask = 0x%x"),
+                __LINE__, __FILE__, __FUNCTION__,
+                owiDeviceMask);
       UART0_Send_Message_String(NULL,0);
 
    }
@@ -1270,9 +1292,9 @@ uint8_t generateCommonPinsPattern(uint8_t *pins, const uint16_t owiBusMask, cons
          if ( eventDebugVerbose <= debug && ((debugMask >> debugOWI) & 1))
          {
             snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) fcn:generateCommonPattern bus: checkBusAndDeviceActivityMasks failed"),
-                       __LINE__, __FILE__,
-                       busPatternIndex, pins[busPatternIndex],commonPins);
+                       PSTR("DEBUG (%4i, %s) fcn:%s - bus: checkBusAndDeviceActivityMasks failed"),
+                      __LINE__, __FILE__, __FUNCTION__,
+                      busPatternIndex, pins[busPatternIndex],commonPins);
             UART0_Send_Message_String(NULL,0);
             continue;
          }
@@ -1282,8 +1304,8 @@ uint8_t generateCommonPinsPattern(uint8_t *pins, const uint16_t owiBusMask, cons
          if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
          {
             snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) fcn:generateCommonPattern bus: %i combining 0x%x to common set of pins 0x%x)"),
-                       __LINE__, __FILE__,
+                       PSTR("DEBUG (%4i, %s) fcn:%s - bus: %i combining 0x%x to common set of pins 0x%x)"),
+                       __LINE__, __FILE__, __FUNCTION__,
                        busPatternIndex, pins[busPatternIndex],commonPins);
             UART0_Send_Message_String(NULL,0);
          }
@@ -1294,9 +1316,9 @@ uint8_t generateCommonPinsPattern(uint8_t *pins, const uint16_t owiBusMask, cons
    if ( eventDebug <= debug && ((debugMask >> debugOWI) & 1))
    {
       snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                 PSTR("DEBUG (%4i, %s) fcn:generateCommonPattern final common pins: 0x%x"),
-                 __LINE__, __FILE__,
-                 commonPins);
+                 PSTR("DEBUG (%4i, %s) fcn:%s - final common pins: 0x%x"),
+                __LINE__, __FILE__, __FUNCTION__,
+                commonPins);
       UART0_Send_Message_String(NULL,0);
 
    }
