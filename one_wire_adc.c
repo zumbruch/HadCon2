@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
@@ -1156,6 +1157,26 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
       /* Match id found earlier*/
    OWI_MatchRom(id, bus_pattern); // Match id found earlier
 
+   /*
+    * READ MEMORY [AAH]
+    *
+    * The Read Memory command is used to read conversion results, control/status data and alarm settings.
+    * The bus master follows the command byte with a two byte address (TA1=(T7:T0), TA2=(T15:T8)) that
+    * indicates a starting byte location within the memory map. With every subsequent read data time slot the
+    * bus master receives data from the DS2450 starting at the supplied address and continuing until the end of
+    * an eight-byte page is reached. At that point the bus master will receive a 16-bit CRC of the command
+    * byte, address bytes and data bytes. This CRC is computed by the DS2450 and read back by the bus
+    * master to check if the command word, starting address and data were received correctly. If the CRC read
+    * by the bus master is incorrect, a Reset Pulse must be issued and the entire sequence must be repeated.
+    * Note that the initial pass through the Read Memory flow chart will generate a 16-bit CRC value that is the
+    * result of clearing the CRC-generator and then shifting in the command byte followed by the two address
+    * bytes, and finally the data bytes beginning at the first addressed memory location and continuing through
+    * to the last byte of the addressed page. Subsequent passes through the Read Memory flow chart will
+    * generate a 16-bit CRC that is the result of clearing the CRC-generator and then shifting in the new data
+    * bytes starting at the first byte of the next page.
+    *
+    */
+
 #warning TODO: is the CRC check described above done here? if this sequence is repeated implement a timeout counter
 
    OWI_SendByte(DS2450_READ_MEMORY, bus_pattern);
@@ -1171,6 +1192,7 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 
    /* Receive CRC */
    CRC = OWI_ReceiveWord(bus_pattern);
+   CRC |= OWI_ReceiveWord(bus_pattern);
 
    /* Check CRC */
    flag = TRUE;
@@ -1186,11 +1208,12 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
    }
 #endif
 }
+   OWI_DetectPresence(bus_pattern);
 
    if (FALSE == flag)
    {
 #warning TODO: check for this value
-      return 1 | (owiReadWriteStatus_MAXIMUM_INDEX);
+	   return 1 | (owiReadWriteStatus_MAXIMUM_INDEX << OWI_ADC_DS2450_MAX_RESOLUTION);
    }
    else
    {
@@ -1199,8 +1222,10 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
          snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s retrieved data and end"), __LINE__, __FILE__, __FUNCTION__);
          UART0_Send_Message_String(NULL,0);
       }
-      return 1 | (owiReadWriteStatus_OK << OWI_ADC_DS2450_MAX_RESOLUTION);
+      return 0 | (owiReadWriteStatus_OK << OWI_ADC_DS2450_MAX_RESOLUTION);
    }
+
+
 }//END of owiReadChannelsOfSingleADCs function
 
 
