@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
@@ -1696,6 +1697,13 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
 
     return 0;
 }//END of CommunicationError function
+
+void printDebug( uint8_t debugLevel, uint32_t debugMask, char* function, uint32_t line, char* file, const prog_char *format, va_list va)
+{
+	vsnprintf_P(uart_message_string, BUFFER_SIZE - 1, format, va);
+	snprintf_P (uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s | %s"),__LINE__, __FILE__, __FUNCTION__, uart_message_string);
+	UART0_Send_Message_String(NULL,0);
+}
 
 /*
  this function initializes all init functions again and activates the interrupt

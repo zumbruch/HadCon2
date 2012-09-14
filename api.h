@@ -10,6 +10,7 @@
 #include "api_debug.h"
 #include "can.h"
 #include <stdint.h>
+#include <stdarg.h>
 
 #define UART_MAX_DATA_ELEMENTS 8
 /* Structure for CPU commands */
@@ -80,6 +81,8 @@ void clearUartStruct( struct uartStruct *ptr_uartStruct ); /* resets all values 
 
 uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const uint8_t flag_printCommand, const prog_char *alternativeErrorMessage,
                             const int16_t alternativeErrorNumber );
+
+void printDebug( uint8_t debugLevel, uint32_t debugMask, char* function, uint32_t line, char* file, const prog_char *format, va_list va);
 
 uint8_t createReceiveHeader( struct uartStruct *ptr_uartStruct, char message_string[], uint16_t size );
 
