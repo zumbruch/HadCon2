@@ -1698,11 +1698,28 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
     return 0;
 }//END of CommunicationError function
 
-void printDebug( uint8_t debugLevel, uint32_t debugMask, char* function, uint32_t line, char* file, const prog_char *format, va_list va)
+void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, const char* function, uint32_t line, const prog_char* file, const prog_char *format, ...)
 {
-	vsnprintf_P(uart_message_string, BUFFER_SIZE - 1, format, va);
-	snprintf_P (uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s | %s"),__LINE__, __FILE__, __FUNCTION__, uart_message_string);
-	UART0_Send_Message_String(NULL,0);
+	if ( debugLevel <= debug && ((debugMask >> debugMaskIndex) & 1))
+	{
+		clearString(message, BUFFER_SIZE);
+		clearString(uart_message_string, BUFFER_SIZE);
+
+		va_list argumentPointers;
+		va_start (argumentPointers, format);
+		vsnprintf_P(message, BUFFER_SIZE - 1, format, argumentPointers);
+		va_end(argumentPointers);
+
+		// header: "DEBUG (%4i, %s, %s ) %s"
+		snprintf_P (uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, "), line);
+		strncat_P(uart_message_string, file, BUFFER_SIZE -1);
+		strncat_P(uart_message_string, PSTR(", "), BUFFER_SIZE -1);
+		strncat(uart_message_string, function, BUFFER_SIZE -1);
+		strncat_P(uart_message_string, PSTR("()) "), BUFFER_SIZE -1);
+		strncat(uart_message_string, message, BUFFER_SIZE -1);
+
+		UART0_Send_Message_String(NULL,0);
+	}
 }
 
 /*
