@@ -59,8 +59,10 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="API-Slave.null.552902338" name="API-Slave"/>
 	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="1">
-		<resource resourceType="PROJECT" workspacePath="/API-Slave (merged 3.1 - 3.0 and some clean-up)"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Preference Configuration">
+			<resource resourceType="PROJECT" workspacePath="/API-Slave (merged 3.1 - 3.0 and some clean-up)"/>
+		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 		<buildTargets>
@@ -115,4 +117,5 @@
 			</profile>
 		</scannerConfigBuildInfo>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 </cproject>
