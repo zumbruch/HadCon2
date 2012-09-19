@@ -123,20 +123,18 @@ void disableJTAG(uint8_t disable)
       /* for version 2 of hadcon it is possible to disable the pull-up resistors necessary for JTAG
        * by setting PG3 of atmel to LOW
        */
-      if ( eventDebug <= debug && ( ( debugMask >> debugApiMisc ) & 0x1 ) )
-      {
-          snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s, %s): JTAG off: PING:0x%x, PORTG:0x%x"), __LINE__, __FILE__,__FUNCTION__, PING&0xFF, PORTG&0xFF);
-          UART0_Send_Message_String(NULL,0);
-      }
+      printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("JTAG off: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 
      PORTG &= ((0x1F) & (~(( 1 << PG3 ) | ( 1 << PG2 ))));
 
-     if ( eventDebug <= debug && ( ( debugMask >> debugApiMisc ) & 0x1 ) )
-      {
-    	 _delay_ms(1000);
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s, %s): JTAG off: PING:0x%x, PORTG:0x%x"), __LINE__, __FILE__,__FUNCTION__, PING&0xFF, PORTG&0xFF);
-         UART0_Send_Message_String(NULL,0);
-      }
+      printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("JTAG off: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+//     if ( eventDebug <= debug && ( ( debugMask >> debugApiMisc ) & 0x1 ) )
+//      {
+//    	 _delay_ms(1000);
+//         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("D ...
+//         UART0_Send_Message_String(NULL,0);
+//      }
+
 #endif
 
    }
@@ -146,20 +144,17 @@ void disableJTAG(uint8_t disable)
       /* for version 2 of hadcon it is necessary to reenable the pull-up resistors necessary for JTAG
        * by setting PG3 of atmel to HIGH
        */
-      if ( eventDebug <= debug && ( ( debugMask >> debugApiMisc ) & 0x1 ) )
-      {
-          snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s, %s): JTAG on: PING:0x%x, PORTG:0x%x"), __LINE__, __FILE__,__FUNCTION__, PING&0xFF, PORTG&0xFF);
-          UART0_Send_Message_String(NULL,0);
-      }
+      printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("JTAG on: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 
      PORTG |=  (0x1 << PG3) | (0x1 << PG2);
 
-     if ( eventDebug <= debug && ( ( debugMask >> debugApiMisc ) & 0x1 ) )
-      {
-    	 _delay_ms(1000);
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s, %s): JTAG on: PING:0x%x, PORTG:0x%x"), __LINE__, __FILE__,__FUNCTION__, PING&0xFF, PORTG&0xFF);
-         UART0_Send_Message_String(NULL,0);
-      }
+      printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("JTAG on: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+//     if ( eventDebug <= debug && ( ( debugMask >> debugApiMisc ) & 0x1 ) )
+//      {
+//    	 _delay_ms(1000);
+//         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("D ...
+//         UART0_Send_Message_String(NULL,0);
+//      }
 #endif
      for ( int i = 0; i < 4; i++)
       {
@@ -182,7 +177,7 @@ void modifyJTAG(struct uartStruct *ptr_uartStruct)
          createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
          strncat_P(uart_message_string, PSTR("disabled: "), BUFFER_SIZE -1);
          strncat_P(uart_message_string, (disableJTAG_flag)?PSTR("TRUE"):PSTR("FALSE"),BUFFER_SIZE -1);
-         UART0_Send_Message_String(NULL,0);
+         UART0_Send_Message_String_p(NULL,0);
          break;
       case 1:
       {

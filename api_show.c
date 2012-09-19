@@ -44,43 +44,25 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 	uint8_t index;
 	//int8_t (*func)(struct uartStruct);
     //struct showCommand_t
-
-    if ( eventDebug <= debug && ( ( debugMask >> debugSHOW ) & 0x1 ) )
-    {
-       snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:show: show begin"), __LINE__, __FILE__);
-       UART0_Send_Message_String(NULL,0);
-    }
+ 	printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("show begin"));
 
 	switch(ptr_uartStruct->number_of_arguments)
 	{
 	case 0:
 		for (index = 0; index < commandShowKeyNumber_MAXIMUM_NUMBER; index++)
 		{
-		    if ( eventDebug <= debug && ( ( debugMask >> debugSHOW ) & 0x1 ) )
-		    {
-		       snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) unused mem now %i "), __LINE__, __FILE__, get_mem_unused());
-		       UART0_Send_Message_String(NULL,0);
-		       snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:show: show all begin %i"),
-		                  __LINE__, __FILE__, index);
-		       UART0_Send_Message_String(NULL,0);
-		    }
+ 			printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("unused mem now %i "), get_mem_unused());
+ 			printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("show all begin %i"),index);
+
 			ptr_uartStruct->number_of_arguments = 1;
 			for (uint8_t i = 0; i < MAX_LENGTH_PARAMETER; i++) {setParameter[1][i]=STRING_END;}
 			snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (const prog_char*) (pgm_read_word( &(commandShowKeywords[index]))));
 
-			if ( eventDebug <= debug && ( ( debugMask >> debugSHOW ) & 0x1 ) )
-			{
-				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s ) fcn:show: recursive call of show with parameter \"%s\" (%p)"),
-						__LINE__, __FILE__, &setParameter[1][0], &setParameter[1][0]);
-				UART0_Send_Message_String(NULL,0);
-			}
+ 			printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("recursive call of show with parameter \"%s\" (%p)"), &setParameter[1][0], &setParameter[1][0]);
+
 			show(ptr_uartStruct);
-			if ( eventDebug <= debug && ( ( debugMask >> debugSHOW ) & 0x1 ) )
-			{
-			   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:show: show all end %i"),
-			              __LINE__, __FILE__, index);
-			   UART0_Send_Message_String(NULL,0);
-			}
+
+ 			printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("show all end %i"), index);
 
 			ptr_uartStruct->number_of_arguments = 0;
 		}
@@ -92,22 +74,12 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		{
 		   if ( 0 == strncmp_P(&setParameter[1][0], (const char*) (pgm_read_word( &(commandShowKeywords[index]))), MAX_LENGTH_PARAMETER) )
 		   {
-		      if ( eventDebug <= debug && ( ( debugMask >> debugSHOW ) & 0x1 ) )
-		      {
-		         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:show: keyword %s matches"),
-		                    __LINE__, __FILE__, &setParameter[1][0]);
-		         UART0_Send_Message_String(NULL,0);
-		      }
-		      break;
+ 			   printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches"),&setParameter[1][0]);
+			   break;
 		   }
 		   else
 		   {
-		      if ( eventDebugVerbose <= debug && ((debugMask >> debugSHOW) & 0x1))
-		      {
-		         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:show: keyword %s doesn't match"),
-		                    __LINE__, __FILE__, &setParameter[1][0]);
-		         UART0_Send_Message_String(NULL,0);
-		      }
+ 			   printDebug_p(eventDebugVerbose, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), &setParameter[1][0]);
 		   }
 		   index++;
 		}
@@ -116,19 +88,16 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		   case commandShowKeyNumber_FREE_MEM_NOW:
 		   case commandShowKeyNumber_UNUSED_MEM_NOW:
 		   case commandShowKeyNumber_UNUSED_MEM_START:
-		      if ( eventDebug <= debug && ( ( debugMask >> debugSHOW ) & 0x1 ) )
-		      {
-		         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:show call showMem for: "),
-		                    __LINE__, __FILE__);
+			   if ( eventDebug <= debug && ((debugMask >> debugSHOW) & 0x1))
+			   {
 		         strncat_P(uart_message_string,(const char*) (pgm_read_word( &(commandShowKeywords[index]))),BUFFER_SIZE -1);
-                 snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s"), uart_message_string);
-		         UART0_Send_Message_String(NULL,0);
-		      }
-		      showMem(ptr_uartStruct, index);
+ 		         printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("call showMem for: %s"), uart_message_string);
+			   }
+			   showMem(ptr_uartStruct, index);
 		      break;
 		   case commandShowKeyNumber_MEM:
 		      createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, index, commandShowKeywords);
-		      UART0_Send_Message_String(NULL,0);
+		      UART0_Send_Message_String_p(NULL,0);
 
 		      showMem(ptr_uartStruct, commandShowKeyNumber_FREE_MEM_NOW);
 		      showMem(ptr_uartStruct, commandShowKeyNumber_UNUSED_MEM_START);
@@ -138,13 +107,9 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		      showErrors(ptr_uartStruct, index);
 		      break;
 		   default:
-		      if ( eventDebug <= debug && ( ( debugMask >> debugSHOW ) & 0x1 ) )
-		      {
-		         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:show call Communication_Error"),
-		                    __LINE__, __FILE__);
-		         UART0_Send_Message_String(NULL,0);
-		      }
-		      CommunicationError(ERRA, -1, 0, PSTR("show:invalid argument"), -1);
+ 		      printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("call Communication_Error"));
+
+		      CommunicationError_p(ERRA, -1, 0, PSTR("show:invalid argument"), -1);
 		      return 1;
 		      break;
 		}
@@ -155,11 +120,7 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		      break;
 	}
 
-	if ( eventDebug <= debug && ( ( debugMask >> debugSHOW ) & 0x1 ) )
-	{
-	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:show: show end"), __LINE__, __FILE__);
-	   UART0_Send_Message_String(NULL,0);
-	}
+     printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("show end"));
 
 	return 0;
 }
@@ -180,7 +141,7 @@ int8_t showMem(struct uartStruct * ptr_uartStruct, uint8_t index)
          memory = unusedMemoryStart;
          break;
       default:
-         CommunicationError(ERRA, -1, 0, PSTR("show:invalid argument"), -1);
+         CommunicationError_p(ERRA, -1, 0, PSTR("show:invalid argument"), -1);
          return 1;
          break;
    }
@@ -189,7 +150,7 @@ int8_t showMem(struct uartStruct * ptr_uartStruct, uint8_t index)
 
    snprintf_P(uart_message_string,BUFFER_SIZE -1, PSTR("%s%i"), uart_message_string, memory);
 
-   UART0_Send_Message_String(NULL,0);
+   UART0_Send_Message_String_p(NULL,0);
 
    return 0;
 }
@@ -214,19 +175,19 @@ int8_t showUnusedMemStart(struct uartStruct * ptr_uartStruct)
 void help_show(void)
 {
    snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV HELP *** show (internal) settings"));
-   UART0_Send_Message_String(NULL,0);
+   UART0_Send_Message_String_p(NULL,0);
    snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV HELP ***     command : SHOW [command_key]"));
-   UART0_Send_Message_String(NULL,0);
+   UART0_Send_Message_String_p(NULL,0);
    snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV HELP *** all response: RECV SHOW command_key1 ... "));
-   UART0_Send_Message_String(NULL,0);
+   UART0_Send_Message_String_p(NULL,0);
    snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV HELP ***               ...               ... "));
-   UART0_Send_Message_String(NULL,0);
+   UART0_Send_Message_String_p(NULL,0);
    snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV HELP ***               RECV SHOW command_keyN ... "));
-   UART0_Send_Message_String(NULL,0);
+   UART0_Send_Message_String_p(NULL,0);
    snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV HELP *** cmd response: RECV SHOW command_key"));
-   UART0_Send_Message_String(NULL,0);
+   UART0_Send_Message_String_p(NULL,0);
    snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV HELP *** SHOW available command_keys"));
-   UART0_Send_Message_String(NULL,0);
+   UART0_Send_Message_String_p(NULL,0);
    for (int i=0; i < commandShowKeyNumber_MAXIMUM_NUMBER; i++)
    {
       snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV HELP ***    "));
@@ -236,7 +197,7 @@ void help_show(void)
       //              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandShowKeywords[i]))), MAX_LENGTH_PARAMETER) ;
       //              strncmp_P(&setParameter[1][0], (const char*) (pgm_read_word( &(commandShowKeywords[index]))), MAX_LENGTH_PARAMETER);
 
-      UART0_Send_Message_String(NULL,0);
+      UART0_Send_Message_String_p(NULL,0);
    }
 }
 */
@@ -257,7 +218,7 @@ void showErrors(struct uartStruct * ptr_uartStruct, uint8_t index)
     {
        for (int err=0; err < errmax[errType]; err++)
        {
-          CommunicationError(errType, err ,0,PSTR("SHOW messages"),0);
+          CommunicationError_p(errType, err ,0,PSTR("SHOW messages"),0);
        }
     }
 }

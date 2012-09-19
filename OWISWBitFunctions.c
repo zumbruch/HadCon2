@@ -325,7 +325,7 @@ unsigned char OWI_ReadBit(unsigned char pins)
 			} // Status Register is in twi_data[0] after this block
 
 			if(0 == busy_counter) {
-				CommunicationError(ERRG,-1,1,PSTR("OW read bit busy time out"), 1000);
+				CommunicationError_p(ERRG,-1,1,PSTR("OW read bit busy time out"), 1000);
 			}
 
 			if( 0x20 == (0x20 & twi_data[0]) ) { // read bit result?
@@ -429,7 +429,7 @@ unsigned char OWI_DetectPresence(unsigned char pins)
 			} // Status Register is in twi_data[0] after this block
 
 			if(0 == busy_counter) {
-				CommunicationError(ERRG,-1,1,PSTR("OW detect presence busy time out"), 1000);
+				CommunicationError_p(ERRG,-1,1,PSTR("OW detect presence busy time out"), 1000);
 			}
 
 			if( 2 == (0x02 & twi_data[0]) ) { //presence detected?

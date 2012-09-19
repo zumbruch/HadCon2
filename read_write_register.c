@@ -85,7 +85,7 @@ void writeRegister(struct uartStruct *ptr_uartStruct)
 					uart_message_string, readback_register);
 		}
 
-		UART0_Send_Message_String(NULL, 0);
+		UART0_Send_Message_String_p(NULL, 0);
 	}
 
 } //END of writeRegisterfunction
@@ -125,7 +125,7 @@ void readRegister(struct uartStruct *ptr_uartStruct)
 				uart_message_string,
 				(uint8_t) (ptr_uartStruct->Uart_Message_ID & 0xFF ), read_register)	;
 
-		UART0_Send_Message_String(NULL, 0);
+		UART0_Send_Message_String_p(NULL, 0);
 
 	}
 } //END of readRegisterfunction

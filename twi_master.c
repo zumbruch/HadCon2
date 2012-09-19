@@ -67,20 +67,12 @@
 void twiMaster(struct uartStruct *ptr_uartStruct)
 {
 	int status = -1;
-	if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) entered twiMaster"), __LINE__, __FILE__);
-		UART0_Send_Message_String(NULL,0);
-	}
+ 	printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("entered twiMaster"));
 
 	status = twiMasterParseUartStruct(ptr_uartStruct);
 	if ( 0 != status )
 	{
-		if ( eventDebug <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-		{
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) argument parsing failed"), __LINE__, __FILE__);
-			UART0_Send_Message_String(NULL,0);
-		}
+ 		printDebug_p(eventDebug, debugTWI, __LINE__, PSTR(__FILE__), PSTR("argument parsing failed"));
 
 		Check_Error(ptr_uartStruct);
 
@@ -92,48 +84,30 @@ void twiMaster(struct uartStruct *ptr_uartStruct)
     switch(ptr_uartStruct->Uart_Message_ID)
     {
     case TWIM_READ:
-		if ( eventDebug <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-		{
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) going to read from twi/i2c"), __LINE__, __FILE__);
-			UART0_Send_Message_String(NULL,0);
-		}
+ 		printDebug_p(eventDebug, debugTWI, __LINE__, PSTR(__FILE__), PSTR("going to read from twi/i2c"));
+
 		Read_from_slave(ptr_uartStruct);
     	break;
     case TWIM_WRITE:
-		if ( eventDebug <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-		{
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) going to write to twi/i2c"), __LINE__, __FILE__);
-			UART0_Send_Message_String(NULL,0);
-		}
-    	Write_to_slave(ptr_uartStruct);
+ 		printDebug_p(eventDebug, debugTWI, __LINE__, PSTR(__FILE__), PSTR("going to write to twi/i2c"));
+
+		Write_to_slave(ptr_uartStruct);
     	break;
     default:
 		twi_errorCode = CommunicationError(ERRT, TWI_ERROR_unknown_command, 0, NULL, 0);
     	break;
     }
 
-    if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) leaving twiMaster"), __LINE__, __FILE__);
-		UART0_Send_Message_String(NULL,0);
-	}
+     printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("leaving twiMaster"));
     return;
 }
 
 uint8_t twiMasterParseUartStruct(struct uartStruct *ptr_uartStruct)
 {
-    if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) parsing UartStruct"), __LINE__, __FILE__);
-		UART0_Send_Message_String(NULL,0);
-	}
+     printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("parsing UartStruct"));
 	/* convert char in hexadecimal*/
 
-    if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) number of arguments %i"), __LINE__, __FILE__, ptr_uartStruct->number_of_arguments);
-		UART0_Send_Message_String(NULL,0);
-	}
+     printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("number of arguments %i"), ptr_uartStruct->number_of_arguments);
 
 	if (
 			( TWIM_WRITE == ptr_uartStruct->Uart_Message_ID && TWIS_MIN_NARGS > ptr_uartStruct->number_of_arguments )
@@ -141,11 +115,8 @@ uint8_t twiMasterParseUartStruct(struct uartStruct *ptr_uartStruct)
 			( TWIM_READ == ptr_uartStruct->Uart_Message_ID && TWIS_MIN_NARGS -1 > ptr_uartStruct->number_of_arguments )
 		)
 	{
-		if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-		{
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) too few arguments (%i) %i"), __LINE__, __FILE__, TWIS_MIN_NARGS, ptr_uartStruct->number_of_arguments);
-			UART0_Send_Message_String(NULL,0);
-		}
+ 		printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("too few arguments (%i) %i"), TWIS_MIN_NARGS, ptr_uartStruct->number_of_arguments);
+
 #warning TODO: implement check on 1st argument if it is a number or a sub-keyword
 #warning TODO: ... to change/read e.g. the proporties of the interface (speed, timeouts, etc ...)
 		twi_errorCode = CommunicationError(ERRT, TWI_ERROR_too_few_numeric_arguments, 0, NULL, 0);
@@ -337,38 +308,23 @@ void Twim_Stop(void)
 void Write_to_slave(struct uartStruct *ptr_uartStruct)
 {
 	uint8_t status = FALSE;
-    if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) entering 'Write to Slave'"), __LINE__, __FILE__);
-		UART0_Send_Message_String(NULL,0);
-	}
+     printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("entering 'Write to Slave'"));
 
-    if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) address is:0x%x"), __LINE__, __FILE__, ptr_uartStruct->Uart_Mask);
-		UART0_Send_Message_String(NULL,0);
-	}
+     printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("address is:0x%x"), ptr_uartStruct->Uart_Mask);
 
     status = Twim_Write_Data(ptr_uartStruct->Uart_Mask, ptr_uartStruct->Uart_Length, &(ptr_uartStruct->Uart_Data[0]));
 
 	if ( TWI_success == status )
 	{
-    	if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-    	{
-    		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) write success"), __LINE__, __FILE__);
-    		UART0_Send_Message_String(NULL,0);
-    	}
+     	printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("write success"));
+
     	twiCreateRecvString(ptr_uartStruct, ptr_uartStruct->Uart_Length, ptr_uartStruct->Uart_Data);
 	}
 	else
 	{
 		TWI_errorAnalysis(status);
 	}
-    if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) leaving 'Write to Slave'"), __LINE__, __FILE__);
-		UART0_Send_Message_String(NULL,0);
-	}
+     printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("leaving 'Write to Slave'"));
 }
 
 uint8_t twiCreateRecvString(struct uartStruct *ptr_uartStruct, uint32_t length, uint16_t array[TWI_MAX_DATA_ELEMENTS])
@@ -394,7 +350,7 @@ uint8_t twiCreateRecvString(struct uartStruct *ptr_uartStruct, uint32_t length, 
 	{
 		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s -OK-"), uart_message_string);
 	}
-	UART0_Send_Message_String(NULL, 0);
+	UART0_Send_Message_String_p(NULL, 0);
 	return 0;
 }
 
@@ -410,11 +366,7 @@ uint8_t twiCreateRecvString(struct uartStruct *ptr_uartStruct, uint32_t length, 
 
 void Read_from_slave(struct uartStruct *ptr_uartStruct)
 {
-    if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) entering 'Read from Slave'"), __LINE__, __FILE__);
-		UART0_Send_Message_String(NULL,0);
-	}
+     printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("entering 'Read from Slave'"));
 
     uint8_t status;
 
@@ -424,23 +376,16 @@ void Read_from_slave(struct uartStruct *ptr_uartStruct)
 	if ( TWI_success == status )
 	{
 
-    	if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-    	{
-    		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) read success"), __LINE__, __FILE__);
-    		UART0_Send_Message_String(NULL,0);
-    	}
-		twiCreateRecvString(ptr_uartStruct, ptr_uartStruct->Uart_Length, twi_data);
+     	printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("read success"));
+
+    	twiCreateRecvString(ptr_uartStruct, ptr_uartStruct->Uart_Length, twi_data);
 	}
 	else
 	{
 		TWI_errorAnalysis(status);
 	}
 
-	if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) leaving 'Read from Slave'"), __LINE__, __FILE__);
-		UART0_Send_Message_String(NULL,0);
-	}
+ 	printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("leaving 'Read from Slave'"));
 }
 
 void TWI_errorAnalysis(uint8_t status)
@@ -448,11 +393,7 @@ void TWI_errorAnalysis(uint8_t status)
 	switch (status)
 	{
 	case TWI_success:
-    	if ( eventDebugVerbose <= debug && ( ( debugMask >> debugTWI ) & 0x1 ) )
-    	{
-    		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) read/write success"), __LINE__, __FILE__);
-    		UART0_Send_Message_String(NULL,0);
-    	}
+     	printDebug_p(eventDebugVerbose, debugTWI, __LINE__, PSTR(__FILE__), PSTR("read/write success"));
 		break;
 	case TWI_start_condition_read_fail:
 		twi_errorCode = CommunicationError(ERRT, TWI_ERROR_Could_not_start_TWI_Bus_for_READ, 0, NULL, 0);

@@ -148,6 +148,12 @@ struct canStruct *ptr_canStruct;
 struct owiStruct owiFrame;
 struct owiStruct *ptr_owiStruct;
 
+/*define function pointers*/
+uint8_t (*printDebug_p)(uint8_t, uint32_t, uint32_t, const prog_char*, const prog_char*, ...) = printDebug;
+int16_t (*UART0_Send_Message_String_p)( char *, uint16_t ) = UART0_Send_Message_String;
+uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, const prog_char*, const int16_t) = CommunicationError;
+void (*UART0_Transmit_p)( uint8_t ) = UART0_Transmit;
+
 //struct owiIdStruct owiIDs[NUM_DEVICES];
 //struct owiIdStruct *ptr_owiIDs[NUM_DEVICES];
 
@@ -200,49 +206,32 @@ int main( void )
 
    clearString(uart_message_string, BUFFER_SIZE);
    snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("SYST system (re)started"));
-   UART0_Send_Message_String(NULL,0);
+   UART0_Send_Message_String_p(NULL,0);
 
-   if ( verboseDebug <= debug && ( ( debugMask >> debugMain ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) starting main (after init)"), __LINE__, __FILE__);
-      UART0_Send_Message_String(NULL,0);
-      owiTemperatureFindParasiticlyPoweredDevices(TRUE);
+   printDebug_p(eventDebug, debugMain, __LINE__, PSTR(__FILE__), PSTR("starting main (after init)"));
 
-/*
-      char c = 0;
-      char s[] = "\0";
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) String tests: char c=0:%i '0':%i \"\\0\"==0? => %s ending==\"\\0\"? => %s"), __LINE__, __FILE__, c,
-                 '0', s[0] == 0 ? "yes" : "no", s[0] == s[1] ? "yes" : "no");
-      UART0_Send_Message_String(NULL,0);
-*/
-   }
    showMem(ptr_uartStruct, commandShowKeyNumber_UNUSED_MEM_START);
    showMem(ptr_uartStruct, commandShowKeyNumber_UNUSED_MEM_NOW);
    owiApiFlag(ptr_uartStruct, owiApiCommandKeyNumber_COMMON_ADC_CONVERSION);
    owiApiFlag(ptr_uartStruct, owiApiCommandKeyNumber_COMMON_TEMPERATURE_CONVERSION);
 
+   if ( verboseDebug <= debug && ( ( debugMask >> debugMain ) & 0x1 ) )
+   {
+	   owiTemperatureFindParasiticlyPoweredDevices(TRUE);
+   }
+
    // main endless loop
-   int16_t indi = 0;
+   uint32_t mainLoopIndex = 0;
 
    while ( 1 )
    {
-
-
-      indi++;
+	   mainLoopIndex++;
 //	  if (0==indi%1000) {PING = (0x1 << 0);}
 
-      if ( periodicDebug <= debug )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) ALIV --- alive --- %i"), __LINE__, __FILE__, indi);
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(periodicDebug, debugMain, __LINE__, PSTR(__FILE__), PSTR("ALIV --- alive --- %i"), mainLoopIndex);
 
       // UART has received a string
-      if ( periodicDebug <= debug && ( ( debugMask >> debugUART ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) UART%s"), __LINE__, __FILE__, ( 1 == uartReady ) ? "--yes" : "");
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(periodicDebug, debugUART, __LINE__, PSTR(__FILE__), PSTR("UART%s"), ( 1 == uartReady ) ? "--yes" : "");
 
       if ( 1 == uartReady )/* of the ISR was completely receive a string */
       {
@@ -256,11 +245,7 @@ int main( void )
          /* clear uartString, avoiding memset*/
          clearString(uartString, BUFFER_SIZE);
 
-         if ( eventDebug < debug && ((debugMask >> debugUART) & 0x1) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) UART string received:%s"), __LINE__, __FILE__, decrypt_uartString);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugUART, __LINE__, PSTR(__FILE__), PSTR("UART string received:%s"), decrypt_uartString);
 
          Process_Uart_Event();
 
@@ -271,11 +256,7 @@ int main( void )
       }
 
       // CANbus interface has received a message
-      if ( periodicDebug <= debug && ( ( debugMask >> debugCAN ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) CAN %s"), __LINE__, __FILE__, ( 1 == canReady ) ? "--yes" : "");
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(periodicDebug, debugCAN, __LINE__, PSTR(__FILE__), PSTR("CAN %s"), ( 1 == canReady ) ? "--yes" : "");
 
       if ( 1 == canReady ) /* of the ISR data has been fully received */
       {
@@ -290,11 +271,8 @@ int main( void )
       }
 
       // timer 0 set by ISR
-      if ( periodicDebug <= debug && ( ( debugMask >> debugTIMER0 ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) timer0%s"), __LINE__, __FILE__, ( 1 == timer0Ready ) ? "--yes" : "");
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(periodicDebug, debugTIMER0, __LINE__, PSTR(__FILE__), PSTR("timer 0%s"), ( 1 == timer0Ready ) ? "--yes" : "");
+
       if ( 1 == timer0Ready )
       {
          cli();
@@ -304,11 +282,8 @@ int main( void )
       }
 
       // timer 1 set by ISR
-      if ( periodicDebug <= debug && ( ( debugMask >> debugTIMER1 ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) timer1%s"), __LINE__, __FILE__, ( 1 == timer1Ready ) ? "--yes" : "");
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(periodicDebug, debugTIMER1, __LINE__, PSTR(__FILE__), PSTR("timer1 %s"), ( 1 == timer1Ready ) ? "--yes" : "");
+
       if ( 1 == timer1Ready )
       {
          if ( flag_pingActive )
@@ -316,7 +291,7 @@ int main( void )
             cli();
             // disable interrupts
             strncpy(uart_message_string, keepAliveString, BUFFER_SIZE - 1);
-            UART0_Send_Message_String(NULL,0);
+            UART0_Send_Message_String_p(NULL,0);
 
             timer1Ready = 0;
             sei();
@@ -324,12 +299,8 @@ int main( void )
       }
 
       // timer 0A set by ISR
-      if ( periodicDebug <= debug && ( ( debugMask >> debugTIMER0A ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) timer0A%s"), __LINE__, __FILE__,
-                    ( 1 == timer0AReady ) ? "--yes" : "");
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(periodicDebug, debugTIMER0A, __LINE__, PSTR(__FILE__), PSTR("timer0A %s"), ( 1 == timer0AReady ) ? "--yes" : "");
+
       if ( 1 == timer0AReady )
       {
          cli();
@@ -339,12 +310,7 @@ int main( void )
       }
 
       // timer 0Aready set by ISR
-      if ( periodicDebug <= debug && ( ( debugMask >> debugTIMER0AScheduler ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) timer0A%s"), __LINE__, __FILE__,
-                    ( 1 == timer0ASchedulerReady ) ? "--yes" : "");
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(periodicDebug, debugTIMER0AScheduler, __LINE__, PSTR(__FILE__), PSTR("timer0AScheduler %s"), ( 1 == timer0ASchedulerReady ) ? "--yes" : "");
       if(1 == timer0ASchedulerReady )
       {
          cli();
@@ -357,19 +323,11 @@ int main( void )
       }
 
       /*relay block*/
-      if ( periodicDebug <= debug && ( ( debugMask >> debugRELAY ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) %s"), __LINE__, __FILE__, "Relays");
-         UART0_Send_Message_String(NULL, 0);
-      }
+       printDebug_p(periodicDebug, debugRELAY, __LINE__, PSTR(__FILE__), PSTR("Relays"));
 
       if (relayThresholdEnable_flag && relayThresholdAllThresholdsValid)
       {
-          if ( periodicDebug <= debug && ( ( debugMask >> debugRELAY ) & 0x1 ) )
-          {
-             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) %s"), __LINE__, __FILE__, "Relays enable and valid");
-             UART0_Send_Message_String(NULL, 0);
-          }
+     	  printDebug_p(periodicDebug, debugRELAY, __LINE__, PSTR(__FILE__), PSTR("Relays enable and valid"));
 #warning TODO: too often cli/sei disable slow interactions, find solution maybe timer
     	 //cli(); //clear all interupts active
 //         relayThresholdDetermineStateAndTriggerRelay(relayThresholdInputSource_RADC);
@@ -379,17 +337,9 @@ int main( void )
       }
       else
       {
-          if ( periodicDebug <= debug && ( ( debugMask >> debugRELAY ) & 0x1 ) )
-          {
-             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) %s: relay enable: %i - thr valid: %i"), __LINE__, __FILE__, __FUNCTION__, relayThresholdEnable_flag, relayThresholdAllThresholdsValid);
-             UART0_Send_Message_String(NULL, 0);
-          }
+     	  printDebug_p(periodicDebug, debugRELAY, __LINE__, PSTR(__FILE__), PSTR("relay enable: %i - thr valid: %i"), relayThresholdEnable_flag, relayThresholdAllThresholdsValid);
       }
-      if ( periodicDebug <= debug )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) %s"), __LINE__, __FILE__, "-------------------------");
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(periodicDebug, debugMain, __LINE__, PSTR(__FILE__), PSTR("-------------------------"));
    }// END of while
 
    return 0; //EXIT_SUCCESS;

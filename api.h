@@ -28,6 +28,12 @@ struct uartStruct
 extern struct uartStruct uartFrame;
 extern struct uartStruct *ptr_uartStruct;
 
+extern uint8_t (*printDebug_p)(uint8_t, uint32_t, uint32_t, const prog_char*, const prog_char*, ...);
+
+extern uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, const prog_char*, const int16_t);
+extern int16_t (*UART0_Send_Message_String_p)( char *, uint16_t );
+extern void (*UART0_Transmit_p)( uint8_t );
+
 /* Implemented functions */
 void Process_Uart_Event( void );
 
@@ -82,7 +88,7 @@ void clearUartStruct( struct uartStruct *ptr_uartStruct ); /* resets all values 
 uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const uint8_t flag_printCommand, const prog_char *alternativeErrorMessage,
                             const int16_t alternativeErrorNumber );
 
-void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, const char* function, uint32_t line, const prog_char* file, const prog_char *format, ...);
+void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, const prog_char* file, const prog_char *format, ...);
 
 uint8_t createReceiveHeader( struct uartStruct *ptr_uartStruct, char message_string[], uint16_t size );
 

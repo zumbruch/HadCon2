@@ -20,7 +20,7 @@ void version(void)
 {
    createReceiveHeader(ptr_uartStruct,uart_message_string,BUFFER_SIZE -1 );
    snprintf_P(uart_message_string,BUFFER_SIZE -1, PSTR("%s%s %s"), uart_message_string, CODE_VERSION, __DATE__);
-   UART0_Send_Message_String(NULL,0);
+   UART0_Send_Message_String_p(NULL,0);
 
    return;
 }

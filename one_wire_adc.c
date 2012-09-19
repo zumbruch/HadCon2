@@ -174,14 +174,14 @@ void owiReadADCs( struct uartStruct *ptr_uartStruct )
          if ( FALSE == ptr_owiStruct->idSelect_flag)
          {
             snprintf_P(message, BUFFER_SIZE, PSTR("invalid arguments"));
-            CommunicationError(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+            CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
             return;
             break;
          }
          break;
       default:
          snprintf_P(message, BUFFER_SIZE, PSTR("write argument: too many arguments"));
-         CommunicationError(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+         CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
          return;
          break;
    }
@@ -240,11 +240,7 @@ void owiReadADCs( struct uartStruct *ptr_uartStruct )
           * access values
           */
 
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s call: FindFamilyDevicesAndGetValues"), __LINE__, __FILE__, __FUNCTION__);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("call: FindFamilyDevicesAndAccessValues"));
 
          /*    - read DS2450 */
          foundDevices += owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2450_ADC, NULL );
@@ -254,11 +250,7 @@ void owiReadADCs( struct uartStruct *ptr_uartStruct )
             general_errorCode = CommunicationError(ERRG, -1, TRUE, PSTR("no matching ID was found"), 4000);
          }
 
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s end"), __LINE__, __FILE__, __FUNCTION__);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("end"));
       }
    }
 }//END of owiReadADCs function
@@ -404,7 +396,7 @@ int8_t owiInitializeADCs( uint8_t *pins )
     		                          DS2450_DATA_MEMORY_MAP_PAGE_3_VCC_CONTROL_BYTE,
     		                          maxTrials))
       {
-         CommunicationError(ERRG, -1, FALSE, PSTR("init 1-wire ADCs: failed to set: VCC_CONTROL_BYTE"), 1000);
+         CommunicationError_p(ERRG, -1, FALSE, PSTR("init 1-wire ADCs: failed to set: VCC_CONTROL_BYTE"), 1000);
       }
 
 
@@ -417,13 +409,13 @@ int8_t owiInitializeADCs( uint8_t *pins )
          if ( 0 != owiADCMemoryWriteByte(pins[b], NULL, addressPORandAlarmsAndInputRange[channel],
                                          dataPORandAlarmsAndInputRange[channel], maxTrials))
          {
-            CommunicationError(ERRG, -1, FALSE, PSTR("init 1-wire ADCs: failed to set: POR, ALARM ENABLE, INPUT RANGE"), 1000);
+            CommunicationError_p(ERRG, -1, FALSE, PSTR("init 1-wire ADCs: failed to set: POR, ALARM ENABLE, INPUT RANGE"), 1000);
          }
 
          if ( 0 != owiADCMemoryWriteByte(pins[b], NULL, addressOutputAndResolution[channel],
                                          dataOutputAndResolution[0], maxTrials))
          {
-            CommunicationError(ERRG, -1, FALSE, PSTR("init 1-wire ADCs: failed to set: OUTPUT CONTROL, RESOLUTION"), 1000);
+            CommunicationError_p(ERRG, -1, FALSE, PSTR("init 1-wire ADCs: failed to set: OUTPUT CONTROL, RESOLUTION"), 1000);
          }
       }
    }
@@ -585,11 +577,7 @@ uint8_t owiADCMemoryWriteByte(unsigned char bus_pattern, unsigned char * id, uin
  */
 int8_t owiMakeADCConversions( uint8_t *pins )
 {
-   if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:MakeADCConversionOfAll"), __LINE__, __FILE__);
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR(""));
 
    uint8_t commonPins = 0x0;
    uint8_t currentPins = 0x0;
@@ -602,64 +590,28 @@ int8_t owiMakeADCConversions( uint8_t *pins )
       // continue if bus isn't active
       if ( 0 == ((owiBusMask & pins[busPatternIndex]) & 0xFF) )
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWIADC) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) fcn:MakeADCConversionOfAll bus: %i differs (pin pattern 0x%x owiBusMask 0x%x)"),
-                       __LINE__, __FILE__,
-                       busPatternIndex, pins[busPatternIndex],owiBusMask);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i differs (pin pattern 0x%x owiBusMask 0x%x)"), busPatternIndex, pins[busPatternIndex],owiBusMask);
 
          continue;
       }
       else
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWIADC) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) fcn:MakeADCConversionOfAll bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"),
-                       __LINE__, __FILE__,
-                       busPatternIndex, pins[busPatternIndex],owiBusMask);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"), busPatternIndex, pins[busPatternIndex],owiBusMask);
       }
       // continue if bus doesn't contain any ADCs
       if ( 0 == ((owiAdcMask & pins[busPatternIndex]) & 0xFF ) )
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWIADC) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) fcn:MakeADCConversionOfAll bus: %i ADCs: NONE (pin pattern 0x%x owiAdcMask 0x%x)"),
-                       __LINE__, __FILE__,
-                       busPatternIndex, pins[busPatternIndex],owiAdcMask);
-            UART0_Send_Message_String(NULL,0);
-         }
-
+          printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i ADCs: NONE (pin pattern 0x%x owiAdcMask 0x%x)"), busPatternIndex, pins[busPatternIndex],owiAdcMask);
          continue;
       }
       else
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWIADC) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) fcn:MakeADCConversionOfAll bus: %i ADCs: some (pin pattern 0x%x owiAdcMask 0x%x)"),
-                       __LINE__, __FILE__,
-                       busPatternIndex, pins[busPatternIndex],owiAdcMask);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i ADCs: some (pin pattern 0x%x owiAdcMask 0x%x)"), busPatternIndex, pins[busPatternIndex],owiAdcMask);
       }
 
       if ( TRUE == owiUseCommonAdcConversion_flag)
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWIADC) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) fcn:MakeAdcConversionOfAll bus: %i combining 0x%x to common set of pins 0x%x)"),
-                       __LINE__, __FILE__,
-                       busPatternIndex, pins[busPatternIndex],commonPins);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i combining 0x%x to common set of pins 0x%x)"), busPatternIndex, pins[busPatternIndex],commonPins);
 
          commonPins |= pins[busPatternIndex];
       }
@@ -667,15 +619,7 @@ int8_t owiMakeADCConversions( uint8_t *pins )
 
    if ( TRUE == owiUseCommonAdcConversion_flag)
    {
-      if ( eventDebug <= debug && ((debugMask >> debugOWIADC) & 1))
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                    PSTR("DEBUG (%4i, %s) fcn:MakeAdcConversionOfAll final common pins: 0x%x)"),
-                    __LINE__, __FILE__,
-                    commonPins);
-         UART0_Send_Message_String(NULL,0);
-
-      }
+       printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("final common pins: 0x%x"), commonPins);
 
       busPatternIndexMax = 1; /*only once */
    }
@@ -705,186 +649,22 @@ int8_t owiMakeADCConversions( uint8_t *pins )
       /* now first access to bus, within the function  */
       if ( 0 == OWI_DetectPresence(currentPins) )
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWIADC) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s bus: %i no Device present (pin pattern 0x%x)"), __LINE__, __FILE__, __FUNCTION__,
-                       busPatternIndex, currentPins);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i no Device present (pin pattern 0x%x)"), busPatternIndex, currentPins);
 
          continue;
       }
       else
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWIADC) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s bus: %i some devices present (pin pattern 0x%x)"), __LINE__, __FILE__, __FUNCTION__,
-                       busPatternIndex, currentPins);
-            UART0_Send_Message_String(NULL,0);
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s bus: %i starting conversion sequence"), __LINE__, __FILE__, __FUNCTION__, busPatternIndex );
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i some devices present (pin pattern 0x%x)"), busPatternIndex, currentPins);
+          printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i starting conversion sequence"), busPatternIndex );
       }
 
       /*starting conversion sequence on all IDs */
-#if 1
       owiADCConvert(currentPins, NULL);
-#else
-      maxcount = ( OWI_ADC_CONVERSION_DELAY_MILLISECONDS > 0 ) ? maxConversionTime / OWI_ADC_CONVERSION_DELAY_MILLISECONDS : 1;
 
-      count = maxcount;
-      timeout_flag = FALSE;
+   }//end of for ( int8_t b = 0 ; b < PIN_BUS ; b++ )
 
-      //    "loop waiting for the conversion of all ADC sensors"
-      if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) waiting for conversion"), __LINE__, __FILE__);
-         UART0_Send_Message_String(NULL,0);
-      }
-
-      /*
-       * CONVERT [3CH]
-       *
-       * The Convert command is used to initiate the analog to digital conversion for one or more channels at the
-       * resolution specified in memory page 1, control/status data. The conversion takes between 60 and 80 μs
-       * per bit plus an offset time of maximum 160 μs every time the convert command is issued. For four
-       * channels with 12-bit resolution each, as an example, the convert command will not take more than
-       * 4x12x80 μs plus 160 μs offset, which totals 4 ms. If the DS2450 gets its power through the VCC pin, the
-       * bus master may communicate with other devices on the 1-Wire bus while the DS2450 is busy with A/D
-       * conversions. If the device is powered entirely from the 1-Wire bus, the bus master must instead provide a
-       * strong pullup to 5V for the estimated duration of the conversion in order to provide sufficient energy.
-       *
-       * The conversion is controlled by the input select mask (Figure 7a) and the read-out control byte (Figure
-       * 7b). In the input select mask the bus master specifies which channels participate in the conversion. A
-       * channel is selected if the bit associated to the channel is set to 1. If more than one channel is selected, the
-       * conversion takes place one channel after another in the sequence A, B, C, D, skipping those channels that
-       * are not selected. The bus master can read the result of a channel’s conversion before the conversion of all
-       * the remaining selected channels is completed. In order to distinguish between the previous result and the
-       * new value the bus master uses the read-out control byte. This byte allows presetting the conversion readout
-       * registers for each selected channel to all 1’s or all 0’s. If the expected result is close to 0 then one
-       * should preset to all 1’s or to all 0’s if the conversion result will likely be a high number. In applications
-       * where the bus master can wait until all selected channels are converted before reading, a preset of the
-       * read-out registers is not necessary. Note that for a channel not selected in the input select mask, the
-       * channel’s read-out control setting has no effect. If a channel constantly yields conversion results close to
-       * 0 the channel’s output transistor may be conducting. See section Device Registers for details.
-       *
-       * INPUT SELECT MASK (CONVERSION COMMAND) Figure 7a
-       * bit 7 bit 6 bit 5 bit 4 bit 3 bit 2 bit 1 bit 0
-       * “don’t care” D C B A
-       *
-       * READ-OUT CONTROL (CONVERSION COMMAND) Figure 7b
-       * bit 7 bit 6 bit 5 bit 4 bit 3 bit 2 bit 1 bit 0
-       * Set D Clear D Set C Clear C Set B Clear B Set A Clear A
-       *
-       * Set Clear Explanation
-       * 0 0 no preset, leave as is
-       * 0 1 preset to all 0’s
-       * 1 0 preset to all 1’s
-       * 1 1 (illegal code)
-       *
-       * Following the Convert command byte the bus master transmits the input select mask and the read-out
-       * control byte. Now the bus master reads the CRC16 of the command byte, select mask and control byte.
-       * The conversion will start no earlier than 10 μs after the most significant bit of the CRC is received by the
-       * bus master.
-       *
-       * With a parasitic power supply the bus master must activate the strong pullup within this 10 μs window for
-       * a duration that is estimated as explained above. After that, the data line returns to an idle high state and
-       * communication on the bus can resume. The bus master would normally send a reset pulse to exit the
-       * Convert command. Read data time slots generated after the strong pullup has ended but before issuing a
-       * reset pulse should result in all 1’s if the conversion time was calculated correctly.
-       *
-       * With VCC power supply the bus master may either send a reset pulse to exit the Convert command or
-       * continuously generate read data time slots. As long as the DS2450 is busy with conversions the bus
-       * master will read 0’s. After the conversion is completed the bus master will receive 1’s instead. Since in a
-       * open-drain environment a single 0 overwrites multiple 1’s the bus master can monitor multiple devices
-       * converting simultaneously and immediately knows when the last one is ready. As in the parasitically
-       * powered scenario the bus master finally has to exit the Convert command by issuing a rest pulse.
-       */
-
-
-      OWI_SendByte(OWI_ROM_SKIP, currentPins);
-      OWI_SendByte(DS2450_CONVERT, currentPins); /*conversion*/
-      OWI_SendByte(DS2450_CONVERSION_CHANNEL_SELECT_MASK, currentPins); /* select mask*/
-      OWI_SendByte(DS2450_CONVERSION_READOUT_CONTROL, currentPins); /* select read out control*/
-
-      receive_CRC = OWI_ReceiveByte(currentPins);           /*IMPORTANT AFTER EACH 'MEMORY WRITE' OPERATION*/
-      receive_CRC |= ( OWI_ReceiveByte(currentPins) << 8 ); /*IMPORTANT AFTER EACH 'MEMORY WRITE' OPERATION*/
-
-      //loop that waits for the conversion to be done
-
-      while ( OWI_ReadBit(currentPins) == 0 )
-      {
-         _delay_ms(OWI_ADC_CONVERSION_DELAY_MILLISECONDS);
-
-         /* timeout check */
-         if ( 0 == --count)
-         {
-            timeout_flag = TRUE;
-            break;
-         }
-      }
-
-      if ( FALSE == timeout_flag )
-      {
-         owiAdcTimeoutMask &= ~(currentPins);
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) fcn:MakeAdcConversionOfAllDevices waited %i times a delay of"),
-                       __LINE__, __FILE__, maxcount - count);
-            snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %i ms", uart_message_string, OWI_ADC_CONVERSION_DELAY_MILLISECONDS);
-            UART0_Send_Message_String(NULL,0);
-         }
-
-         if ( count > 0 )
-         {
-            /*wait the remaining time*/
-            if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-            {
-               snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                          PSTR("DEBUG (%4i, %s) fcn:%s waiting the remaining %i times"), __LINE__, __FILE__, __FUNCTION__, count);
-               snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %i ms", uart_message_string, OWI_ADC_CONVERSION_DELAY_MILLISECONDS);
-               UART0_Send_Message_String(NULL,0);
-            }
-
-            while ( 0 < --count ) { _delay_ms(OWI_ADC_CONVERSION_DELAY_MILLISECONDS); }
-         }
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s conversion done"), __LINE__, __FILE__, __FUNCTION__);
-            UART0_Send_Message_String(NULL,0);
-         }
-      }
-      else
-      {
-         owiAdcTimeoutMask |= currentPins;
-         CommunicationError(ERRG, -1, 0, PSTR("OWI ADC Conversion timeout"), 200);
-
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) OWI Adc Conversion timeout (>%i ms) on bus_mask (%i), bus mask index %i"),
-                       __LINE__, __FILE__,  maxConversionTime, currentPins,busPatternIndex);
-            UART0_Send_Message_String(NULL,0);
-         }
-      }
-
-      if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s make conversion bus %i finished"), __LINE__, __FILE__, __FUNCTION__, busPatternIndex);
-         UART0_Send_Message_String(NULL,0);
-      }
-
-#endif
-      }//end of for ( int8_t b = 0 ; b < PIN_BUS ; b++ )
-
-   if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                 PSTR("DEBUG (%4i, %s) fcn:%s make conversion finished (owiAdcTimeoutMask = 0x%x)"),
-                 __LINE__, __FILE__, __FUNCTION__, owiAdcTimeoutMask);
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("make conversion finished (owiAdcTimeoutMask = 0x%x)"), owiAdcTimeoutMask);
    return 1;
 }//END of owiMakeADCConversions function
 
@@ -1036,36 +816,16 @@ uint8_t owiADCConvert(unsigned char bus_pattern, unsigned char * id)
    {
 	   owiAdcTimeoutMask &= ~(bus_pattern);
 
-	   if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-	   {
-		   snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-				   PSTR("DEBUG (%4i, %s) fcn:%s waited %i times a delay of"),
-				   __LINE__, __FILE__, __FUNCTION__, maxcount - count);
-		   snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %i ms", uart_message_string, OWI_ADC_CONVERSION_DELAY_MILLISECONDS);
-		   UART0_Send_Message_String(NULL,0);
-	   }
-
-	   if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-	   {
-		   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s conversion done"), __LINE__, __FILE__, __FUNCTION__);
-		   UART0_Send_Message_String(NULL,0);
-	   }
-
+ 	   printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("waited %i times a delay of %i ms"), maxcount - count, OWI_ADC_CONVERSION_DELAY_MILLISECONDS);
+ 	   printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("conversion done"));
    }
    else
    {
 	   owiAdcTimeoutMask |= bus_pattern;
 
-	   CommunicationError(ERRG, -1, 0, PSTR("OWI ADC Conversion timeout"), 200);
+	   CommunicationError_p(ERRG, -1, 0, PSTR("OWI ADC Conversion timeout"), 200);
 
-	   if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-	   {
-		   snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-				   PSTR("DEBUG (%4i, %s) fcn:%s OWI Adc Conversion timeout (>%i ms) on bus_mask (%i)"),
-				   __LINE__, __FILE__,  __FUNCTION__, maxConversionTime, bus_pattern);
-		   UART0_Send_Message_String(NULL,0);
-	   }
-
+ 	   printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("OWI Adc Conversion timeout (>%i ms) on bus_mask (%i)"),  maxConversionTime, bus_pattern);
    }
 
    /* ending the Convert command sequence by issuing a Reset Pulse*/
@@ -1099,20 +859,11 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 
    /*checks*/
 
-   if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s begin"), __LINE__, __FILE__, __FUNCTION__);
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("begin"));
 
    if ( 0 == ((owiBusMask & bus_pattern) & 0xFF) )
    {
-      if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) passive (bus pattern 0x%x owiBusMask 0x%x)"), __LINE__, __FILE__,
-                    bus_pattern,owiBusMask);
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("passive (bus pattern 0x%x owiBusMask 0x%x)"), bus_pattern,owiBusMask);
       return owiReadStatus_owi_bus_mismatch << OWI_ADC_DS2450_MAX_RESOLUTION;
    }
 
@@ -1123,7 +874,7 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
       snprintf_P(message, BUFFER_SIZE - 1, PSTR("OWI ADC Conversion timeout (>%i ms) on bus_pattern (%i)"),
                  OWI_ADC_MAX_CONVERSION_TIME_MILLISECONDS, bus_pattern);
 
-      CommunicationError(ERRG, -1, 0, message, -1001);
+      CommunicationError_p(ERRG, -1, 0, message, -1001);
       clearString(message, BUFFER_SIZE);
 
       return owiReadStatus_conversion_timeout << OWI_ADC_DS2450_MAX_RESOLUTION;
@@ -1217,11 +968,7 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
    }
    else
    {
-      if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:%s retrieved data and end"), __LINE__, __FILE__, __FUNCTION__);
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("retrieved data and end"));
       return 0 | (owiReadWriteStatus_OK << OWI_ADC_DS2450_MAX_RESOLUTION);
    }
 

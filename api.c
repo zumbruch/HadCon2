@@ -76,21 +76,29 @@ static const char commandKeyword12[] PROGMEM = "RSET";
 static const char commandKeyword13[] PROGMEM = "PING";
 static const char commandKeyword14[] PROGMEM = "OWTP";
 static const char commandKeyword15[] PROGMEM = "OWSP"; /*one-wire set active pins/bus mask*/
+
+#warning obsolete functions, included in RLTH
 static const char commandKeyword16[] PROGMEM = "ADSP"; /*AVR's adcs set active pins/bus mask*/
 static const char commandKeyword17[] PROGMEM = "RLSL"; /*relay set low  level*/
 static const char commandKeyword18[] PROGMEM = "RLSH"; /*relay set high level*/
 static const char commandKeyword19[] PROGMEM = "RLSI"; /*relay set ADC pin(s) to monitor "in" */
 static const char commandKeyword20[] PROGMEM = "RLSO"; /*relay set output pin(s) to switch "out" */
+
 static const char commandKeyword21[] PROGMEM = "DBGL"; /*set debug level*/
 static const char commandKeyword22[] PROGMEM = "DBGM"; /*set debug system mask*/
 static const char commandKeyword23[] PROGMEM = "JTAG"; /*toggle/set JTAG availability*/
 static const char commandKeyword24[] PROGMEM = "HELP"; /*output some help*/
 static const char commandKeyword25[] PROGMEM = "OWTR"; /*trigger one-wire device(s) for action, if possible*/
 static const char commandKeyword26[] PROGMEM = "OWRP"; /*one-wire read active pins/bus mask*/
+
+#warning obsolete functions, included in RLTH
 static const char commandKeyword27[] PROGMEM = "ADRP"; /*AVR's adcs read active pins/bus mask*/
+
 static const char commandKeyword28[] PROGMEM = "DEBG"; /*set/get debug level and mask*/
 static const char commandKeyword29[] PROGMEM = "PARA"; /*check parasitic power supply mode*/
 static const char commandKeyword30[] PROGMEM = "SHOW"; /*show (internal) settings*/
+
+#warning to put into one command with sub commands
 static const char commandKeyword31[] PROGMEM = "OWMR"; /*one wire basics: match rom*/
 static const char commandKeyword32[] PROGMEM = "OWPC"; /*one wire basics: presence check*/
 static const char commandKeyword33[] PROGMEM = "OWRb"; /*one wire basics: receive bit, wait for it*/
@@ -98,9 +106,11 @@ static const char commandKeyword34[] PROGMEM = "OWRB"; /*one wire basics: receiv
 static const char commandKeyword35[] PROGMEM = "OWSC"; /*one wire basics: send command*/
 static const char commandKeyword36[] PROGMEM = "OWSB"; /*one wire basics: send byte*/
 static const char commandKeyword37[] PROGMEM = "OWSA"; /*one wire API settings: set/get 1-wire specific API settings*/
+
 static const char commandKeyword38[] PROGMEM = "WDOG"; /*set/get watch dog status*/
 static const char commandKeyword39[] PROGMEM = "EXIT"; /*exit*/
 static const char commandKeyword40[] PROGMEM = "RLTH"; /* relay threshold */
+
 static const char commandKeyword41[] PROGMEM = "CMD1"; /* command (dummy name) */
 static const char commandKeyword42[] PROGMEM = "CMD2"; /* command (dummy name) */
 static const char commandKeyword43[] PROGMEM = "CMD3"; /* command (dummy name) */
@@ -611,11 +621,7 @@ void Process_Uart_Event(void)
 	int8_t number_of_elements = -1;
 	number_of_elements = Decrypt_Uart_String();
 
-	if ( eventDebugVerbose <= debug && ( ( debugMask >> debugCommandKey ) & 1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) number of string elements found: %i"), __LINE__, __FILE__, number_of_elements);
-		UART0_Send_Message_String(NULL,0);
-	}
+ 	printDebug_p(eventDebugVerbose, debugCommandKey, __LINE__, PSTR(__FILE__), PSTR("number of string elements found: %i"), number_of_elements);
 
 	if ( 0 < number_of_elements  )
 	{
@@ -625,11 +631,7 @@ void Process_Uart_Event(void)
 		/* Find matching command keyword */
 		ptr_uartStruct->commandKeywordIndex = Parse_Keyword(setParameter[0]);
 
-		if ( eventDebug <= debug && ( ( debugMask >> debugCommandKey ) & 1 ) )
-		{
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) keywordIndex of %s is %i"), __LINE__, __FILE__, setParameter[0], ptr_uartStruct->commandKeywordIndex);
-			UART0_Send_Message_String(NULL,0);
-		}
+ 		printDebug_p(eventDebug, debugCommandKey, __LINE__, PSTR(__FILE__), PSTR("keywordIndex of %s is %i"), setParameter[0], ptr_uartStruct->commandKeywordIndex);
 
 		/* no matching keyword ?*/
 		if ( 0 > ptr_uartStruct->commandKeywordIndex )
@@ -754,11 +756,8 @@ int8_t Decrypt_Uart_String( void )
 		}
 	}
 
-	if ( eventDebug <= debug && ( ( debugMask >> debugDecrypt ) & 0x1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) found %i arguments "), __LINE__, __FILE__, index_parameter-1);
-		UART0_Send_Message_String(NULL,0);
-	}
+ 	printDebug_p(eventDebug, debugDecrypt, __LINE__, PSTR(__FILE__), PSTR("found %i arguments "), index_parameter-1);
+
 
     clearString(decrypt_uartString, BUFFER_SIZE);
      /* "reset": decrypt_uartString[0] = '\0'; */
@@ -810,11 +809,7 @@ int Parse_Keyword(char string[])
 	if (NULL == string   ) {return -99;}
 	if (STRING_END  == string[0]) {return -99;}
 
-	if ( eventDebug <= debug && ( ( debugMask >> debugCommandKey ) & 1 ) )
-	{
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) Parse_Keyword %s"), __LINE__, __FILE__, string);
-		UART0_Send_Message_String(NULL,0);
-	}
+ 	printDebug_p(eventDebug, debugCommandKey, __LINE__, PSTR(__FILE__), PSTR("Parse_Keyword %s"), string);
 	for ( keywordNumber = 0; keywordNumber < commandKeyNumber_MAXIMUM_NUMBER ; keywordNumber++ )
 	{
        /*exclude list*/
@@ -822,25 +817,12 @@ int Parse_Keyword(char string[])
 
 		if ( 0 == strncmp_P(&string[0], (const char*) (pgm_read_word( &(commandKeywords[keywordNumber]))), MAX_LENGTH_PARAMETER) )
 		{
-           if ( eventDebug <= debug && ( ( debugMask >> debugCommandKey ) & 0x1 ) )
-            {
-               snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:ParseKeyword keyword %s matches "),
-                          __LINE__, __FILE__, string);
-               strncat_P(uart_message_string,(const char*) (pgm_read_word( &(commandKeywords[keywordNumber]))),BUFFER_SIZE -1);
-               UART0_Send_Message_String(NULL,0);
-            }
-
+ 			printDebug_p(eventDebug, debugCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches "), string);
 			return keywordNumber;
 		}
         else
           {
-             if ( eventDebugVerbose <= debug && ((debugMask >> debugCommandKey) & 0x1))
-             {
-                snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:ParseKeyworkd keyword %s doesn't match "),
-                           __LINE__, __FILE__, string);
-                strncat_P(uart_message_string,(const char*) (pgm_read_word( &(commandKeywords[keywordNumber]))),BUFFER_SIZE -1);
-                UART0_Send_Message_String(NULL,0);
-             }
+         	printDebug_p(eventDebug, debugCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), string);
           }
 
 	}
@@ -1472,9 +1454,9 @@ int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize )
 
 	for ( index = 0; STRING_END != tmp_str[index] && index < maxSize ; index++ )
 	{
-		UART0_Transmit(tmp_str[index]);
+		UART0_Transmit_p(tmp_str[index]);
 	}
-	UART0_Transmit('\n');
+	UART0_Transmit_p('\n');
 	clearString(tmp_str, maxSize); /*clear tmp_str variable*/
 
 	return index;
@@ -1492,7 +1474,7 @@ int8_t UART0_Send_Message_String_woLF( char *tmp_str, uint32_t maxSize )
 {
 	for ( uint16_t j = 0 ; j < strlen((char *) tmp_str) && j < maxSize ; j++ )
 	{
-		UART0_Transmit(tmp_str[j]);
+		UART0_Transmit_p(tmp_str[j]);
 	}
 
 	clearString(tmp_str, maxSize); /*clear tmp_str variable*/
@@ -1570,15 +1552,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
           flag_UseOnlyAlternatives = TRUE;
           break;
        default:
-          if ( eventDebug <= debug )
-          {
-             for ( int clearIndex = 0 ; clearIndex < BUFFER_SIZE ; clearIndex++ )
-             {
-                message[clearIndex] = STRING_END;
-             }
-              snprintf_P(message, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) CommunicationError wrong error index ... returning"), __LINE__, __FILE__);
-              UART0_Send_Message_String(message,BUFFER_SIZE);
-          }
+     	   printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("wrong error index ... returning"));
           return 1; /*shouldn't happen*/
           break;
     }
@@ -1586,16 +1560,8 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
     /* check alternative pointer, return if empty*/
     if ( TRUE == flag_UseOnlyAlternatives && NULL == alternativeErrorMessage && COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD <= alternativeErrorNumber)
     {
-        if ( eventDebug <= debug )
-          {
-             for ( int clearIndex = 0 ; clearIndex < BUFFER_SIZE ; clearIndex++ )
-             {
-                message[clearIndex] = STRING_END;
-             }
-             snprintf_P(message, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) CommunicationError alternatives: NULL ... returning"), __LINE__, __FILE__);
-             UART0_Send_Message_String(message,BUFFER_SIZE);
-          }
-          return 1;
+     	printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("alternatives: NULL ... returning"));
+    	return 1;
     }
 
     /* compose message
@@ -1657,16 +1623,8 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
               strncat_P(uart_message_string, (const char*) (pgm_read_word( &(twi_error[errorIndex]))), BUFFER_SIZE -1);
               break;
           default:
-             if ( eventDebug <= debug )
-             {
-                for ( int clearIndex = 0 ; clearIndex < BUFFER_SIZE ; clearIndex++ )
-                {
-                   message[clearIndex] = STRING_END;
-                }
-                snprintf_P(message, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) CommunicationError wrong error type %i... returning"), __LINE__, __FILE__, errorType);
-                UART0_Send_Message_String(message,BUFFER_SIZE);
-             }
-             return 1;
+         	  printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("wrong error type %i... returning"), errorType);
+        	  return 1;
              break;
        }
     }
@@ -1693,12 +1651,12 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
        }
     }
 
-    UART0_Send_Message_String(NULL,0);
+    UART0_Send_Message_String_p(NULL,0);
 
     return 0;
 }//END of CommunicationError function
 
-void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, const char* function, uint32_t line, const prog_char* file, const prog_char *format, ...)
+void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, const prog_char* file, const prog_char *format, ...)
 {
 	if ( debugLevel <= debug && ((debugMask >> debugMaskIndex) & 1))
 	{
@@ -1711,14 +1669,12 @@ void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, const char* functi
 		va_end(argumentPointers);
 
 		// header: "DEBUG (%4i, %s, %s ) %s"
-		snprintf_P (uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, "), line);
+		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, "), line);
 		strncat_P(uart_message_string, file, BUFFER_SIZE -1);
-		strncat_P(uart_message_string, PSTR(", "), BUFFER_SIZE -1);
-		strncat(uart_message_string, function, BUFFER_SIZE -1);
-		strncat_P(uart_message_string, PSTR("()) "), BUFFER_SIZE -1);
+		strncat_P(uart_message_string, PSTR(") "), BUFFER_SIZE -1);
 		strncat(uart_message_string, message, BUFFER_SIZE -1);
 
-		UART0_Send_Message_String(NULL,0);
+		UART0_Send_Message_String_p(NULL,0);
 	}
 }
 
@@ -1800,7 +1756,7 @@ void Initialization( void )
 	   if (FALSE == status)
 	   {
 		   snprintf_P(message, BUFFER_SIZE, PSTR("Relay Init Failed"));
-		   CommunicationError(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+		   CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
 
 #warning TODO: missing action in case of failure: either exit or deactivate relay
 	   }
@@ -1845,21 +1801,12 @@ void Init_Port( void )
 
 #if HADCON_VERSION == 2
    /* use port G as output with deactivated pullups for lower pins (3 LEDs and PG3 for JTAG pull-ups*/
-   if ( eventDebug <= debug && ( ( debugMask >> debugApi ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s, %s): setting ports for JTAG: PING:0x%x, PORTG:0x%x"), __LINE__, __FILE__,__FUNCTION__, PING&0xFF, PORTG&0xFF);
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("setting ports for JTAG: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 
    DDRG  = (1 << DDG0)| (1 << DDG1)| (1 << DDG2)| (1 << DDG3) | (0 << DDG4);
    PORTG = (0 << PG0) | (0 << PG1) | (1 << PG2) | (1 << PG3)  | (1 << PG4);
 
-   if ( eventDebug <= debug && ( ( debugMask >> debugApi ) & 0x1 ) )
-   {
-	   _delay_ms(1000);
-	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s, %s): setting ports for JTAG: PING:0x%x, PORTG:0x%x"), __LINE__, __FILE__,__FUNCTION__, PING&0xFF, PORTG&0xFF);
-	   UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("setting ports for JTAG: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 #endif
 
    /* enable ADC and set clock prescale factor to 64 (p.280)*/
@@ -1890,7 +1837,7 @@ void Init_Port( void )
    TCCR1C = 0;
 
    /* snprintf_P(uart_message_string,BUFFER_SIZE-1, PSTR("init finished") );
-    UART0_Send_Message_String(NULL,0);*/
+    UART0_Send_Message_String_p(NULL,0);*/
 
    SREG = intstate; /*restore global interrupt flag */
 
@@ -1902,7 +1849,7 @@ void keep_alive( struct uartStruct *ptr_uartStruct )
 	flag_pingActive = ( 0 != ptr_uartStruct->Uart_Message_ID );
 
 	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV PING mechanism is %s"), ( flag_pingActive ) ? "enabled" : "disabled");
-	UART0_Send_Message_String(NULL,0);
+	UART0_Send_Message_String_p(NULL,0);
 }//END of keep_alive
 
 //void SwitchPinPeriodically()
@@ -1962,13 +1909,7 @@ uint8_t createReceiveHeader( struct uartStruct *ptr_myUartStruct, char message_s
    if (NULL == message_string) { message_string = uart_message_string; }
    if (0 == size) { size = BUFFER_SIZE; }
 
-   if ( eventDebug <= debug && ( ( debugMask >> debugApi ) & 1 ) )
-   {
-	   clearString(message_string, size);
-	   snprintf_P(message_string, size -1,PSTR("DEBUG (%4i, %s) createReceiveHeader: commandKeywordIndex %i"), __LINE__, __FILE__,
-			      ptr_myUartStruct->commandKeywordIndex);
-	   UART0_Send_Message_String(message_string, size - 1);
-   }
+    printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("commandKeywordIndex %i"), ptr_myUartStruct->commandKeywordIndex);
 
    clearString(message_string, size);
    strncat_P(message_string, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_RECV])) ), size - 1);
@@ -2057,22 +1998,15 @@ uint16_t getNumericLength(const char string[], const uint16_t maxLength)
 
     /* calculate length of argument and check if all of them are hex numbers */
     while (index < maxLength && isxdigit(string[index])) {index++;}
-    if ( eventDebug <= debug && ( ( debugMask >> debugApi ) & 1 ) )
-    {
-       snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) getNumericLength: found length is %i"), __LINE__, __FILE__, index);
-       UART0_Send_Message_String(NULL,0);
-    }
+     printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("found length is %i"), index);
+
 
     if (index+1 < maxLength)
     {
        if   ( ! ( isspace(string[index+1]) || ('\0' == string[index+1] ) ) )
        {
-          if ( eventDebug <= debug && ( ( debugMask >> debugApi ) & 1 ) )
-          {
-             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) getNumericLength: length 0 - value is followed by non-space character ASCII: %i, '%c'"),
-                        __LINE__, __FILE__, string[index+1], string[index+1]);
-             UART0_Send_Message_String(NULL,0);
-          }
+           printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("length 0 - value is followed by non-space character ASCII: %i, '%c'"), string[index+1], string[index+1]);
+
           index = 0; /* numeric value is not separated from next word nor isn't followed by '\0', so it isn't a number, */
        }
     }
@@ -2084,7 +2018,7 @@ int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value)
 {
 	if ( MAX_PARAMETER < parameterIndex || NULL == ptr_value)
 	{
-		CommunicationError(ERRG, -1, TRUE, PSTR("getNumericValueFromParameter: wrong input parameters"), -1);
+		CommunicationError_p(ERRG, -1, TRUE, PSTR("getNumericValueFromParameter: wrong input parameters"), -1);
 		return -1;
 	}
 
@@ -2103,7 +2037,7 @@ int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value)
 	}
 	else
 	{
-		CommunicationError(ERRA, -1, TRUE, PSTR("command argument not a numeric value"), -1);
+		CommunicationError_p(ERRA, -1, TRUE, PSTR("command argument not a numeric value"), -1);
 		return -1;
 	}
 	return 0;
@@ -2112,8 +2046,42 @@ int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value)
 void reset(struct uartStruct *ptr_uartStruct)
 {
 	createReceiveHeader(NULL, NULL, 0);
-    UART0_Send_Message_String(NULL,0);
+    UART0_Send_Message_String_p(NULL,0);
 
     Initialization();
 }
 
+void backTrace(size_t level)
+{
+   /*
+        // prints out level steps of function calls
+        // before the function call (backtrace)
+        // Useful for debugging
+    */
+
+   void** array = (void*) calloc(level, sizeof(void));
+   int    size = 0;
+   //size = backtrace (array, level);
+
+   if(0 != size)
+   {
+      char **strings;
+      //strings = backtrace_symbols (array, size);
+      //message(stdout,NULL ,-1 ,"BACKTRACE",NULL, "Obtained %zd stack frames.\n", size);
+
+      int i=0;
+      for (i = 0; i < size; i++)
+      {
+         if (strings && strings[i])
+         {
+            //message(stdout,NULL ,-1 ,"BACKTRACE",NULL, " %s\n", strings[i]);
+         }
+      }
+      free(strings);
+   }
+   else
+   {
+      //message(stderr,__FILE__,__LINE__, "ERROR", "backTrack", "Could not retrieve backtrace information");
+   }
+   //safePArrayFree(array,level);
+}

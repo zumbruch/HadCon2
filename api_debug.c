@@ -143,7 +143,7 @@ int8_t apiDebug(struct uartStruct *ptr_uartStruct)
 					readModifyDebugMask(ptr_uartStruct);
 					break;
 				default:
-					CommunicationError(ERRU, -1, 0, PSTR("apiDebug:invalid command"), -1);
+					CommunicationError_p(ERRU, -1, 0, PSTR("apiDebug:invalid command"), -1);
 					break;
 	    	}
 	    	break;
@@ -162,7 +162,7 @@ int8_t apiDebug(struct uartStruct *ptr_uartStruct)
 						readModifyDebugMask(ptr_uartStruct);
 						break;
 					default:
-						CommunicationError(ERRU, -1, 0, PSTR("apiDebug:invalid command"), -1);
+						CommunicationError_p(ERRU, -1, 0, PSTR("apiDebug:invalid command"), -1);
 						break;
 		    	}
 	    	}
@@ -189,22 +189,12 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 		{
 			if ( 0 == strncmp_P(setParameter[1], (const char*) ( pgm_read_word( &(commandDebugKeywords[subCommandIndex])) ), MAX_LENGTH_PARAMETER) )
 			{
-				if ( eventDebug <= debug && ( ( debugMask >> debugDEBUG ) & 0x1 ) )
-				{
-					snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:apiDebug: keyword %s matches"),
-							__LINE__, __FILE__, &setParameter[1][0]);
-					UART0_Send_Message_String(NULL,0);
-				}
+ 				printDebug_p(eventDebug, debugDEBUG, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches"), &setParameter[1][0]);
 				break;
 			}
 			else
 			{
-				if ( eventDebugVerbose <= debug && ((debugMask >> debugDEBUG) & 0x1))
-				{
-					snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:apiDebug: keyword %s doesn't match"),
-							__LINE__, __FILE__, &setParameter[1][0]);
-					UART0_Send_Message_String(NULL,0);
-				}
+ 				printDebug_p(eventDebug, debugDEBUG, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), &setParameter[1][0]);
 			}
 			subCommandIndex++;
 		}
@@ -225,12 +215,12 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 		case commandDebugKeyNumber_LEVEL:
 			value = debug;
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%x"), uart_message_string, value);
-			UART0_Send_Message_String(NULL,0);
+			UART0_Send_Message_String_p(NULL,0);
             break;
 		case commandDebugKeyNumber_MASK:
 			value = debugMask;
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s0x%lx"), uart_message_string, value);
-			UART0_Send_Message_String(NULL,0);
+			UART0_Send_Message_String_p(NULL,0);
 			break;
 		case commandDebugKeyNumber_HELP:
 #warning TODO add help_debug
@@ -248,7 +238,7 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 			}
 			break;
 		default:
-			CommunicationError(ERRA, -1, 0, PSTR("apiDebugSubCommands:invalid argument"), -1);
+			CommunicationError_p(ERRA, -1, 0, PSTR("apiDebugSubCommands:invalid argument"), -1);
 			return 1;
 			break;
 		}
@@ -270,7 +260,7 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 				if ( 0 != status ) { return -1; }
 				break;
            default:
-              CommunicationError(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
+              CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
               return -1;
               break;
         }
@@ -298,7 +288,7 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 				if ( 0 != status ) { return -1; }
 				break;
            default:
-              CommunicationError(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
+              CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
               return -1;
               break;
         }
@@ -337,7 +327,7 @@ void readModifyDebugLevelAndMask(struct uartStruct *ptr_uartStruct)
 		createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, -1 , -1, NULL);
 		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i %lx"),
 				   uart_message_string, debug, debugMask);
-		UART0_Send_Message_String(NULL,0);
+		UART0_Send_Message_String_p(NULL,0);
 		break;
 	case 1: /*write debug*/
 		readModifyDebugLevel(ptr_uartStruct);
@@ -385,7 +375,7 @@ void readModifyDebugLevel(struct uartStruct *ptr_uartStruct)
             value = debug;
 			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i"),
 					uart_message_string, value);
-			UART0_Send_Message_String(NULL,0);
+			UART0_Send_Message_String_p(NULL,0);
 			break;
 		case 1: /*write debug*/
 			status = getNumericValueFromParameter(1, &value);
@@ -428,7 +418,7 @@ void readModifyDebugMask(struct uartStruct *ptr_uartStruct)
             value = debugMask;
 			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s0x%lx"),
 					uart_message_string, value);
-			UART0_Send_Message_String(NULL,0);
+			UART0_Send_Message_String_p(NULL,0);
 			break;
 		case 1: /*write debug*/
 			status = getNumericValueFromParameter(1, &value);
@@ -461,7 +451,7 @@ int8_t apiDebugSetDebugLevel(uint32_t value)
 {
 	if ( levelsDebug_MAXIMUM_INDEX <= value )
 	{
-		CommunicationError(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1, NULL, 0);
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1, NULL, 0);
 		return -1;
 	}
 	debug = (uint8_t) (value & 0xFF);
@@ -473,7 +463,7 @@ int8_t apiDebugSetDebugMask(uint32_t value)
 {
     if ( (0x1UL << debugSystems_MAXIMUM_INDEX) -1 < value )
 	{
-		CommunicationError(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1, NULL, 0);
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1, NULL, 0);
 		return -1 ;
 	}
 	debugMask = (uint32_t) (value & 0xFFFFFFFF);

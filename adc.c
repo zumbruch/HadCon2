@@ -62,11 +62,8 @@ void atmelReadADCs( struct uartStruct *ptr_uartStruct)
       break;
       case 1:
       {
-    	  if ( eventDebug <= debug && ( ( debugMask >> debugADC ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s)"), __LINE__, __FILE__) ;
-            UART0_Send_Message_String(NULL,0);
-         }
+     	  printDebug_p(eventDebug, debugADC, __LINE__, PSTR(__FILE__), PSTR(""));
+
 
          /* read single channel */
          int8_t channelIndex = ptr_uartStruct->Uart_Message_ID;
@@ -91,11 +88,7 @@ void atmelReadADCs( struct uartStruct *ptr_uartStruct)
 
 uint8_t atmelCollectSingleADCChannel( int8_t channelIndex, uint8_t quiet )
 {
-   if ( eventDebug <= debug && ( ( debugMask >> debugADC ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) channel index %i"), __LINE__, __FILE__, channelIndex) ;
-      UART0_Send_Message_String(NULL,0);
-   }
+ 	printDebug_p(eventDebug, debugADC, __LINE__, PSTR(__FILE__), PSTR("channel index %i"), channelIndex);
 
    for ( uint8_t i = 0 ; i <= 1 ; i++ )
    {
@@ -165,17 +158,11 @@ uint8_t atmelCollectSingleADCChannel( int8_t channelIndex, uint8_t quiet )
    {
       snprintf_P(message, BUFFER_SIZE - 1,
                  PSTR("error accessing ADC channel %i"), ptr_uartStruct->Uart_Message_ID);
-      CommunicationError(ERRG, -100, TRUE, PSTR("error accessing ADCs"),
+      CommunicationError_p(ERRG, -100, TRUE, PSTR("error accessing ADCs"),
                          COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD - 100 );
       return status;
    }
-
-   if ( eventDebug <= debug && ( ( debugMask >> debugADC ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) value %i"), __LINE__, __FILE__,
-                 atmelAdcValues[channelIndex]) ;
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugADC, __LINE__, PSTR(__FILE__), PSTR("value %i"), atmelAdcValues[channelIndex]) ;
 
    if ( ! quiet )
    {
@@ -185,7 +172,7 @@ uint8_t atmelCollectSingleADCChannel( int8_t channelIndex, uint8_t quiet )
 	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%x %x"),
 			   uart_message_string, channelIndex, atmelAdcValues[channelIndex]);
 
-	   UART0_Send_Message_String(uart_message_string, BUFFER_SIZE - 1);
+	   UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
    }
    return status;
 }//END of atmelCollectSingleADCChannel function
@@ -241,11 +228,7 @@ int8_t atmelReadSingleADCChannelVoltage( unsigned int channel_nr )
 
       if ( Timeout == 0 )
       {
-    	 if ( eventDebug <= debug && ( ( debugMask >> debugADC ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) Timeout"), __LINE__, __FILE__) ;
-            UART0_Send_Message_String(NULL,0);
-         }
+     	  printDebug_p(eventDebug, debugADC, __LINE__, PSTR(__FILE__), PSTR("Timeout"));
          return eADCTimeout;
       }
 
@@ -259,11 +242,7 @@ int8_t atmelReadSingleADCChannelVoltage( unsigned int channel_nr )
 
    /*save results*/
    atmelAdcValues[channel_nr] = (uint16_t) TotalValue;
-   if ( eventDebug <= debug && ( ( debugMask >> debugADC ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) value = %i"), __LINE__, __FILE__, TotalValue) ;
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugADC, __LINE__, PSTR(__FILE__), PSTR("value = %i"), TotalValue) ;
 
    return eNoError;
 }// END of atmelReadSingleADCChannelVoltage function

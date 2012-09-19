@@ -40,43 +40,24 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
     //int8_t (*func)(struct uartStruct);
     //struct showCommand_t
 
-    if ( eventDebug <= debug && ( ( debugMask >> debugOWIApiSettings ) & 0x1 ) )
-    {
-       snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:owiApi begin"), __LINE__, __FILE__);
-       UART0_Send_Message_String(NULL,0);
-    }
+     printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("begin"));
 
     switch(ptr_uartStruct->number_of_arguments)
     {
     case 0:
         for (index = 0; index < owiApiCommandKeyNumber_MAXIMUM_NUMBER; index++)
         {
-            if ( eventDebug <= debug && ( ( debugMask >> debugOWIApiSettings ) & 0x1 ) )
-            {
-               snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:owiApi: owiApi all begin %i"),
-                          __LINE__, __FILE__, index);
-               UART0_Send_Message_String(NULL,0);
-            }
+             printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all begin %i"), index);
             ptr_uartStruct->number_of_arguments = 1;
 
             clearString(setParameter[1], MAX_LENGTH_PARAMETER);
             snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (const prog_char*) (pgm_read_word( &(owiApiCommandKeywords[index]))));
 
-            if ( eventDebug <= debug && ( ( debugMask >> debugOWIApiSettings ) & 0x1 ) )
-            {
-                snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s ) fcn:owiApi: recursive call of owiApi with parameter \"%s\" (%p)"),
-                        __LINE__, __FILE__, &setParameter[1][0], &setParameter[1][0]);
-                UART0_Send_Message_String(NULL,0);
-            }
+             printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("recursive call of %s with parameter \"%s\" (%p)"), __func__, &setParameter[1][0], &setParameter[1][0]);
 
             owiApi(ptr_uartStruct);
 
-            if ( eventDebug <= debug && ( ( debugMask >> debugOWIApiSettings ) & 0x1 ) )
-            {
-               snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:owiApi: owiApi all end %i"),
-                          __LINE__, __FILE__, index);
-               UART0_Send_Message_String(NULL,0);
-            }
+             printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all end %i"), index);
 
             ptr_uartStruct->number_of_arguments = 0;
         }
@@ -89,22 +70,12 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
         {
            if ( 0 == strncmp_P(&setParameter[1][0], (const char*) (pgm_read_word( &(owiApiCommandKeywords[index]))), MAX_LENGTH_PARAMETER) )
            {
-              if ( eventDebug <= debug && ( ( debugMask >> debugOWIApiSettings ) & 0x1 ) )
-              {
-                 snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:owiApi: keyword %s matches"),
-                            __LINE__, __FILE__, &setParameter[1][0]);
-                 UART0_Send_Message_String(NULL,0);
-              }
+               printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches"), &setParameter[1][0]);
               break;
            }
            else
            {
-              if ( eventDebugVerbose <= debug && ((debugMask >> debugOWIApiSettings) & 0x1))
-              {
-                 snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:owiApi: keyword %s doesn't match"),
-                            __LINE__, __FILE__, &setParameter[1][0]);
-                 UART0_Send_Message_String(NULL,0);
-              }
+               printDebug_p(eventDebugVerbose, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), &setParameter[1][0]);
            }
            index++;
         }
@@ -116,18 +87,14 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
               owiApiFlag(ptr_uartStruct, index);
               break;
            default:
-              CommunicationError(ERRA, -1, 0, PSTR("owiApi:invalid argument"), -1);
+              CommunicationError_p(ERRA, -1, 0, PSTR("owiApi:invalid argument"), -1);
               return 1;
               break;
         }
         break;
     }
 
-    if ( eventDebug <= debug && ( ( debugMask >> debugOWIApiSettings ) & 0x1 ) )
-    {
-       snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:owiApi: owiApi end"), __LINE__, __FILE__);
-       UART0_Send_Message_String(NULL,0);
-    }
+     printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("end"));
 
     return 0;
 }
@@ -144,7 +111,7 @@ int8_t owiApiFlag(struct uartStruct * ptr_uartStruct, uint8_t index)
          ptr_flag = &owiUseCommonTemperatureConversion_flag;
          break;
       default:
-         CommunicationError(ERRA, -1, 0, PSTR("owiApiFlag:invalid argument"), -1);
+         CommunicationError_p(ERRA, -1, 0, PSTR("owiApiFlag:invalid argument"), -1);
          return 1;
          break;
    }
@@ -156,7 +123,7 @@ int8_t owiApiFlag(struct uartStruct * ptr_uartStruct, uint8_t index)
    }
    snprintf_P(uart_message_string,BUFFER_SIZE -1, PSTR("%s%i"), uart_message_string, *ptr_flag);
    strncat_P(uart_message_string,((*ptr_flag)?PSTR(" (TRUE)"):PSTR(" (FALSE)")),BUFFER_SIZE -1);
-   UART0_Send_Message_String(NULL,0);
+   UART0_Send_Message_String_p(NULL,0);
 
    return 0;
 }

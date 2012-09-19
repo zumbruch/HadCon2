@@ -184,7 +184,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
              	   {
              		   clearString(uart_message_string, BUFFER_SIZE);
              		   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("channel %i failed"), channel);
-             		   CommunicationError(ERRG, -1, 1, uart_message_string, -1000);
+             		   CommunicationError_p(ERRG, -1, 1, uart_message_string, -1000);
              		   return;
              	   }
              	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%spin%i:0x%x "), uart_message_string, channel, value);
@@ -207,7 +207,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
              	   {
              		   clearString(uart_message_string, BUFFER_SIZE);
              		   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("channel %i failed"), channel);
-             		   CommunicationError(ERRG, -1, 1, uart_message_string, -1000);
+             		   CommunicationError_p(ERRG, -1, 1, uart_message_string, -1000);
              		   return;
              	   }
             	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:0x%x "), uart_message_string, channel, value);
@@ -226,7 +226,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
              	   {
              		   clearString(uart_message_string, BUFFER_SIZE);
              		   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("channel %i failed"), channel);
-             		   CommunicationError(ERRG, -1, 1, uart_message_string, -1000);
+             		   CommunicationError_p(ERRG, -1, 1, uart_message_string, -1000);
              		   return;
              	   }
              	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:0x%x "), uart_message_string, channel, value);
@@ -344,7 +344,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
                 break;
             default:
                clearString(uart_message_string, BUFFER_SIZE);
-               CommunicationError(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
+               CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
                return;
                break;
          }
@@ -415,7 +415,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
                 status = relayThresholdSetUseIndividualThresholds(FALSE != value);
                 break;
             default:
-               CommunicationError(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
+               CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
                return;
                break;
          }
@@ -464,7 +464,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
                   status = relayThresholdsSetLowThreshold(value & 0xFFFF, value2);
                   break;
                default:
-                  CommunicationError(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
+                  CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
                   return;
                   break;
             }
@@ -540,11 +540,7 @@ uint8_t relayThresholdInit(void)
 {
 	uint16_t status = FALSE;
 
-   if ( eventDebug <= debug && ( ( debugMask >> debugRELAY ) & 1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) Init"), __LINE__, __FILE__);
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugRELAY, __LINE__, PSTR(__FILE__), PSTR("Init"));
 
    /* check prerequisites */
    status = relayThresholdsCheckAllRelevantThresholdsValid();
@@ -579,8 +575,8 @@ void relayThresholdDetermineStateAndTriggerRelay(uint8_t inputSource)
 
    if ( relayThresholdInputSource_MAXIMUM_INDEX < inputSource )
    {
-	   sprintf_P(message, PSTR("fcn:%s: wrong input source:%i exceeds max. of %i\n"), __FUNCTION__, relayThresholdInputSource_MAXIMUM_INDEX );
-	   CommunicationError(ERRA, -1, TRUE, message, -1);
+	   sprintf_P(message, PSTR("fcn:%s: wrong input source:%i exceeds max. of %i\n"), __func__, relayThresholdInputSource_MAXIMUM_INDEX );
+	   CommunicationError_p(ERRA, -1, TRUE, message, -1);
 	   return;
    }
 
@@ -640,7 +636,7 @@ void relayThresholdDetermineStateAndTriggerRelay(uint8_t inputSource)
 
 		   clearString(uart_message_string, BUFFER_SIZE);
 		   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s (%4i, %s): %s: thresholds high [0x%x] <= low [0x%x] ... disabling"), "Relay Threshold", __LINE__, __FILE__);
-		   CommunicationError(ERRG, -1, 0, uart_message_string,4000);
+		   CommunicationError_p(ERRG, -1, 0, uart_message_string,4000);
 		   relayThresholdsSetEnableFlag(FALSE);
 		   return;
 	   }
@@ -655,7 +651,7 @@ void relayThresholdDetermineStateAndTriggerRelay(uint8_t inputSource)
 		   /* disable relay */
 		   relayThresholdsSetEnableFlag(FALSE);
 		   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s (%4i, %s): %s: undefined state ... disabling"), "Relay Threshold", __LINE__, __FILE__);
-		   CommunicationError(ERRG, -1, 0, uart_message_string,4000);
+		   CommunicationError_p(ERRG, -1, 0, uart_message_string,4000);
 		   return;
 	   }
    }
@@ -730,17 +726,17 @@ uint8_t relayThresholdGetCurrentChannelThreshold(uint8_t channel, uint16_t *low,
 	uint8_t status=0;
 	if ( 7 < channel)
 	{
-		CommunicationError(ERRA, -1, TRUE, PSTR("invalid channel argument"), -1);
+		CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid channel argument"), -1);
 		status = 1;
 	}
 	if (NULL == low)
 	{
-		CommunicationError(ERRA, -1, TRUE, PSTR("low NULL pointer"), -1);
+		CommunicationError_p(ERRA, -1, TRUE, PSTR("low NULL pointer"), -1);
 		status = 1;
 	}
 	if (NULL == high)
 	{
-		CommunicationError(ERRA, -1, TRUE, PSTR("high NULL pointer"), -1);
+		CommunicationError_p(ERRA, -1, TRUE, PSTR("high NULL pointer"), -1);
 		status = 1;
 	}
 	if (0 != status)
@@ -860,7 +856,7 @@ uint8_t relayThresholdDetermineNewRelaySetValue( uint8_t newState )
 		clearString(uart_message_string, BUFFER_SIZE);
 		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s (%4i, %s): unknown state"), "Relay Threshold", __LINE__, __FILE__);
 
-		CommunicationError(ERRG, -1, FALSE, uart_message_string, 0) ;
+		CommunicationError_p(ERRG, -1, FALSE, uart_message_string, 0) ;
 		break;
 	}
 	return setValue;
@@ -886,7 +882,7 @@ uint8_t relayThresholdsSetChannelThreshold(uint16_t value, int8_t channel, volat
 	}
 	else
 	{
-		CommunicationError(ERRA, -1, TRUE, PSTR("invalid channel argument"), -1);
+		CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid channel argument"), -1);
 		status = 1;
 	}
 	return status;
@@ -916,7 +912,7 @@ uint8_t relayThresholdsSetHighThreshold(uint16_t value, int8_t channel)
 	}
 	else
 	{
-		CommunicationError(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
+		CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
 		status = 1;
 	}
 	return status;
@@ -947,7 +943,7 @@ uint8_t relayThresholdsSetLowThreshold(uint16_t value, int8_t channel)
    }
    else
    {
-	   CommunicationError(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
+	   CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
 	   status = 1;
    }
    return status;
@@ -1087,7 +1083,7 @@ uint8_t relayThresholdsAddChannelToInputChannelMask(uint8_t channel)
    {
       if ( ! disableJTAG_flag && channel > 3)
       {
-          CommunicationError(ERRA, -1, TRUE, PSTR("invalid channel number, enabled JTAG allows ch 0-3"), -1);
+          CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid channel number, enabled JTAG allows ch 0-3"), -1);
           status = 1;
       }
       else
@@ -1098,7 +1094,7 @@ uint8_t relayThresholdsAddChannelToInputChannelMask(uint8_t channel)
    }
    else
    {
-      CommunicationError(ERRA, -1, TRUE, PSTR("invalid channel number [0-7]"), -1);
+      CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid channel number [0-7]"), -1);
       status = 1;
    }
    return status;
@@ -1114,7 +1110,7 @@ uint8_t relayThresholdsDeleteChannelFromInputChannelMask(uint8_t channel)
    }
    else
    {
-      CommunicationError(ERRA, -1, TRUE, PSTR("invalid channel number [0-7]"), -1);
+      CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid channel number [0-7]"), -1);
       status = 1;
    }
    return status;
@@ -1129,7 +1125,7 @@ uint8_t relayThresholdsSetOutputPin(uint8_t value)
    }
    else
    {
-      CommunicationError(ERRA, -1, TRUE, PSTR("pin number [0-7]"), -1);
+      CommunicationError_p(ERRA, -1, TRUE, PSTR("pin number [0-7]"), -1);
       status = 1;
    }
    return status;
@@ -1144,7 +1140,7 @@ uint8_t relayThresholdsSetLedPin(uint8_t value)
    }
    else
    {
-      CommunicationError(ERRA, -1, TRUE, PSTR("pin number [0-7]"), -1);
+      CommunicationError_p(ERRA, -1, TRUE, PSTR("pin number [0-7]"), -1);
       status = 1;
    }
    return status;
@@ -1158,7 +1154,7 @@ uint8_t relayThresholdsSetExternalPolarityPinPos(uint8_t value)
    {
       snprintf_P(message, BUFFER_SIZE - 1,
                  PSTR("value out of bounds [1,8]"), value);
-      CommunicationError(ERRG, -100, TRUE, NULL,
+      CommunicationError_p(ERRG, -100, TRUE, NULL,
                          COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD - 100 );
 
       return 1;
@@ -1185,7 +1181,7 @@ uint8_t relayThresholdsSetExternalPolarityPort(uint8_t value)
    {
       snprintf_P(message, BUFFER_SIZE - 1,
                  PSTR("value out of bounds [A,F]"), value);
-      CommunicationError(ERRG, -100, TRUE, NULL,
+      CommunicationError_p(ERRG, -100, TRUE, NULL,
                          COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD - 100 );
 
       return 1;
@@ -1230,7 +1226,7 @@ uint32_t relayThresholdsGetChannelValue(uint8_t channel, volatile uint16_t value
 	{
 		if ( ! disableJTAG_flag && channel > 3)
 		{
-			CommunicationError(ERRA, -1, TRUE, PSTR("invalid channel number, enabled JTAG allows ch 0-3"), -1);
+			CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid channel number, enabled JTAG allows ch 0-3"), -1);
 		}
 		else
 		{
@@ -1239,7 +1235,7 @@ uint32_t relayThresholdsGetChannelValue(uint8_t channel, volatile uint16_t value
 	}
 	else
 	{
-		CommunicationError(ERRA, -1, TRUE, PSTR("invalid channel number"), -1);
+		CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid channel number"), -1);
 	}
 	return ~(0UL) & ~(UINT16_MAX);
 
@@ -1377,7 +1373,7 @@ uint8_t relayThresholdSetExternThresholdChannel(int8_t channel, volatile int8_t 
 	uint8_t status = 0;
 	if (NULL == threshold)
 	{
-		CommunicationError(ERRG, -1, TRUE, PSTR("invalid pointer (NULL)"), -1);
+		CommunicationError_p(ERRG, -1, TRUE, PSTR("invalid pointer (NULL)"), -1);
 		status = 1;
 	}
 	else if (channel < 0)
@@ -1388,14 +1384,14 @@ uint8_t relayThresholdSetExternThresholdChannel(int8_t channel, volatile int8_t 
 	{
 		if ( ! disableJTAG_flag && channel > 3)
 		{
-			CommunicationError(ERRA, -1, TRUE, PSTR("invalid channel number, enabled JTAG allows ch 0-3"), -1);
+			CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid channel number, enabled JTAG allows ch 0-3"), -1);
 			status = 1;
 		}
 		else
 		{
 			if (relayThresholdInputChannelMask & (0x1 << channel))
 			{
-				CommunicationError(ERRA, -1, TRUE, PSTR("overlapping with channel inputs"), -1);
+				CommunicationError_p(ERRA, -1, TRUE, PSTR("overlapping with channel inputs"), -1);
 				status = 1;
 			}
 			else
@@ -1411,7 +1407,7 @@ uint8_t relayThresholdSetExternThresholdChannel(int8_t channel, volatile int8_t 
 	}
 	else
 	{
-		CommunicationError(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
+		CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
 		status = 1;
 	}
 	return status;

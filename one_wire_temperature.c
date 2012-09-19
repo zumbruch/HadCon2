@@ -172,13 +172,7 @@ void owiTemperatureReadSensors( struct uartStruct *ptr_uartStruct, uint8_t conve
 
       for (uint8_t index = 0; index < sizeof(familyCode)/sizeof(int8_t); index++)
       {
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWIADC ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) fcn:readTempSensors call: FindFamilyDevicesAndGetValues family code: %x"),
-                       __LINE__, __FILE__, familyCode[index]);
-            UART0_Send_Message_String(NULL, 0);
-         }
+          printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("call: FindFamilyDevicesAndGetValues family code: %x"), familyCode[index]);
 
          foundDevices += owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, familyCode[index], NULL );
       }
@@ -219,14 +213,14 @@ uint8_t owiTemperatureReadSensorsCheckCommandSyntax(struct uartStruct *ptr_uartS
          if ( FALSE == ptr_owiStruct->idSelect_flag)
          {
             snprintf_P(message, BUFFER_SIZE, PSTR("invalid arguments"));
-            CommunicationError(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+            CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
             status = -1;
             break;
          }
          break;
       default:
          snprintf_P(message, BUFFER_SIZE, PSTR("write argument: too many arguments"));
-         CommunicationError(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+         CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
          status = -1;
          break;
    }
@@ -258,12 +252,7 @@ uint16_t owiTemperatureGetNumberOfDevicesAndSetTemperatureMask(struct uartStruct
 
       tempDevices += owiScanIDS(FAMILY_DS18B20_TEMP, p_owiTemperatureMask_DS18B20);
       tempDevices += owiScanIDS(FAMILY_DS18S20_TEMP, p_owiTemperatureMask_DS18B20);
-      if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) misc temp commands keyword %s matches"),
-                    __LINE__, __FILE__, ptr_owiStruct->command);
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("misc temp commands keyword %s matches"), ptr_owiStruct->command);
 
       if ( 0 < tempDevices )
       {
@@ -271,12 +260,7 @@ uint16_t owiTemperatureGetNumberOfDevicesAndSetTemperatureMask(struct uartStruct
          owiTemperatureMask |= owiTemperatureMask_DS18S20;
       }
    }
-   if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) found %i temp devices"),
-                 __LINE__, __FILE__, tempDevices);
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("found %i temp devices"), tempDevices);
 
    return tempDevices;
 }
@@ -301,7 +285,7 @@ void owiTemperatureMiscSubCommandGetSetFlag(struct uartStruct *ptr_uartStruct, u
             strncat_P(uart_message_string, (! *flag)?PSTR("TRUE"):PSTR("FALSE"),BUFFER_SIZE -1);
          }
          /*send the data*/
-         UART0_Send_Message_String(uart_message_string, BUFFER_SIZE - 1);
+         UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
          /*clear strings*/
          clearString(uart_message_string, BUFFER_SIZE);
          clearString(message, BUFFER_SIZE);
@@ -347,7 +331,7 @@ void owiTemperatureMiscSubCommandGetSetStepByStepParasiticConversion(struct uart
                                                        owiTemperatureCommandKeywords);
          strncat_P(uart_message_string, ( FALSE != (*flag)) ? PSTR(" TRUE"):PSTR(" FALSE"),BUFFER_SIZE -1);
          /*send the data*/
-         UART0_Send_Message_String(uart_message_string, BUFFER_SIZE - 1);
+         UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
          /*clear strings*/
          clearString(uart_message_string, BUFFER_SIZE);
          break;
@@ -387,7 +371,7 @@ void owiTemperatureMiscSubCommandGetSetForceParasiticMode(struct uartStruct *ptr
                                                        owiTemperatureCommandKeywords);
          strncat_P(uart_message_string, ( FALSE != (*flag)) ? PSTR(" TRUE"):PSTR(" FALSE"),BUFFER_SIZE -1);
          /*send the data*/
-         UART0_Send_Message_String(uart_message_string, BUFFER_SIZE - 1);
+         UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
          /*clear strings*/
          clearString(uart_message_string, BUFFER_SIZE);
          break;
@@ -424,7 +408,7 @@ void owiTemperatureMiscSubCommandGetSetMaxConversionTime(struct uartStruct *ptr_
          snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s%i (0x%x)"),
                     owiTemperatureMaxConversionTime, owiTemperatureMaxConversionTime);
          /*send the data*/
-         UART0_Send_Message_String(uart_message_string, BUFFER_SIZE - 1);
+         UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
          break;
       case 1:
          /* set status*/
@@ -454,7 +438,7 @@ void owiTemperatureMiscSubCommandGetSetResolution_DS18B20(struct uartStruct *ptr
          snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s%i "),
                      owiTemperatureResolution_DS18B20);
          /*send the data*/
-         UART0_Send_Message_String(uart_message_string, BUFFER_SIZE - 1);
+         UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
          break;
       case 1:
       {
@@ -504,7 +488,7 @@ void owiTemperatureMiscSubCommandConvertOnly(struct uartStruct *ptr_uartStruct)
                strncat(uart_message_string, setParameter[1],BUFFER_SIZE -1 );
                strncat_P(uart_message_string, PSTR(" done"),BUFFER_SIZE -1 );
                /*send the data*/
-               UART0_Send_Message_String(uart_message_string, BUFFER_SIZE - 1);
+               UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
                /*clear strings*/
                clearString(uart_message_string, BUFFER_SIZE);
             }
@@ -526,7 +510,7 @@ void owiTemperatureMiscSubCommandConvertOnly(struct uartStruct *ptr_uartStruct)
                strncat(uart_message_string, setParameter[2],BUFFER_SIZE -1 );
                strncat_P(uart_message_string, PSTR(" done"),BUFFER_SIZE -1 );
                /*send the data*/
-               UART0_Send_Message_String(uart_message_string, BUFFER_SIZE - 1);
+               UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
                /*clear strings*/
                clearString(uart_message_string, BUFFER_SIZE);
             }
@@ -537,7 +521,7 @@ void owiTemperatureMiscSubCommandConvertOnly(struct uartStruct *ptr_uartStruct)
          }
          break;
       default:
-         CommunicationError(ERRA, -1, 0, PSTR("invalid number of arguments"), -1);
+         CommunicationError_p(ERRA, -1, 0, PSTR("invalid number of arguments"), -1);
          break;
    }
 }
@@ -550,22 +534,12 @@ void owiTemperatureMiscSubCommands( struct uartStruct *ptr_uartStruct )
    {
       if ( 0 == strncmp_P(ptr_owiStruct->command, (const char*) (pgm_read_word( &(owiTemperatureCommandKeywords[index]))), MAX_LENGTH_PARAMETER) )
       {
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) misc temp commands keyword %s matches"),
-                       __LINE__, __FILE__, ptr_owiStruct->command);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("misc temp commands keyword %s matches"), ptr_owiStruct->command);
          break;
       }
       else
       {
-         if ( eventDebugVerbose <= debug && ((debugMask >> debugOWITemperatures) & 0x1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) misc temp commands keyword %s doesn't match"),
-                       __LINE__, __FILE__, &setParameter[1][0]);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebugVerbose, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("misc temp commands keyword %s doesn't match"), &setParameter[1][0]);
       }
       index++;
    }
@@ -596,7 +570,7 @@ void owiTemperatureMiscSubCommands( struct uartStruct *ptr_uartStruct )
 	 owiTemperatureMiscSubCommandGetSetStepByStepParasiticConversion(ptr_uartStruct);
 	break;
       default:
-         CommunicationError(ERRA, -1, 0, PSTR("invalid argument"), -1);
+         CommunicationError_p(ERRA, -1, 0, PSTR("invalid argument"), -1);
          return;
          break;
    }
@@ -722,11 +696,7 @@ void owiTemperatureSensorBySensorParasiticConversion(uint8_t currentPins, uint16
 
 int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t spawnReleaseBlock )
 {
-   if ( eventDebugVerbose <= debug )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) "), __LINE__, __FILE__);
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebugVerbose, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR(""));
 
    uint16_t currentTimeoutMask = 0;
    uint16_t maxConversionTime = owiTemperatureMaxConversionTime;
@@ -751,13 +721,7 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
       /* check if no devices availabe, then return */
       if ( 0 == owiTemperatureGetNumberOfDevicesAndSetTemperatureMask(ptr_uartStruct))
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWITemperatures) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) owiTemperatureConversion: no temp sensors at all"),
-                       __LINE__, __FILE__, maxConversionTime, currentPins);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("no temp sensors at all"), maxConversionTime, currentPins);
          return 0;
       }
    }
@@ -798,48 +762,25 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
       /* if there are only DS18B20 devices availabe, i.e. no DS18S20, conversion time can be lowered depending on resolution */
       if ( 0 == ((owiTemperatureMask_DS18S20 & currentPins) & 0xFF ) )
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWITemperatures) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) fcn:MakeTempConversionOfAll bus: only DS18B20, adopting max. t_conv to: %i ms (pins 0x%x)"),
-                       __LINE__, __FILE__, maxConversionTime, currentPins);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("bus: only DS18B20, adopting max. t_conv to: %i ms (pins 0x%x)"), maxConversionTime, currentPins);
 
          maxConversionTime = maxConversionTime >> (12 - owiTemperatureResolution_DS18B20);
       }
       else
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWITemperatures) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) fcn:MakeTempConversionOfAll bus: mixed sensors, max. t_conv: %f (pins 0x%x)"),
-                       __LINE__, __FILE__, maxConversionTime, currentPins);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("bus: mixed sensors, max. t_conv: %f (pins 0x%x)"), maxConversionTime, currentPins);
       }
 
       if ( 0 == OWI_DetectPresence(currentPins) )
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWITemperatures) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:MakeTempConversionOfAll no Device present (pin pattern 0x%x)"), __LINE__, __FILE__,
-                       currentPins);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("no Device present (pin pattern 0x%x)"), currentPins);
 
          continue;
       }
       else
       {
-         if ( eventDebug <= debug && ((debugMask >> debugOWITemperatures) & 1))
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:MakeTempConversionOfAll some devices present (pin pattern 0x%x)"), __LINE__, __FILE__,
-                       currentPins);
-            UART0_Send_Message_String(NULL,0);
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:MakeTempConversionOfAll starting conversion sequence"), __LINE__, __FILE__);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("some devices present (pin pattern 0x%x)"), currentPins);
+          printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("starting conversion sequence"));
       }
 
        /*
@@ -851,12 +792,7 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
        */
       if (FALSE != owiTemperatureForceParasiticMode || 0 != ((owiTemperatureParasiticModeMask & currentPins) & 0xF ) )
       {
-          if ( eventDebugVerbose <= debug && ((debugMask >> debugOWITemperatures) & 0x1))
-          {
-             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) parasitic conversion "),
-                        __LINE__, __FILE__);
-             UART0_Send_Message_String(NULL,0);
-          }
+           printDebug_p(eventDebugVerbose, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic conversion "));
 
 	  if ( FALSE != owiTemperatureSensorBySensorParasiticConversionFlag )
 	  {
@@ -868,12 +804,7 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
 	    owiTemperatureSensorBySensorParasiticConversion(currentPins, selectedDeviceIndex);
 	    waitForConversion = FALSE;
 	  }
-          if ( eventDebugVerbose <= debug && ((debugMask >> debugOWITemperatures) & 0x1))
-          {
-             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) parasitic conversion done"),
-                        __LINE__, __FILE__);
-             UART0_Send_Message_String(NULL,0);
-          }
+           printDebug_p(eventDebugVerbose, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic conversion done"));
        }
        else
        {
@@ -886,11 +817,7 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
              count = maxcount;
              timeout_flag = FALSE;
 
-             if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-             {
-                snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) waiting for conversion"), __LINE__, __FILE__);
-                UART0_Send_Message_String(NULL,0);
-             }
+              printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("waiting for conversion"));
 
              uint8_t owiReadBit = 0;
 
@@ -935,13 +862,7 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
        }
    }//end of for ( int8_t busPatternIndex = 0 ; busPatternIndex < PIN_BUS ; busPatternIndex++ )
 
-   if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                 PSTR("DEBUG (%4i, %s) fcn:MakeTempConversionOfAll finished (Timeout: current = 0x%x, all = 0x%x)"),
-                 __LINE__, __FILE__, currentTimeoutMask, owiTemperatureTimeoutMask);
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("finished (Timeout: current = 0x%x, all = 0x%x)"), currentTimeoutMask, owiTemperatureTimeoutMask);
 
    return status;
 }
@@ -975,46 +896,26 @@ uint8_t owiTemperatureConversionEvaluateTimeoutFlag(const unsigned char timeout_
 
          if ( 0 < maxcount )
          {
-            if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-            {
-               snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) owiTemperatureConversionAfterMath waited %i times a delay of"),
-                          __LINE__, __FILE__, maxcount - count);
-               snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %i ms", uart_message_string, OWI_TEMPERATURE_CONVERSION_DELAY_MILLISECONDS);
-               UART0_Send_Message_String(NULL,0);
-            }
+             printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("waited %i times a delay of"), maxcount - count); snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %i ms", uart_message_string, OWI_TEMPERATURE_CONVERSION_DELAY_MILLISECONDS);
          }
 
          if ( count > 0 )
          {
             /*wait the remaining time*/
-            if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-            {
-               snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) owiTemperatureConversionAfterMath waiting the remaining %i times"), __LINE__, __FILE__, count);
-               snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %i ms", uart_message_string, OWI_TEMPERATURE_CONVERSION_DELAY_MILLISECONDS);
-               UART0_Send_Message_String(NULL,0);
-            }
+             printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("waiting the remaining %i times"), count); snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %i ms", uart_message_string, OWI_TEMPERATURE_CONVERSION_DELAY_MILLISECONDS);
 
             while ( 0 < --count ) { _delay_ms(OWI_TEMPERATURE_CONVERSION_DELAY_MILLISECONDS); }
          }
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) owiTemperatureConversionAfterMath conversion done"), __LINE__, __FILE__);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("conversion done"));
+
          return 0;
       }
       else
       {
          owiTemperatureTimeoutMask |= currentPins;
          *currentTimeoutMask |= currentPins;
-         CommunicationError(ERRG, -1, 0, PSTR("OWI Temperature Conversion timeout"), 200);
+         CommunicationError_p(ERRG, -1, 0, PSTR("OWI Temperature Conversion timeout"), 200);
 
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("DEBUG (%4i, %s) OWI Temperature Conversion timeout (>%i ms) on bus_mask (%i)"),
-                       __LINE__, __FILE__,  maxConversionTime, currentPins);
-         }
          return 1;
       }
 }
@@ -1037,19 +938,12 @@ uint32_t owiTemperatureReadSingleSensor( unsigned char bus_pattern, unsigned cha
    uint32_t temperature = 0x0;
 
    /*checks*/
-   if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:ReadTemperatures begin"), __LINE__, __FILE__);
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("begin"));
+
    if ( 0 == ((owiBusMask & bus_pattern) & 0xFF) )
    {
-      if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) passive (bus pattern 0x%x owiBusMask 0x%x)"), __LINE__, __FILE__,
-                    bus_pattern,owiBusMask);
-         UART0_Send_Message_String(NULL,0);
-      }
+       printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("passive (bus pattern 0x%x owiBusMask 0x%x)"), bus_pattern,owiBusMask);
+
       return (0x0L | owiReadStatus_owi_bus_mismatch) << 16;
    }
 
@@ -1058,13 +952,7 @@ uint32_t owiTemperatureReadSingleSensor( unsigned char bus_pattern, unsigned cha
       /*conversion went into timeout*/
       snprintf_P(message, BUFFER_SIZE - 1, PSTR("OWI Temperature Conversion timeout (>%i ms, %s, bus_pattern 0x%x vs. mask: 0x%x)"),
                  OWI_TEMPERATURE_MAX_CONVERSION_TIME_MILLISECONDS, owi_id_string, bus_pattern, owiTemperatureTimeoutMask);
-      CommunicationError(ERRG, -1, 0, message, -1001);
-
-      if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-      {
-         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) %s"), __LINE__, __FILE__, message);
-         UART0_Send_Message_String(NULL,0);
-      }
+      CommunicationError_p(ERRG, -1, 0, message, -1001);
 
       clearString(message, BUFFER_SIZE);
       return (0x0L | owiReadStatus_conversion_timeout) << 16;
@@ -1103,11 +991,7 @@ uint32_t owiTemperatureReadSingleSensor( unsigned char bus_pattern, unsigned cha
 
    OWI_DetectPresence(bus_pattern);
 
-   if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-   {
-      snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) fcn:ReadTemperatures end"), __LINE__, __FILE__);
-      UART0_Send_Message_String(NULL,0);
-   }
+    printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("end"));
 
    return temperature | ((0x0L | owiReadWriteStatus_OK) << 16);
 
@@ -1145,24 +1029,12 @@ void owiTemperatureFindParasiticlyPoweredDevices(unsigned char verbose)
 
       if ( 0 == OWI_DetectPresence(currentPins) )
       {
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s, %s): no Device present (pin pattern 0x%x)"),
-            		   __LINE__, __FILE__,__FUNCTION__,
-                       currentPins);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWI, __LINE__, PSTR(__FILE__), PSTR("no Device present (pin pattern 0x%x)"), currentPins);
          continue;
       }
       else
       {
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWI ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s, %s): some devices present (pin pattern 0x%x)"),
-            		   __LINE__, __FILE__,__FUNCTION__,
-                       currentPins);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWI, __LINE__, PSTR(__FILE__), PSTR("some devices present (pin pattern 0x%x)"), currentPins);
       }
 
 
@@ -1206,16 +1078,11 @@ void owiTemperatureFindParasiticlyPoweredDevices(unsigned char verbose)
             snprintf_P(uart_message_string, BUFFER_SIZE - 1,
                        PSTR("RECV PARA parasitic devices SOME on pins 0x%x "),
                        currentPins);
-            UART0_Send_Message_String(NULL,0);
+            UART0_Send_Message_String_p(NULL,0);
          }
          /*set current pins in parasitic mode mask*/
          owiTemperatureParasiticModeMask |= (currentPins & 0xF);
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) parasitic devices SOME on pins 0x%x ")
-                       , __LINE__, __FILE__,currentPins);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic devices SOME on pins 0x%x ") ,currentPins);
       }
       else
       {
@@ -1225,16 +1092,11 @@ void owiTemperatureFindParasiticlyPoweredDevices(unsigned char verbose)
             snprintf_P(uart_message_string, BUFFER_SIZE - 1,
                        PSTR("RECV PARA parasitic devices NONE on pins 0x%x (pulled HIGH within %i ms)"),
                        currentPins, (maxcount-count)*delay);
-            UART0_Send_Message_String(NULL,0);
+            UART0_Send_Message_String_p(NULL,0);
          }
          /*set current pins in parasitic mode mask*/
          owiTemperatureParasiticModeMask &= !(currentPins & 0xF);
-         if ( eventDebug <= debug && ( ( debugMask >> debugOWITemperatures ) & 0x1 ) )
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, %s) parasitic devices NONE on pins 0x%x ")
-                       , __LINE__, __FILE__,currentPins);
-            UART0_Send_Message_String(NULL,0);
-         }
+          printDebug_p(eventDebug, debugOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic devices NONE on pins 0x%x ") ,currentPins);
       }
    }
 }

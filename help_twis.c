@@ -25,16 +25,16 @@ void help_twis(char *currentReceiveHeader, char *currentCommandKeyword)
 
 	snprintf_P(uart_message_string, BUFFER_SIZE - 1,
 			PSTR("%s TWI / I2C access (dummy name) "), message );
-	UART0_Send_Message_String(NULL,0);
+	UART0_Send_Message_String_p(NULL,0);
 	snprintf_P(uart_message_string, BUFFER_SIZE - 1,
 			PSTR("%s command : %s <1/0> <address> <data length> <data bytes1 ... 8>"), message, currentCommandKeyword );
-	UART0_Send_Message_String(NULL,0);
+	UART0_Send_Message_String_p(NULL,0);
 	snprintf_P(uart_message_string, BUFFER_SIZE - 1,
 			PSTR("%s response (write \"0\"): %s 0 <address> <data length> <data bytes1 ... 8> -OK-"), message, currentReceiveHeader );
-	UART0_Send_Message_String(NULL,0);
+	UART0_Send_Message_String_p(NULL,0);
 	snprintf_P(uart_message_string, BUFFER_SIZE - 1,
 			PSTR("%s response  (read \"1\"): %s 1 <address> <data length> <data bytes1 ... 8> "), message, currentReceiveHeader );
-	UART0_Send_Message_String(NULL,0);
+	UART0_Send_Message_String_p(NULL,0);
 }
 
 

@@ -279,7 +279,7 @@ void Wait_for_Can_Send_Message_Finished( void )
     if ( verboseDebug <= debug && ( ( debugMask >> debugCAN ) & 0x1 ) )
     {
        snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV %s"), READY);
-       UART0_Send_Message_String(NULL,0);
+       UART0_Send_Message_String_p(NULL,0);
     }
 
 	/* all parameter initializing */
@@ -353,7 +353,7 @@ void Convert_pack_canFrame_to_UartFormat( struct canStruct *ptr_canStruct )
 	strncat_P(canString, PSTR(" "), MAX_LENGTH_CAN_DATA - 1);
 	strncat(canString, store_canData, MAX_LENGTH_CAN_DATA - 1);
 	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s"), canString);
-	UART0_Send_Message_String(NULL,0);
+	UART0_Send_Message_String_p(NULL,0);
 	clearString(canString, MAX_LENGTH_CAN_DATA); /*clear the variable CanString */
 	clearString(temp_canString, MAX_LENGTH_CAN_DATA); /*clear the variable temp_canString*/
 	clearString(store_canData, MAX_LENGTH_CAN_DATA); /*clear the variable store_canData*/
@@ -465,7 +465,7 @@ int setCanBaudRate( const uint32_t rate, const uint32_t freq )
 			break;
 		default:
 			snprintf_P(message, BUFFER_SIZE, PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination"), rate, freq);
-			CommunicationError(ERRC, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+			CommunicationError_p(ERRC, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
 			return -1;
 			break;
 		}
@@ -507,7 +507,7 @@ int setCanBaudRate( const uint32_t rate, const uint32_t freq )
 			break;
 		default:
 			snprintf_P(message, BUFFER_SIZE, PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination"), rate, freq);
-			CommunicationError(ERRC, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+			CommunicationError_p(ERRC, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
 			return -1;
 			break;
 		}
@@ -515,7 +515,7 @@ int setCanBaudRate( const uint32_t rate, const uint32_t freq )
 	break;
 	default:
 		snprintf_P(message, BUFFER_SIZE, PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination"), rate, freq);
-		CommunicationError(ERRC, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+		CommunicationError_p(ERRC, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
 		return -1;
 		break;
 	}
