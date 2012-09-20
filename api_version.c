@@ -18,8 +18,12 @@
 
 void version(void)
 {
-   createReceiveHeader(ptr_uartStruct,uart_message_string,BUFFER_SIZE -1 );
-   snprintf_P(uart_message_string,BUFFER_SIZE -1, PSTR("%s%s %s"), uart_message_string, CODE_VERSION, __DATE__);
+   if ( commandKeyNumber_MAXIMUM_NUMBER <= ptr_uartStruct->commandKeywordIndex)
+   {
+	   ptr_uartStruct->commandKeywordIndex = commandKeyNumber_VERS;
+   }
+   createReceiveHeader(NULL,NULL,0);
+   snprintf_P(uart_message_string,BUFFER_SIZE -1, PSTR("%s%s %s %s"), uart_message_string, CODE_VERSION, __DATE__, __TIME__);
    UART0_Send_Message_String_p(NULL,0);
 
    return;
