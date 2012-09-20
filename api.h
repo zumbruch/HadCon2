@@ -28,11 +28,6 @@ struct uartStruct
 extern struct uartStruct uartFrame;
 extern struct uartStruct *ptr_uartStruct;
 
-extern uint8_t (*printDebug_p)(uint8_t, uint32_t, uint32_t, const prog_char*, const prog_char*, ...);
-
-extern uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, const prog_char*, const int16_t);
-extern int16_t (*UART0_Send_Message_String_p)( char *, uint16_t );
-extern void (*UART0_Transmit_p)( uint8_t );
 
 /* Implemented functions */
 void Process_Uart_Event( void );
@@ -295,5 +290,14 @@ enum ERRs
 
 extern const char *debugLevelNames[] PROGMEM;
 extern const char *debugSystemNames[] PROGMEM;
+
+/*function pointers*/
+extern void (*printDebug_p)(uint8_t, uint32_t, uint32_t, const prog_char*, const prog_char*, ...);
+extern uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, const prog_char*, const int16_t);
+extern int16_t (*UART0_Send_Message_String_p)( char *, uint16_t );
+extern void (*UART0_Transmit_p)( uint8_t );
+extern void (*Process_Uart_Event_p)( void );
+extern uint16_t (*clearString_p)( char[], uint16_t );
+
 #endif
 #endif

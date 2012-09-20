@@ -864,7 +864,7 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
    if ( 0 == ((owiBusMask & bus_pattern) & 0xFF) )
    {
        printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("passive (bus pattern 0x%x owiBusMask 0x%x)"), bus_pattern,owiBusMask);
-      return owiReadStatus_owi_bus_mismatch << OWI_ADC_DS2450_MAX_RESOLUTION;
+      return ((uint32_t) owiReadStatus_owi_bus_mismatch) << OWI_ADC_DS2450_MAX_RESOLUTION;
    }
 
    if ( 0 != ((owiAdcTimeoutMask & bus_pattern) & 0xFF) )
@@ -877,7 +877,7 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
       CommunicationError_p(ERRG, -1, 0, message, -1001);
       clearString(message, BUFFER_SIZE);
 
-      return owiReadStatus_conversion_timeout << OWI_ADC_DS2450_MAX_RESOLUTION;
+      return ((uint32_t) owiReadStatus_conversion_timeout) << OWI_ADC_DS2450_MAX_RESOLUTION;
    }
 #warning TODO: consider the case that bus_pattern has more than one bit active, but the conversion failed/succeeded not on all the same way
 
@@ -885,7 +885,7 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 
    if ( 0 == OWI_DetectPresence(bus_pattern) )
    {
-      return owiReadStatus_no_device_presence << OWI_ADC_DS2450_MAX_RESOLUTION; // Error
+      return ((uint32_t) owiReadStatus_no_device_presence) << OWI_ADC_DS2450_MAX_RESOLUTION; // Error
    }
 
    /* Send READ MEMORY command
@@ -964,12 +964,12 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
    if (FALSE == flag)
    {
 #warning TODO: check for this value
-	   return 1 | (owiReadWriteStatus_MAXIMUM_INDEX << OWI_ADC_DS2450_MAX_RESOLUTION);
+	   return ((uint32_t) 1 ) | (((uint32_t)owiReadWriteStatus_MAXIMUM_INDEX) << OWI_ADC_DS2450_MAX_RESOLUTION);
    }
    else
    {
        printDebug_p(eventDebug, debugOWIADC, __LINE__, PSTR(__FILE__), PSTR("retrieved data and end"));
-      return 0 | (owiReadWriteStatus_OK << OWI_ADC_DS2450_MAX_RESOLUTION);
+       return ((uint32_t) 0 ) | (((uint32_t)owiReadWriteStatus_OK) << OWI_ADC_DS2450_MAX_RESOLUTION);
    }
 
 

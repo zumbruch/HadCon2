@@ -1237,26 +1237,26 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
        break;
     case commandKeyNumber_CMD4: /* command (dummy name) */
        break;
-    case commandKeyNumber_GNWR: /* command (dummy name) */
+    case commandKeyNumber_GNWR: /* generator write */
       /* command      : RGWR Register Value */
       /* response now : RECV the value %x has been written in Register */
       /* response TODO: RECV RGWR Register Value (OldValue) */
-      /* waveformGeneratorWriteRegister(ptr_uartStruct); /* call function with name writeRegister  */
+      /* waveformGeneratorWriteRegister(ptr_uartStruct); call function with name writeRegister  */
       waveformGeneratorWriteRegister(ptr_uartStruct); /* call function with name waveformGeneratorWriteRegister  */
        break;
-    case commandKeyNumber_GNRE: /* command (dummy name) */
+    case commandKeyNumber_GNRE: /* generator read */
       /* command      : GNRE Register*/
       /* response now : RECV the value %x has been written in Register */
       /* response TODO: RECV GNWR Register Value */
       waveformGeneratorReadRegister(ptr_uartStruct); /* call function with name  waveformGeneratorReadRegister */
       break;
-    case commandKeyNumber_OW8S: /* command (dummy name) */
+    case commandKeyNumber_OW8S: /* 1-wire 8-fold switch */
     	owiOctalSwitches(ptr_uartStruct);
     	break;
     case commandKeyNumber_TWIS: /* i2c interface (twi) */
     	twiMaster(ptr_uartStruct);
        break;
-    case commandKeyNumber_VERS: /* command (dummy name) */
+    case commandKeyNumber_VERS: /* version */
     	version();
        break;
     default:
@@ -2051,37 +2051,37 @@ void reset(struct uartStruct *ptr_uartStruct)
     Initialization();
 }
 
-void backTrace(size_t level)
-{
-   /*
-        // prints out level steps of function calls
-        // before the function call (backtrace)
-        // Useful for debugging
-    */
-
-   void** array = (void*) calloc(level, sizeof(void));
-   int    size = 0;
-   //size = backtrace (array, level);
-
-   if(0 != size)
-   {
-      char **strings;
-      //strings = backtrace_symbols (array, size);
-      //message(stdout,NULL ,-1 ,"BACKTRACE",NULL, "Obtained %zd stack frames.\n", size);
-
-      int i=0;
-      for (i = 0; i < size; i++)
-      {
-         if (strings && strings[i])
-         {
-            //message(stdout,NULL ,-1 ,"BACKTRACE",NULL, " %s\n", strings[i]);
-         }
-      }
-      free(strings);
-   }
-   else
-   {
-      //message(stderr,__FILE__,__LINE__, "ERROR", "backTrack", "Could not retrieve backtrace information");
-   }
-   //safePArrayFree(array,level);
-}
+//void backTrace(size_t level)
+//{
+//   /*
+//        // prints out level steps of function calls
+//        // before the function call (backtrace)
+//        // Useful for debugging
+//    */
+//
+//   void** array = (void*) calloc(level, sizeof(void));
+//   int    size = 0;
+//   //size = backtrace (array, level);
+//
+//   if(0 != size)
+//   {
+//      char **strings;
+//      //strings = backtrace_symbols (array, size);
+//      //message(stdout,NULL ,-1 ,"BACKTRACE",NULL, "Obtained %zd stack frames.\n", size);
+//
+//      int i=0;
+//      for (i = 0; i < size; i++)
+//      {
+//         if (strings && strings[i])
+//         {
+//            //message(stdout,NULL ,-1 ,"BACKTRACE",NULL, " %s\n", strings[i]);
+//         }
+//      }
+//      free(strings);
+//   }
+//   else
+//   {
+//      //message(stderr,__FILE__,__LINE__, "ERROR", "backTrack", "Could not retrieve backtrace information");
+//   }
+//   //safePArrayFree(array,level);
+//}

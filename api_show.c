@@ -204,11 +204,12 @@ void help_show(void)
 
 void showErrors(struct uartStruct * ptr_uartStruct, uint8_t index)
 {
-    unsigned char errmax[5];
+    unsigned char errmax[6];
     errmax[ERRA] = SERIAL_ERROR_MAXIMUM_INDEX;
     errmax[ERRC] = CAN_ERROR_MAXIMUM_INDEX;
     errmax[ERRG] = GENERAL_ERROR_MAXIMUM_INDEX;
     errmax[ERRM] = MOB_ERROR_MAXIMUM_INDEX;
+    errmax[ERRT] = TWI_ERROR_MAXIMUM_INDEX;
     errmax[ERRU] = 0;
 
     createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, index, commandShowKeywords);

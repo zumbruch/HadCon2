@@ -167,4 +167,6 @@ uint8_t relayThresholdsGetInvertPolarityFlag(void);
 
 uint8_t relayThresholdsSetChannelThreshold(uint16_t value, int8_t channel, volatile uint16_t threshold[], uint8_t offset);
 
+extern void (*relayThresholdDetermineStateAndTriggerRelay_p)(uint8_t);
+
 #endif /* RELAY_H_ */
