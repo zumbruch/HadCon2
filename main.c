@@ -177,7 +177,7 @@ int main( void )
    debugMask = (0x1L << debugSystems_MAXIMUM_INDEX) -1; /*all enabled*/
 
    ptr_uartStruct = &uartFrame; /* initialize pointer for CPU-structure */
-   //	initUartStruct(ptr_uartStruct); /*initialize basic properties of uartStruct
+   initUartStruct(ptr_uartStruct); /*initialize basic properties of uartStruct
    
    ptr_canStruct = &canFrame; /* initialize pointer for CAN-structure */
 
@@ -207,12 +207,14 @@ int main( void )
 
    Initialization();
 
-   clearString(uart_message_string, BUFFER_SIZE);
+   // Start
+
    snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("SYST system (re)started"));
    UART0_Send_Message_String_p(NULL,0);
 
    printDebug_p(eventDebug, debugMain, __LINE__, PSTR(__FILE__), PSTR("starting main (after init)"));
 
+   version();
    showMem(ptr_uartStruct, commandShowKeyNumber_UNUSED_MEM_START);
    showMem(ptr_uartStruct, commandShowKeyNumber_UNUSED_MEM_NOW);
    owiApiFlag(ptr_uartStruct, owiApiCommandKeyNumber_COMMON_ADC_CONVERSION);
