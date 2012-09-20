@@ -1688,6 +1688,12 @@ void Initialization( void )
    /* disable interrupts*/
    cli();
 
+   //clear strings
+   clearString(uart_message_string, BUFFER_SIZE);
+   clearString(decrypt_uartString, BUFFER_SIZE);
+   clearString(uartString, BUFFER_SIZE);
+   clearString(message, BUFFER_SIZE);
+
    UART0_Init();
 
    Init_Port();
@@ -1909,7 +1915,7 @@ uint8_t createReceiveHeader( struct uartStruct *ptr_myUartStruct, char message_s
    if (NULL == message_string) { message_string = uart_message_string; }
    if (0 == size) { size = BUFFER_SIZE; }
 
-    printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("commandKeywordIndex %i"), ptr_myUartStruct->commandKeywordIndex);
+   printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("commandKeywordIndex %i"), ptr_myUartStruct->commandKeywordIndex);
 
    clearString(message_string, size);
    strncat_P(message_string, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_RECV])) ), size - 1);
@@ -2049,6 +2055,25 @@ void reset(struct uartStruct *ptr_uartStruct)
     UART0_Send_Message_String_p(NULL,0);
 
     Initialization();
+}
+
+uint8_t initUartStruct(struct uartStruct *ptr_myUartStruct)
+{
+   if (NULL == ptr_myUartStruct)
+   {
+      return 1;
+   }
+
+   ptr_myUartStruct->Uart_Message_ID = 0;
+   ptr_myUartStruct->Uart_Mask = 0;
+   ptr_myUartStruct->Uart_Rtr = 0;
+   ptr_myUartStruct->Uart_Length = 0;
+   for (unsigned int i = 0; i < 8; i++) { ptr_myUartStruct->Uart_Data[i]=0; }
+   ptr_myUartStruct->commandKeywordIndex = commandKeyNumber_MAXIMUM_NUMBER;
+   ptr_myUartStruct->number_of_arguments = 0;
+
+   return 0;
+
 }
 
 //void backTrace(size_t level)

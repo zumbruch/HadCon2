@@ -31,6 +31,7 @@
 #include "can.h"
 #include "mem-check.h"
 #include "api_show.h"
+#include "api_version.h"
 #include "relay.h"
 
 #include "OWIDeviceSpecific.h"
@@ -177,7 +178,7 @@ int main( void )
    debugMask = (0x1L << debugSystems_MAXIMUM_INDEX) -1; /*all enabled*/
 
    ptr_uartStruct = &uartFrame; /* initialize pointer for CPU-structure */
-   initUartStruct(ptr_uartStruct); /*initialize basic properties of uartStruct
+   initUartStruct(ptr_uartStruct);/*initialize basic properties of uartStruct*/
    
    ptr_canStruct = &canFrame; /* initialize pointer for CAN-structure */
 
