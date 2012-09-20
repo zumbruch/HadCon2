@@ -99,6 +99,8 @@ int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value)
 
 void reset(struct uartStruct *ptr_uartStruct);
 
+uint8_t initUartStruct(struct uartStruct *ptr_myUartStruct);
+
 #ifndef API_CONSTANTS_H_
 
 extern const char *general_error[] PROGMEM;
