@@ -40,24 +40,24 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
     //int8_t (*func)(struct uartStruct);
     //struct showCommand_t
 
-     printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("begin"));
+     printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("begin"));
 
     switch(ptr_uartStruct->number_of_arguments)
     {
     case 0:
         for (index = 0; index < owiApiCommandKeyNumber_MAXIMUM_NUMBER; index++)
         {
-             printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all begin %i"), index);
+             printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all begin %i"), index);
             ptr_uartStruct->number_of_arguments = 1;
 
             clearString(setParameter[1], MAX_LENGTH_PARAMETER);
             snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (const prog_char*) (pgm_read_word( &(owiApiCommandKeywords[index]))));
 
-             printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("recursive call of %s with parameter \"%s\" (%p)"), __func__, &setParameter[1][0], &setParameter[1][0]);
+             printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("recursive call of %s with parameter \"%s\" (%p)"), __func__, &setParameter[1][0], &setParameter[1][0]);
 
             owiApi(ptr_uartStruct);
 
-             printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all end %i"), index);
+             printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all end %i"), index);
 
             ptr_uartStruct->number_of_arguments = 0;
         }
@@ -70,12 +70,12 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
         {
            if ( 0 == strncmp_P(&setParameter[1][0], (const char*) (pgm_read_word( &(owiApiCommandKeywords[index]))), MAX_LENGTH_PARAMETER) )
            {
-               printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches"), &setParameter[1][0]);
+               printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches"), &setParameter[1][0]);
               break;
            }
            else
            {
-               printDebug_p(eventDebugVerbose, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), &setParameter[1][0]);
+               printDebug_p(debugLevelEventDebugVerbose, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), &setParameter[1][0]);
            }
            index++;
         }
@@ -94,7 +94,7 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
         break;
     }
 
-     printDebug_p(eventDebug, debugOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("end"));
+     printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("end"));
 
     return 0;
 }

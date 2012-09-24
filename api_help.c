@@ -356,7 +356,7 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s available debug levels are:"), message );
             UART0_Send_Message_String_p(NULL,0);
-            for (int i=0; i < levelsDebug_MAXIMUM_INDEX; i++)
+            for (int i=0; i < debugLevel_MAXIMUM_INDEX; i++)
             {
                 snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s    "), message );
                 strncat_P(uart_message_string, (const char*) (pgm_read_word( &(debugLevelNames[i]))), BUFFER_SIZE -1) ;
@@ -367,7 +367,7 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s available masks are:"), message );
             UART0_Send_Message_String_p(NULL,0);
-            for (int i=0; i < debugSystems_MAXIMUM_INDEX; i++)
+            for (int i=0; i < debugSystem_MAXIMUM_INDEX; i++)
             {
                 snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s    "), message );
                 strncat_P(uart_message_string, (const char*) (pgm_read_word( &(debugSystemNames[i]))), BUFFER_SIZE -1) ;

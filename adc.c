@@ -62,7 +62,7 @@ void atmelReadADCs( struct uartStruct *ptr_uartStruct)
       break;
       case 1:
       {
-     	  printDebug_p(eventDebug, debugADC, __LINE__, PSTR(__FILE__), PSTR(""));
+     	  printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, PSTR(__FILE__), PSTR(""));
 
 
          /* read single channel */
@@ -88,7 +88,7 @@ void atmelReadADCs( struct uartStruct *ptr_uartStruct)
 
 uint8_t atmelCollectSingleADCChannel( int8_t channelIndex, uint8_t quiet )
 {
- 	printDebug_p(eventDebug, debugADC, __LINE__, PSTR(__FILE__), PSTR("channel index %i"), channelIndex);
+ 	printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, PSTR(__FILE__), PSTR("channel index %i"), channelIndex);
 
    for ( uint8_t i = 0 ; i <= 1 ; i++ )
    {
@@ -162,7 +162,7 @@ uint8_t atmelCollectSingleADCChannel( int8_t channelIndex, uint8_t quiet )
                          COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD - 100 );
       return status;
    }
-    printDebug_p(eventDebug, debugADC, __LINE__, PSTR(__FILE__), PSTR("value %i"), atmelAdcValues[channelIndex]) ;
+    printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, PSTR(__FILE__), PSTR("value %i"), atmelAdcValues[channelIndex]) ;
 
    if ( ! quiet )
    {
@@ -228,7 +228,7 @@ int8_t atmelReadSingleADCChannelVoltage( unsigned int channel_nr )
 
       if ( Timeout == 0 )
       {
-     	  printDebug_p(eventDebug, debugADC, __LINE__, PSTR(__FILE__), PSTR("Timeout"));
+     	  printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, PSTR(__FILE__), PSTR("Timeout"));
          return eADCTimeout;
       }
 
@@ -242,7 +242,7 @@ int8_t atmelReadSingleADCChannelVoltage( unsigned int channel_nr )
 
    /*save results*/
    atmelAdcValues[channel_nr] = (uint16_t) TotalValue;
-    printDebug_p(eventDebug, debugADC, __LINE__, PSTR(__FILE__), PSTR("value = %i"), TotalValue) ;
+    printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, PSTR(__FILE__), PSTR("value = %i"), TotalValue) ;
 
    return eNoError;
 }// END of atmelReadSingleADCChannelVoltage function

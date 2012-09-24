@@ -44,25 +44,25 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 	uint8_t index;
 	//int8_t (*func)(struct uartStruct);
     //struct showCommand_t
- 	printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("show begin"));
+ 	printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("show begin"));
 
 	switch(ptr_uartStruct->number_of_arguments)
 	{
 	case 0:
 		for (index = 0; index < commandShowKeyNumber_MAXIMUM_NUMBER; index++)
 		{
- 			printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("unused mem now %i "), get_mem_unused());
- 			printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("show all begin %i"),index);
+ 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("unused mem now %i "), get_mem_unused());
+ 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("show all begin %i"),index);
 
 			ptr_uartStruct->number_of_arguments = 1;
 			for (uint8_t i = 0; i < MAX_LENGTH_PARAMETER; i++) {setParameter[1][i]=STRING_END;}
 			snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (const prog_char*) (pgm_read_word( &(commandShowKeywords[index]))));
 
- 			printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("recursive call of show with parameter \"%s\" (%p)"), &setParameter[1][0], &setParameter[1][0]);
+ 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("recursive call of show with parameter \"%s\" (%p)"), &setParameter[1][0], &setParameter[1][0]);
 
 			show(ptr_uartStruct);
 
- 			printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("show all end %i"), index);
+ 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("show all end %i"), index);
 
 			ptr_uartStruct->number_of_arguments = 0;
 		}
@@ -74,12 +74,12 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		{
 		   if ( 0 == strncmp_P(&setParameter[1][0], (const char*) (pgm_read_word( &(commandShowKeywords[index]))), MAX_LENGTH_PARAMETER) )
 		   {
- 			   printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches"),&setParameter[1][0]);
+ 			   printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches"),&setParameter[1][0]);
 			   break;
 		   }
 		   else
 		   {
- 			   printDebug_p(eventDebugVerbose, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), &setParameter[1][0]);
+ 			   printDebug_p(debugLevelEventDebugVerbose, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), &setParameter[1][0]);
 		   }
 		   index++;
 		}
@@ -88,10 +88,10 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		   case commandShowKeyNumber_FREE_MEM_NOW:
 		   case commandShowKeyNumber_UNUSED_MEM_NOW:
 		   case commandShowKeyNumber_UNUSED_MEM_START:
-			   if ( eventDebug <= debug && ((debugMask >> debugSHOW) & 0x1))
+			   if ( debugLevelEventDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemSHOW) & 0x1))
 			   {
 		         strncat_P(uart_message_string,(const char*) (pgm_read_word( &(commandShowKeywords[index]))),BUFFER_SIZE -1);
- 		         printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("call showMem for: %s"), uart_message_string);
+ 		         printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("call showMem for: %s"), uart_message_string);
 			   }
 			   showMem(ptr_uartStruct, index);
 		      break;
@@ -107,7 +107,7 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		      showErrors(ptr_uartStruct, index);
 		      break;
 		   default:
- 		      printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("call Communication_Error"));
+ 		      printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("call Communication_Error"));
 
 		      CommunicationError_p(ERRA, -1, 0, PSTR("show:invalid argument"), -1);
 		      return 1;
@@ -120,7 +120,7 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		      break;
 	}
 
-     printDebug_p(eventDebug, debugSHOW, __LINE__, PSTR(__FILE__), PSTR("show end"));
+     printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("show end"));
 
 	return 0;
 }

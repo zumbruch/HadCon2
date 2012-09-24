@@ -13,45 +13,45 @@
 
 struct uartStruct;
 
-extern uint8_t debug;
-extern uint32_t debugMask;
+extern uint8_t globalDebugLevel;
+extern uint32_t globalDebugSystemMask;
 
 enum debugLevels
 {
-   noDebug = 0,
-   verboseDebug,
-   eventDebug,
-   eventDebugVerbose,
-   periodicDebug,
-   levelsDebug_MAXIMUM_INDEX
+   debugLevelNoDebug = 0,
+   debugLevelVerboseDebug,
+   debugLevelEventDebug,
+   debugLevelEventDebugVerbose,
+   debugLevelPeriodicDebug,
+   debugLevel_MAXIMUM_INDEX
 };
 
 enum debugSystems
 {
-      debugMain,
-      debugApi,
-      debugApiMisc,
-      debugUART,
-      debugCAN,
-      debugADC,
-      debugRELAY,
-      debugCommandKey,
-      debugOWI,
-      debugOWITemperatures,
-      debugDecrypt,
-      debugDEBUG,
-      debugOWIADC,
-      debugOWIDualSwitches,
-      debugOWISingleSwitches,
-      debugOWIOctalSwitches,
-      debugSHOW,
-      debugOWIApiSettings,
-      debugTIMER0,
-      debugTIMER1,
-      debugTIMER0A,
-      debugTIMER0AScheduler,
-      debugTWI,
-      debugSystems_MAXIMUM_INDEX
+      debugSystemMain,
+      debugSystemApi,
+      debugSystemApiMisc,
+      debugSystemUART,
+      debugSystemCAN,
+      debugSystemADC,
+      debugSystemRELAY,
+      debugSystemCommandKey,
+      debugSystemOWI,
+      debugSystemOWITemperatures,
+      debugSystemDecrypt,
+      debugSystemDEBUG,
+      debugSystemOWIADC,
+      debugSystemOWIDualSwitches,
+      debugSystemOWISingleSwitches,
+      debugSystemOWIOctalSwitches,
+      debugSystemSHOW,
+      debugSystemOWIApiSettings,
+      debugSystemTIMER0,
+      debugSystemTIMER1,
+      debugSystemTIMER0A,
+      debugSystemTIMER0AScheduler,
+      debugSystemTWI,
+      debugSystem_MAXIMUM_INDEX
 };
 
 extern const char* commandDebugKeywords[] PROGMEM;

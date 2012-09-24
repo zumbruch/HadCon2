@@ -123,17 +123,12 @@ void disableJTAG(uint8_t disable)
       /* for version 2 of hadcon it is possible to disable the pull-up resistors necessary for JTAG
        * by setting PG3 of atmel to LOW
        */
-      printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("JTAG off: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+
+      printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("going to switch JTAG off - status: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 
      PORTG &= ((0x1F) & (~(( 1 << PG3 ) | ( 1 << PG2 ))));
 
-      printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("JTAG off: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
-//     if ( eventDebug <= debug && ( ( debugMask >> debugApiMisc ) & 0x1 ) )
-//      {
-//    	 _delay_ms(1000);
-//         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("D ...
-//         UART0_Send_Message_String(NULL,0);
-//      }
+      printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("having switched JTAG off - status: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 
 #endif
 
@@ -144,17 +139,11 @@ void disableJTAG(uint8_t disable)
       /* for version 2 of hadcon it is necessary to reenable the pull-up resistors necessary for JTAG
        * by setting PG3 of atmel to HIGH
        */
-      printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("JTAG on: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+      printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("going to switch JTAG on - status: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 
      PORTG |=  (0x1 << PG3) | (0x1 << PG2);
 
-      printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("JTAG on: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
-//     if ( eventDebug <= debug && ( ( debugMask >> debugApiMisc ) & 0x1 ) )
-//      {
-//    	 _delay_ms(1000);
-//         snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("D ...
-//         UART0_Send_Message_String(NULL,0);
-//      }
+      printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("having switched JTAG on - status: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 #endif
      for ( int i = 0; i < 4; i++)
       {

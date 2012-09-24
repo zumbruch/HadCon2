@@ -76,20 +76,20 @@ void owiDualSwitches( struct uartStruct *ptr_uartStruct )
          switch(ptr_uartStruct->number_of_arguments)
          {
             case 0: /*read all*/
-                printDebug_p(eventDebug, debugOWIDualSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS read all"));
+                printDebug_p(debugLevelEventDebug, debugSystemOWIDualSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS read all"));
 
                owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2413_DUAL_SWITCH, NULL );
                break;
             case 1: /*read single ID / write all / invalid */
                if (TRUE == ptr_owiStruct->idSelect_flag) /* read ID */
                {
-                   printDebug_p(eventDebug, debugOWIDualSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS read ID"));
+                   printDebug_p(debugLevelEventDebug, debugSystemOWIDualSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS read ID"));
 
                   owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2413_DUAL_SWITCH, NULL );
                }
                else /* write value / invalid */
                {
-                   printDebug_p(eventDebug, debugOWIDualSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS write all: 0x%x, pointer (%p)" ), ptr_owiStruct->value, ptr_owiStruct->ptr_value);
+                   printDebug_p(debugLevelEventDebug, debugSystemOWIDualSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS write all: 0x%x, pointer (%p)" ), ptr_owiStruct->value, ptr_owiStruct->ptr_value);
 
                   if ( DS2413_MAX_WRITE_VALUE >= ptr_owiStruct->value)
                   {
@@ -106,7 +106,7 @@ void owiDualSwitches( struct uartStruct *ptr_uartStruct )
             case 2: /* write ID value / invalid */
                if (TRUE == ptr_owiStruct->idSelect_flag) /* write ID value*/
                {
-                   printDebug_p(eventDebug, debugOWIDualSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS write ID: 0x%x pointer (%p)"), ptr_owiStruct->value, ptr_owiStruct->ptr_value);
+                   printDebug_p(debugLevelEventDebug, debugSystemOWIDualSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS write ID: 0x%x pointer (%p)"), ptr_owiStruct->value, ptr_owiStruct->ptr_value);
 
                   if ( DS2413_MAX_WRITE_VALUE >= ptr_owiStruct->value)
                   {

@@ -189,12 +189,12 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 		{
 			if ( 0 == strncmp_P(setParameter[1], (const char*) ( pgm_read_word( &(commandDebugKeywords[subCommandIndex])) ), MAX_LENGTH_PARAMETER) )
 			{
- 				printDebug_p(eventDebug, debugDEBUG, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches"), &setParameter[1][0]);
+ 				printDebug_p(debugLevelEventDebug, debugSystemDEBUG, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches"), &setParameter[1][0]);
 				break;
 			}
 			else
 			{
- 				printDebug_p(eventDebug, debugDEBUG, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), &setParameter[1][0]);
+ 				printDebug_p(debugLevelEventDebug, debugSystemDEBUG, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), &setParameter[1][0]);
 			}
 			subCommandIndex++;
 		}
@@ -213,12 +213,12 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 		switch ( subCommandIndex )
 		{
 		case commandDebugKeyNumber_LEVEL:
-			value = debug;
+			value = globalDebugLevel;
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%x"), uart_message_string, value);
 			UART0_Send_Message_String_p(NULL,0);
             break;
 		case commandDebugKeyNumber_MASK:
-			value = debugMask;
+			value = globalDebugSystemMask;
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s0x%lx"), uart_message_string, value);
 			UART0_Send_Message_String_p(NULL,0);
 			break;
@@ -326,7 +326,7 @@ void readModifyDebugLevelAndMask(struct uartStruct *ptr_uartStruct)
 	case 0: /*read*/
 		createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, -1 , -1, NULL);
 		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i %lx"),
-				   uart_message_string, debug, debugMask);
+				   uart_message_string, globalDebugLevel, globalDebugSystemMask);
 		UART0_Send_Message_String_p(NULL,0);
 		break;
 	case 1: /*write debug*/
@@ -372,7 +372,7 @@ void readModifyDebugLevel(struct uartStruct *ptr_uartStruct)
 	{
 		case 0: /*read*/
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, -1 , -1, NULL);
-            value = debug;
+            value = globalDebugLevel;
 			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i"),
 					uart_message_string, value);
 			UART0_Send_Message_String_p(NULL,0);
@@ -415,7 +415,7 @@ void readModifyDebugMask(struct uartStruct *ptr_uartStruct)
 	{
 		case 0: /*read*/
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, -1 , -1, NULL);
-            value = debugMask;
+            value = globalDebugSystemMask;
 			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s0x%lx"),
 					uart_message_string, value);
 			UART0_Send_Message_String_p(NULL,0);
@@ -449,24 +449,24 @@ void readModifyDebugMask(struct uartStruct *ptr_uartStruct)
 
 int8_t apiDebugSetDebugLevel(uint32_t value)
 {
-	if ( levelsDebug_MAXIMUM_INDEX <= value )
+	if ( debugLevel_MAXIMUM_INDEX <= value )
 	{
 		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1, NULL, 0);
 		return -1;
 	}
-	debug = (uint8_t) (value & 0xFF);
+	globalDebugLevel = (uint8_t) (value & 0xFF);
 
 	return 0;
 }
 
 int8_t apiDebugSetDebugMask(uint32_t value)
 {
-    if ( (0x1UL << debugSystems_MAXIMUM_INDEX) -1 < value )
+    if ( (0x1UL << debugSystem_MAXIMUM_INDEX) -1 < value )
 	{
 		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1, NULL, 0);
 		return -1 ;
 	}
-	debugMask = (uint32_t) (value & 0xFFFFFFFF);
+	globalDebugSystemMask = (uint32_t) (value & 0xFFFFFFFF);
 
 	return 0;
 }

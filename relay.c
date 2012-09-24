@@ -540,7 +540,7 @@ uint8_t relayThresholdInit(void)
 {
 	uint16_t status = FALSE;
 
-    printDebug_p(eventDebug, debugRELAY, __LINE__, PSTR(__FILE__), PSTR("Init"));
+    printDebug_p(debugLevelEventDebug, debugSystemRELAY, __LINE__, PSTR(__FILE__), PSTR("Init"));
 
    /* check prerequisites */
    status = relayThresholdsCheckAllRelevantThresholdsValid();

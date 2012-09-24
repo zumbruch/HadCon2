@@ -59,8 +59,8 @@ int8_t countDEVbus = 0;/*number of devices on the current bus (initialized to 0)
 /*
  * DEBUG settings
  */
-uint8_t debug = 0;
-uint32_t debugMask = 0x0;
+uint8_t globalDebugLevel = 0;
+uint32_t globalDebugSystemMask = 0x0;
 
 /*
  * RELAY
@@ -171,11 +171,12 @@ int main( void )
 {
    unusedMemoryStart = get_mem_unused(); /* get initial memory status */
 
-//   debug = noDebug;
-   debug = verboseDebug;
-//   debug = eventDebug;
-//   debug = periodicDebug;
-   debugMask = (0x1L << debugSystems_MAXIMUM_INDEX) -1; /*all enabled*/
+//   globalDebugLevel = debugLevelNoDebug;
+   globalDebugLevel = debugLevelVerboseDebug;
+//   globalDebugLevel = debugLevelEventDebug;
+   globalDebugLevel = debugLevelEventDebugVerbose;
+//   globalDebugLevel = debugLevelPeriodicDebug;
+   globalDebugSystemMask = (0x1L << debugSystem_MAXIMUM_INDEX) -1; /*all enabled*/
 
    ptr_uartStruct = &uartFrame; /* initialize pointer for CPU-structure */
    initUartStruct(ptr_uartStruct);/*initialize basic properties of uartStruct*/
@@ -213,7 +214,7 @@ int main( void )
    snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("SYST system (re)started"));
    UART0_Send_Message_String_p(NULL,0);
 
-   printDebug_p(eventDebug, debugMain, __LINE__, PSTR(__FILE__), PSTR("starting main (after init)"));
+   printDebug_p(debugLevelEventDebug, debugSystemMain, __LINE__, PSTR(__FILE__), PSTR("starting main (after init)"));
 
    version();
    showMem(ptr_uartStruct, commandShowKeyNumber_UNUSED_MEM_START);
@@ -221,7 +222,7 @@ int main( void )
    owiApiFlag(ptr_uartStruct, owiApiCommandKeyNumber_COMMON_ADC_CONVERSION);
    owiApiFlag(ptr_uartStruct, owiApiCommandKeyNumber_COMMON_TEMPERATURE_CONVERSION);
 
-   if ( verboseDebug <= debug && ( ( debugMask >> debugMain ) & 0x1 ) )
+   if ( debugLevelVerboseDebug <= globalDebugLevel && ( ( globalDebugSystemMask >> debugSystemMain ) & 0x1 ) )
    {
 	   owiTemperatureFindParasiticlyPoweredDevices(TRUE);
    }
@@ -234,10 +235,10 @@ int main( void )
 	   mainLoopIndex++;
 //	  if (0==indi%1000) {PING = (0x1 << 0);}
 
-       printDebug_p(periodicDebug, debugMain, __LINE__, PSTR(__FILE__), PSTR("ALIV --- alive --- %i"), mainLoopIndex);
+       printDebug_p(debugLevelPeriodicDebug, debugSystemMain, __LINE__, PSTR(__FILE__), PSTR("ALIV --- alive --- %i"), mainLoopIndex);
 
       // UART has received a string
-       printDebug_p(periodicDebug, debugUART, __LINE__, PSTR(__FILE__), PSTR("UART%s"), ( 1 == uartReady ) ? "--yes" : "");
+       printDebug_p(debugLevelPeriodicDebug, debugSystemUART, __LINE__, PSTR(__FILE__), PSTR("UART%s"), ( 1 == uartReady ) ? "--yes" : "");
 
       if ( 1 == uartReady )/* of the ISR was completely receive a string */
       {
@@ -251,7 +252,7 @@ int main( void )
          /* clear uartString, avoiding memset*/
          clearString(uartString, BUFFER_SIZE);
 
-          printDebug_p(eventDebug, debugUART, __LINE__, PSTR(__FILE__), PSTR("UART string received:%s"), decrypt_uartString);
+          printDebug_p(debugLevelEventDebug, debugSystemUART, __LINE__, PSTR(__FILE__), PSTR("UART string received:%s"), decrypt_uartString);
 
          Process_Uart_Event();
 
@@ -262,7 +263,7 @@ int main( void )
       }
 
       // CANbus interface has received a message
-       printDebug_p(periodicDebug, debugCAN, __LINE__, PSTR(__FILE__), PSTR("CAN %s"), ( 1 == canReady ) ? "--yes" : "");
+       printDebug_p(debugLevelPeriodicDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN %s"), ( 1 == canReady ) ? "--yes" : "");
 
       if ( 1 == canReady ) /* of the ISR data has been fully received */
       {
@@ -277,7 +278,7 @@ int main( void )
       }
 
       // timer 0 set by ISR
-       printDebug_p(periodicDebug, debugTIMER0, __LINE__, PSTR(__FILE__), PSTR("timer 0%s"), ( 1 == timer0Ready ) ? "--yes" : "");
+       printDebug_p(debugLevelPeriodicDebug, debugSystemTIMER0, __LINE__, PSTR(__FILE__), PSTR("timer 0%s"), ( 1 == timer0Ready ) ? "--yes" : "");
 
       if ( 1 == timer0Ready )
       {
@@ -288,7 +289,7 @@ int main( void )
       }
 
       // timer 1 set by ISR
-       printDebug_p(periodicDebug, debugTIMER1, __LINE__, PSTR(__FILE__), PSTR("timer1 %s"), ( 1 == timer1Ready ) ? "--yes" : "");
+       printDebug_p(debugLevelPeriodicDebug, debugSystemTIMER1, __LINE__, PSTR(__FILE__), PSTR("timer1 %s"), ( 1 == timer1Ready ) ? "--yes" : "");
 
       if ( 1 == timer1Ready )
       {
@@ -305,7 +306,7 @@ int main( void )
       }
 
       // timer 0A set by ISR
-       printDebug_p(periodicDebug, debugTIMER0A, __LINE__, PSTR(__FILE__), PSTR("timer0A %s"), ( 1 == timer0AReady ) ? "--yes" : "");
+       printDebug_p(debugLevelPeriodicDebug, debugSystemTIMER0A, __LINE__, PSTR(__FILE__), PSTR("timer0A %s"), ( 1 == timer0AReady ) ? "--yes" : "");
 
       if ( 1 == timer0AReady )
       {
@@ -316,7 +317,7 @@ int main( void )
       }
 
       // timer 0Aready set by ISR
-       printDebug_p(periodicDebug, debugTIMER0AScheduler, __LINE__, PSTR(__FILE__), PSTR("timer0AScheduler %s"), ( 1 == timer0ASchedulerReady ) ? "--yes" : "");
+       printDebug_p(debugLevelPeriodicDebug, debugSystemTIMER0AScheduler, __LINE__, PSTR(__FILE__), PSTR("timer0AScheduler %s"), ( 1 == timer0ASchedulerReady ) ? "--yes" : "");
       if(1 == timer0ASchedulerReady )
       {
          cli();
@@ -329,23 +330,23 @@ int main( void )
       }
 
       /*relay block*/
-       printDebug_p(periodicDebug, debugRELAY, __LINE__, PSTR(__FILE__), PSTR("Relays"));
+       printDebug_p(debugLevelPeriodicDebug, debugSystemRELAY, __LINE__, PSTR(__FILE__), PSTR("Relays"));
 
       if (relayThresholdEnable_flag && relayThresholdAllThresholdsValid)
       {
-     	  printDebug_p(periodicDebug, debugRELAY, __LINE__, PSTR(__FILE__), PSTR("Relays enable and valid"));
+     	  printDebug_p(debugLevelPeriodicDebug, debugSystemRELAY, __LINE__, PSTR(__FILE__), PSTR("Relays enable and valid"));
 #warning TODO: too often cli/sei disable slow interactions, find solution maybe timer
-    	 //cli(); //clear all interupts active
+    	 //cli(); //clear all interrupts active
 //         relayThresholdDetermineStateAndTriggerRelay(relayThresholdInputSource_RADC);
          relayThresholdDetermineStateAndTriggerRelay(relayThresholdInputSource_OWI_MDC_PRESSURE_1);
          relayThresholdDetermineStateAndTriggerRelay(relayThresholdInputSource_OWI_MDC_PRESSURE_2);
-         //sei(); //set all interupts active
+         //sei(); //set all interrupts active
       }
       else
       {
-     	  printDebug_p(periodicDebug, debugRELAY, __LINE__, PSTR(__FILE__), PSTR("relay enable: %i - thr valid: %i"), relayThresholdEnable_flag, relayThresholdAllThresholdsValid);
+     	  printDebug_p(debugLevelPeriodicDebug, debugSystemRELAY, __LINE__, PSTR(__FILE__), PSTR("relay enable: %i - thr valid: %i"), relayThresholdEnable_flag, relayThresholdAllThresholdsValid);
       }
-       printDebug_p(periodicDebug, debugMain, __LINE__, PSTR(__FILE__), PSTR("-------------------------"));
+       printDebug_p(debugLevelPeriodicDebug, debugSystemMain, __LINE__, PSTR(__FILE__), PSTR("-------------------------"));
    }// END of while
 
    return 0; //EXIT_SUCCESS;

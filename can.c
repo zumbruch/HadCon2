@@ -276,7 +276,7 @@ void Wait_for_Can_Send_Message_Finished( void )
 	CANCDMOB &= ~( 1 << CONMOB0 ); /* disable transmission mode */
 
 	/* give feedback for successful transmit */
-    if ( verboseDebug <= debug && ( ( debugMask >> debugCAN ) & 0x1 ) )
+    if ( debugLevelVerboseDebug <= globalDebugLevel && ( ( globalDebugSystemMask >> debugSystemCAN ) & 0x1 ) )
     {
        snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV %s"), READY);
        UART0_Send_Message_String_p(NULL,0);

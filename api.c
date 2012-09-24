@@ -621,7 +621,7 @@ void Process_Uart_Event(void)
 	int8_t number_of_elements = -1;
 	number_of_elements = Decrypt_Uart_String();
 
- 	printDebug_p(eventDebugVerbose, debugCommandKey, __LINE__, PSTR(__FILE__), PSTR("number of string elements found: %i"), number_of_elements);
+ 	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("number of string elements found: %i"), number_of_elements);
 
 	if ( 0 < number_of_elements  )
 	{
@@ -631,7 +631,7 @@ void Process_Uart_Event(void)
 		/* Find matching command keyword */
 		ptr_uartStruct->commandKeywordIndex = Parse_Keyword(setParameter[0]);
 
- 		printDebug_p(eventDebug, debugCommandKey, __LINE__, PSTR(__FILE__), PSTR("keywordIndex of %s is %i"), setParameter[0], ptr_uartStruct->commandKeywordIndex);
+ 		printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keywordIndex of %s is %i"), setParameter[0], ptr_uartStruct->commandKeywordIndex);
 
 		/* no matching keyword ?*/
 		if ( 0 > ptr_uartStruct->commandKeywordIndex )
@@ -756,7 +756,7 @@ int8_t Decrypt_Uart_String( void )
 		}
 	}
 
- 	printDebug_p(eventDebug, debugDecrypt, __LINE__, PSTR(__FILE__), PSTR("found %i arguments "), index_parameter-1);
+ 	printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, PSTR(__FILE__), PSTR("found %i arguments "), index_parameter-1);
 
 
     clearString(decrypt_uartString, BUFFER_SIZE);
@@ -809,7 +809,7 @@ int Parse_Keyword(char string[])
 	if (NULL == string   ) {return -99;}
 	if (STRING_END  == string[0]) {return -99;}
 
- 	printDebug_p(eventDebug, debugCommandKey, __LINE__, PSTR(__FILE__), PSTR("Parse_Keyword %s"), string);
+ 	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("Parse_Keyword %s"), string);
 	for ( keywordNumber = 0; keywordNumber < commandKeyNumber_MAXIMUM_NUMBER ; keywordNumber++ )
 	{
        /*exclude list*/
@@ -817,12 +817,12 @@ int Parse_Keyword(char string[])
 
 		if ( 0 == strncmp_P(&string[0], (const char*) (pgm_read_word( &(commandKeywords[keywordNumber]))), MAX_LENGTH_PARAMETER) )
 		{
- 			printDebug_p(eventDebug, debugCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches "), string);
+ 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches "), string);
 			return keywordNumber;
 		}
         else
           {
-         	printDebug_p(eventDebug, debugCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), string);
+         	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), string);
           }
 
 	}
@@ -1552,7 +1552,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
           flag_UseOnlyAlternatives = TRUE;
           break;
        default:
-     	   printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("wrong error index ... returning"));
+     	   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("wrong error index ... returning"));
           return 1; /*shouldn't happen*/
           break;
     }
@@ -1560,7 +1560,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
     /* check alternative pointer, return if empty*/
     if ( TRUE == flag_UseOnlyAlternatives && NULL == alternativeErrorMessage && COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD <= alternativeErrorNumber)
     {
-     	printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("alternatives: NULL ... returning"));
+     	printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("alternatives: NULL ... returning"));
     	return 1;
     }
 
@@ -1623,7 +1623,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
               strncat_P(uart_message_string, (const char*) (pgm_read_word( &(twi_error[errorIndex]))), BUFFER_SIZE -1);
               break;
           default:
-         	  printDebug_p(eventDebug, debugApiMisc, __LINE__, PSTR(__FILE__), PSTR("wrong error type %i... returning"), errorType);
+         	  printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("wrong error type %i... returning"), errorType);
         	  return 1;
              break;
        }
@@ -1658,7 +1658,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
 
 void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, const prog_char* file, const prog_char *format, ...)
 {
-	if ( debugLevel <= debug && ((debugMask >> debugMaskIndex) & 1))
+	if ( debugLevel <= globalDebugLevel && ((globalDebugSystemMask >> debugMaskIndex) & 1))
 	{
 		clearString(message, BUFFER_SIZE);
 		clearString(uart_message_string, BUFFER_SIZE);
@@ -1807,12 +1807,12 @@ void Init_Port( void )
 
 #if HADCON_VERSION == 2
    /* use port G as output with deactivated pullups for lower pins (3 LEDs and PG3 for JTAG pull-ups*/
-    printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("setting ports for JTAG: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+    printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("going to set ports for JTAG from: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 
    DDRG  = (1 << DDG0)| (1 << DDG1)| (1 << DDG2)| (1 << DDG3) | (0 << DDG4);
    PORTG = (0 << PG0) | (0 << PG1) | (1 << PG2) | (1 << PG3)  | (1 << PG4);
 
-    printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("setting ports for JTAG: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+    printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("having changed ports for JTAG to: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 #endif
 
    /* enable ADC and set clock prescale factor to 64 (p.280)*/
@@ -1915,7 +1915,7 @@ uint8_t createReceiveHeader( struct uartStruct *ptr_myUartStruct, char message_s
    if (NULL == message_string) { message_string = uart_message_string; }
    if (0 == size) { size = BUFFER_SIZE; }
 
-   printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("commandKeywordIndex %i"), ptr_myUartStruct->commandKeywordIndex);
+   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("commandKeywordIndex %i"), ptr_myUartStruct->commandKeywordIndex);
 
    clearString(message_string, size);
    strncat_P(message_string, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_RECV])) ), size - 1);
@@ -2004,14 +2004,14 @@ uint16_t getNumericLength(const char string[], const uint16_t maxLength)
 
     /* calculate length of argument and check if all of them are hex numbers */
     while (index < maxLength && isxdigit(string[index])) {index++;}
-     printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("found length is %i"), index);
+     printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("found length is %i"), index);
 
 
     if (index+1 < maxLength)
     {
        if   ( ! ( isspace(string[index+1]) || ('\0' == string[index+1] ) ) )
        {
-           printDebug_p(eventDebug, debugApi, __LINE__, PSTR(__FILE__), PSTR("length 0 - value is followed by non-space character ASCII: %i, '%c'"), string[index+1], string[index+1]);
+           printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length 0 - value is followed by non-space character ASCII: %i, '%c'"), string[index+1], string[index+1]);
 
           index = 0; /* numeric value is not separated from next word nor isn't followed by '\0', so it isn't a number, */
        }
