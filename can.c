@@ -58,7 +58,7 @@ void Subscribe_Message( struct uartStruct *ptr_uartStruct )
       if ( ( ptr_uartStruct->Uart_Message_ID ) == ( subscribe_ID[count_subscribe] ) && ( ptr_uartStruct->Uart_Mask ) == ( subscribe_mask[count_subscribe] ) )
       {
          equality = 0;
-         mailbox_errorCode = CommunicationError(ERRM, MOB_ERROR_this_message_already_exists, 0, NULL, 0);
+         mailbox_errorCode = CommunicationError_p(ERRM, MOB_ERROR_this_message_already_exists, FALSE, NULL);
       }
    }
    if ( 1 == equality )
@@ -76,7 +76,7 @@ void Subscribe_Message( struct uartStruct *ptr_uartStruct )
 
       if ( ( -1 ) == findMob )
       {
-         mailbox_errorCode = CommunicationError(ERRM, MOB_ERROR_all_mailboxes_already_in_use, 0, NULL, 0);
+         mailbox_errorCode = CommunicationError_p(ERRM, MOB_ERROR_all_mailboxes_already_in_use, FALSE, NULL);
       }
       else
       {
@@ -159,7 +159,7 @@ void Unsubscribe_Message( struct uartStruct *ptr_uartStruct )
    }
    if ( 1 == inequality )
    {
-      mailbox_errorCode = CommunicationError(ERRM, MOB_ERROR_message_ID_not_found, 0, NULL, 0);
+      mailbox_errorCode = CommunicationError_p(ERRM, MOB_ERROR_message_ID_not_found, FALSE, NULL);
    }
 } //END of Unsubscribe_Message
 
@@ -268,7 +268,7 @@ void Wait_for_Can_Send_Message_Finished( void )
 	}
 	if ( 1 >= can_timeout1 )
 	{
-		can_errorCode = CommunicationError(ERRC, CAN_ERROR_timeout_for_CAN_communication, 0, NULL, 0);
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_timeout_for_CAN_communication, FALSE, NULL);
 		can_timeout1 = TIMEOUT_C;
 	}
 
@@ -304,7 +304,7 @@ void Wait_for_Can_Receive_message_Finished( void )
 
 	if ( ( 1 >= can_timeout2 ) && ( CANSTMOB & ( 1 << TXOK ) ) )
 	{
-		can_errorCode = CommunicationError(ERRC, CAN_ERROR_timeout_for_CAN_communication, 0, NULL, 0);
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_timeout_for_CAN_communication, FALSE, NULL);
 		can_timeout2 = TIMEOUT_C;
 	}
 	else
@@ -464,8 +464,7 @@ int setCanBaudRate( const uint32_t rate, const uint32_t freq )
 			CANBT3 = ( 1 << PHS20 ) | ( 1 << PHS10 ) | ( 1 << SMP ) ; /* 0x13 */
 			break;
 		default:
-			snprintf_P(message, BUFFER_SIZE, PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination"), rate, freq);
-			CommunicationError_p(ERRC, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+			CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, TRUE, PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination"), rate, freq);
 			return -1;
 			break;
 		}
@@ -506,16 +505,14 @@ int setCanBaudRate( const uint32_t rate, const uint32_t freq )
 			CANBT3 = ( 3 << PHS20 ) | ( 3 << PHS10 ) | ( 1 << SMP ); /*0x37*/
 			break;
 		default:
-			snprintf_P(message, BUFFER_SIZE, PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination"), rate, freq);
-			CommunicationError_p(ERRC, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+			CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, TRUE, PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination"), rate, freq);
 			return -1;
 			break;
 		}
 	}
 	break;
 	default:
-		snprintf_P(message, BUFFER_SIZE, PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination"), rate, freq);
-		CommunicationError_p(ERRC, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, TRUE, PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination"), rate, freq);
 		return -1;
 		break;
 	}
@@ -641,14 +638,13 @@ void Get_BusState( void )
 
 	if ( CANGSTA & ( 1 << BOFF ) )
 	{
-		can_errorCode = CommunicationError(ERRC, CAN_ERROR_Can_Bus_is_off, 0, NULL, 0);
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Can_Bus_is_off, FALSE, NULL);
         //    CAN_Init(0); /* CAN reinit */
     }
 
 	if ( CANGSTA & ( 1 << ERRP ) )
 	{
-
-		can_errorCode = CommunicationError(ERRC, CAN_ERROR_Can_Bus_is_passive, 0, NULL, 0);
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Can_Bus_is_passive, FALSE, NULL);
         //    CAN_Init(0); /* CAN reinit*/
   }
 }//END of Get_BusState function
@@ -662,35 +658,35 @@ uint8_t Get_CanError( void )
 	uint8_t rtn_val = 0;
 	if ( CANSTMOB & ( 1 << BERR ) ) {
 		CANSTMOB &= ~( 1 << BERR );
-		can_errorCode = CommunicationError(ERRC, CAN_ERROR_Bit_Error, 0, NULL, 0);
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Bit_Error, FALSE, NULL);
 		rtn_val = 1;
 	}
 
 	if ( CANSTMOB & ( 1 << SERR ) )
 	{
 		CANSTMOB &= ~( 1 << SERR );
-		can_errorCode = CommunicationError(ERRC, CAN_ERROR_Stuff_Error, 0, NULL, 0);
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Stuff_Error, FALSE, NULL);
 		rtn_val = 1;
 	}
 
 	if ( CANSTMOB & ( 1 << CERR ) )
 	{
 		CANSTMOB &= ~( 1 << CERR );
-		can_errorCode = CommunicationError(ERRC, CAN_ERROR_CRC_Error, 0, NULL, 0);
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_CRC_Error, FALSE, NULL);
 		rtn_val = 1;
 	}
 
 	if ( CANSTMOB & ( 1 << FERR ) )
 	{
 		CANSTMOB &= ~( 1 << FERR );
-		can_errorCode = CommunicationError(ERRC, CAN_ERROR_Form_Error, 0, NULL, 0);
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Form_Error, FALSE, NULL);
 		rtn_val = 1;
 	}
 
 	if ( CANSTMOB & ( 1 << AERR ) )
 	{
 		CANSTMOB &= ~( 1 << AERR );
-		can_errorCode = CommunicationError(ERRC, CAN_ERROR_Acknowdlegment_Error, 0, NULL, 0);
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Acknowledgement_Error, FALSE, NULL);
 		rtn_val = 1;
 	}
 	return rtn_val;

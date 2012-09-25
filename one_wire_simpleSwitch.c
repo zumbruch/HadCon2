@@ -45,7 +45,7 @@ void read_status_simpleSwitches( struct uartStruct *ptr_uartStruct )
 	NumDevicesFound = owiReadDevicesID(BUSES);
 	if ( 0 < NumDevicesFound )
 	{
-		owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2405_SIMPLE_SWITCH, NULL );
+		owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2405_SIMPLE_SWITCH, NULL );
 	}
 #warning TODO: add else
 }
@@ -56,7 +56,7 @@ void read_status_simpleSwitches( struct uartStruct *ptr_uartStruct )
 
 uint16_t ReadSimpleSwitches( unsigned char bus, unsigned char * id )
 {
-   CommunicationError_p(ERRG, -1, 1, PSTR("device DS2405 not supported any more"),100);
+   CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("device DS2405 not supported any more"));
    return owiReadWriteStatus_MAXIMUM_INDEX << 8;
 
    //   uint16_t value = 0;

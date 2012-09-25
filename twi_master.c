@@ -94,7 +94,7 @@ void twiMaster(struct uartStruct *ptr_uartStruct)
 		Write_to_slave(ptr_uartStruct);
     	break;
     default:
-		twi_errorCode = CommunicationError(ERRT, TWI_ERROR_unknown_command, 0, NULL, 0);
+		twi_errorCode = CommunicationError_p(ERRT, TWI_ERROR_unknown_command, FALSE, NULL);
     	break;
     }
 
@@ -119,7 +119,7 @@ uint8_t twiMasterParseUartStruct(struct uartStruct *ptr_uartStruct)
 
 #warning TODO: implement check on 1st argument if it is a number or a sub-keyword
 #warning TODO: ... to change/read e.g. the proporties of the interface (speed, timeouts, etc ...)
-		twi_errorCode = CommunicationError(ERRT, TWI_ERROR_too_few_numeric_arguments, 0, NULL, 0);
+		twi_errorCode = CommunicationError_p(ERRT, TWI_ERROR_too_few_numeric_arguments, FALSE, NULL);
 		return 2;
 	}
 
@@ -193,7 +193,7 @@ uint8_t twiMasterCheckError(struct uartStruct *ptr_uartStruct)
 			if ( (0 != (ptr_uartStruct->Uart_Message_ID)) &&
 					(1 != (ptr_uartStruct->Uart_Message_ID))  )
 			{
-				uart_errorCode = CommunicationError(ERRT, TWI_ERROR_unknown_command, 0, NULL, 0);
+				uart_errorCode = CommunicationError_p(ERRT, TWI_ERROR_unknown_command, FALSE, NULL);
 				error = TRUE;
 				break;
 			}
@@ -201,7 +201,7 @@ uint8_t twiMasterCheckError(struct uartStruct *ptr_uartStruct)
 		case 2:
 			if ( ( 0x7F ) < ptr_uartStruct->Uart_Mask )
 			{
-				uart_errorCode = CommunicationError(ERRT, TWI_ERROR_address_is_too_long, 0, NULL, 0);
+				uart_errorCode = CommunicationError_p(ERRT, TWI_ERROR_address_is_too_long, FALSE, NULL);
 				error = TRUE;
 				break;
 			}
@@ -210,7 +210,7 @@ uint8_t twiMasterCheckError(struct uartStruct *ptr_uartStruct)
 		case 3:
 			if ( ( 8 ) < ptr_uartStruct->Uart_Length )
 			{
-				uart_errorCode = CommunicationError(ERRT, TWI_ERROR_data_length_is_too_long, 0, NULL, 0);
+				uart_errorCode = CommunicationError_p(ERRT, TWI_ERROR_data_length_is_too_long, FALSE, NULL);
 				error = TRUE;
 				break;
 			}
@@ -227,7 +227,7 @@ uint8_t twiMasterCheckError(struct uartStruct *ptr_uartStruct)
 			{
 				if ( ( 0XFF ) < ptr_uartStruct->Uart_Data[dataIndex] )
 				{
-					uart_errorCode = CommunicationError(ERRT, TWI_ERROR_data_0_is_too_long + dataIndex, 0, NULL, 0);
+					uart_errorCode = CommunicationError_p(ERRT, TWI_ERROR_data_0_is_too_long + dataIndex, 0, NULL);
 					ptr_uartStruct->Uart_Data[dataIndex] = 0;
 					error = TRUE;
 					break;
@@ -241,7 +241,7 @@ uint8_t twiMasterCheckError(struct uartStruct *ptr_uartStruct)
 	{
 		if ( ptr_uartStruct->Uart_Length + 3 != ptr_uartStruct->number_of_arguments )
 		{
-			uart_errorCode = CommunicationError(ERRT, TWI_ERROR_wrong_length_or_number_of_data_bytes, 0, NULL, 0);
+			uart_errorCode = CommunicationError_p(ERRT, TWI_ERROR_wrong_length_or_number_of_data_bytes, FALSE, NULL);
 			error = TRUE;
 		}
 	}
@@ -396,19 +396,19 @@ void TWI_errorAnalysis(uint8_t status)
      	printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("read/write success"));
 		break;
 	case TWI_start_condition_read_fail:
-		twi_errorCode = CommunicationError(ERRT, TWI_ERROR_Could_not_start_TWI_Bus_for_READ, 0, NULL, 0);
+		twi_errorCode = CommunicationError_p(ERRT, TWI_ERROR_Could_not_start_TWI_Bus_for_READ, FALSE, NULL);
 		break;
 	case TWI_start_condition_write_fail:
-		twi_errorCode = CommunicationError(ERRT, TWI_ERROR_Could_not_start_TWI_Bus_for_WRITE, 0, NULL, 0);
+		twi_errorCode = CommunicationError_p(ERRT, TWI_ERROR_Could_not_start_TWI_Bus_for_WRITE, FALSE, NULL);
 		break;
 	case TWI_data_write_transfer_fail:
-		twi_errorCode = CommunicationError(ERRT, TWI_ERROR_failed_writing_TWI_Bus, 0, NULL, 0);
+		twi_errorCode = CommunicationError_p(ERRT, TWI_ERROR_failed_writing_TWI_Bus, FALSE, NULL);
 		break;
 	case TWI_data_read_transfer_fail:
-		twi_errorCode = CommunicationError(ERRT, TWI_ERROR_failed_reading_TWI_Bus, 0, NULL, 0);
+		twi_errorCode = CommunicationError_p(ERRT, TWI_ERROR_failed_reading_TWI_Bus, FALSE, NULL);
 		break;
 	default:
-		twi_errorCode = CommunicationError(ERRT, -1, 0, PSTR("unknown TWI error condition"), 0);
+		twi_errorCode = CommunicationError_p(ERRT, dynamicMessage_ErrorIndex, FALSE, PSTR("unknown TWI error condition"));
 		break;
 	}
 }

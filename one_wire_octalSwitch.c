@@ -62,7 +62,7 @@ void owiOctalSwitches( struct uartStruct *ptr_uartStruct )
    {
       owiOctalSwitchMask = 0x00;
 
-      if ( 0 < ( owiScanIDS(FAMILY_DS2408_OCTAL_SWITCH, p_owiOctalSwitchMask) ) )
+      if ( 0 < ( owiScanIDS(OWI_FAMILY_DS2408_OCTAL_SWITCH, p_owiOctalSwitchMask) ) )
       {
          /* additional arguments ? no: read all; yes: read:id, write: value, write: id all*/
          /* 0xff> id >> 56 > 0x01 */
@@ -73,14 +73,14 @@ void owiOctalSwitches( struct uartStruct *ptr_uartStruct )
             case 0: /*read all*/
                 printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, PSTR(__FILE__), PSTR("OW8S read all"));
 
-               owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2408_OCTAL_SWITCH, NULL);
+               owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2408_OCTAL_SWITCH, NULL);
                break;
             case 1: /*read single ID / write all / invalid */
             	if (TRUE == ptr_owiStruct->idSelect_flag) /* read ID */
                {
                    printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, PSTR(__FILE__), PSTR("OW8S read ID"));
 
-                  owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2408_OCTAL_SWITCH, NULL);
+                  owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2408_OCTAL_SWITCH, NULL);
                }
                else /* write value / invalid */
                {
@@ -88,12 +88,11 @@ void owiOctalSwitches( struct uartStruct *ptr_uartStruct )
 
                   if ( DS2408_MAX_WRITE_VALUE >= ptr_owiStruct->value)
                   {
-                     owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2408_OCTAL_SWITCH, ptr_owiStruct->ptr_value);
+                     owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2408_OCTAL_SWITCH, ptr_owiStruct->ptr_value);
                   }
                   else
                   {
-                     snprintf_P(message, BUFFER_SIZE, PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping"), ptr_owiStruct->value, DS2408_MAX_WRITE_VALUE);
-                     CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD - 1);
+                     CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping"), ptr_owiStruct->value, DS2408_MAX_WRITE_VALUE);
                      return;
                   }
                }
@@ -104,25 +103,22 @@ void owiOctalSwitches( struct uartStruct *ptr_uartStruct )
                    printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS write ID: 0x%x pointer (%p)"),  __LINE__, __FILE__, ptr_owiStruct->value, ptr_owiStruct->ptr_value);
                   if ( DS2408_MAX_WRITE_VALUE >= ptr_owiStruct->value)
                   {
-                     owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2408_OCTAL_SWITCH, ptr_owiStruct->ptr_value);
+                     owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2408_OCTAL_SWITCH, ptr_owiStruct->ptr_value);
                   }
                   else
                   {
-                     snprintf_P(message, BUFFER_SIZE, PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping"), ptr_owiStruct->value, DS2408_MAX_WRITE_VALUE);
-                     CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD - 1);
+                     CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping"), ptr_owiStruct->value, DS2408_MAX_WRITE_VALUE);
                      return;
                   }
                }
                else
                {
-                  snprintf_P(message, BUFFER_SIZE, PSTR("write argument: invalid arguments"));
-                  CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD - 1);
+                  CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: invalid arguments"));
                   return;
                }
                break;
             default: /* invalid */
-               snprintf_P(message, BUFFER_SIZE, PSTR("write argument: too many arguments"));
-               CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD - 1);
+               CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: too many arguments"));
                break;
          }
       }
@@ -235,7 +231,7 @@ uint16_t WriteOctalSwitches( unsigned char bus_pattern, unsigned char * id, uint
    {
       OWI_DetectPresence(bus_pattern); /* generate RESET to stop slave sending its status and presence pulse*/
 
-      CommunicationError_p(ERRG, -1, 1, PSTR("OWI Octal Switch write value timeout"), 300);
+      CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI Octal Switch write value timeout"));
 
       return value | owiWriteStatus_Timeout << 8;
    }

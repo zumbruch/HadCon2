@@ -80,8 +80,7 @@ void Reset_UartStruct( struct uartStruct *ptr_uartStruct ); /* resets all values
 
 void clearUartStruct( struct uartStruct *ptr_uartStruct ); /* resets all values of uartStruct*/
 
-uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const uint8_t flag_printCommand, const prog_char *alternativeErrorMessage,
-                            const int16_t alternativeErrorNumber );
+uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const uint8_t flag_printCommand, const prog_char *alternativeErrorMessage, ... );
 
 void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, const prog_char* file, const prog_char *format, ...);
 
@@ -170,7 +169,7 @@ enum ce_index
    CAN_ERROR_Stuff_Error,
    CAN_ERROR_CRC_Error,
    CAN_ERROR_Form_Error,
-   CAN_ERROR_Acknowdlegment_Error,
+   CAN_ERROR_Acknowledgement_Error,
    CAN_ERROR_CAN_was_not_successfully_initialized,
    CAN_ERROR_timeout_for_CAN_communication,
    CAN_ERROR_MAXIMUM_INDEX
@@ -207,6 +206,11 @@ enum te_index
    TWI_ERROR_too_few_numeric_arguments,
    TWI_ERROR_wrong_length_or_number_of_data_bytes,
    TWI_ERROR_MAXIMUM_INDEX
+};
+
+enum dynamicMessage_index
+{
+    dynamicMessage_ErrorIndex = -100,
 };
 
 extern const char* responseKeywords[] PROGMEM;
@@ -295,7 +299,7 @@ extern const char *debugSystemNames[] PROGMEM;
 
 /*function pointers*/
 extern void (*printDebug_p)(uint8_t, uint32_t, uint32_t, const prog_char*, const prog_char*, ...);
-extern uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, const prog_char*, const int16_t);
+extern uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, const prog_char*, ...);
 extern int16_t (*UART0_Send_Message_String_p)( char *, uint16_t );
 extern void (*UART0_Transmit_p)( uint8_t );
 extern void (*Process_Uart_Event_p)( void );

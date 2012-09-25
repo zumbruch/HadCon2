@@ -59,7 +59,7 @@ void owiDualSwitches( struct uartStruct *ptr_uartStruct )
    {
       owiDualSwitchMask = 0x0;
 
-      if ( 0 < ( owiScanIDS(FAMILY_DS2413_DUAL_SWITCH, p_owiDualSwitchMask))) /* Dual Switch connected */
+      if ( 0 < ( owiScanIDS(OWI_FAMILY_DS2413_DUAL_SWITCH, p_owiDualSwitchMask))) /* Dual Switch connected */
       {
          /* additional arguments ?
           *  0:
@@ -78,14 +78,14 @@ void owiDualSwitches( struct uartStruct *ptr_uartStruct )
             case 0: /*read all*/
                 printDebug_p(debugLevelEventDebug, debugSystemOWIDualSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS read all"));
 
-               owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2413_DUAL_SWITCH, NULL );
+               owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2413_DUAL_SWITCH, NULL );
                break;
             case 1: /*read single ID / write all / invalid */
                if (TRUE == ptr_owiStruct->idSelect_flag) /* read ID */
                {
                    printDebug_p(debugLevelEventDebug, debugSystemOWIDualSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS read ID"));
 
-                  owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2413_DUAL_SWITCH, NULL );
+                  owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2413_DUAL_SWITCH, NULL );
                }
                else /* write value / invalid */
                {
@@ -93,12 +93,11 @@ void owiDualSwitches( struct uartStruct *ptr_uartStruct )
 
                   if ( DS2413_MAX_WRITE_VALUE >= ptr_owiStruct->value)
                   {
-                     owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2413_DUAL_SWITCH, ptr_owiStruct->ptr_value);
+                     owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2413_DUAL_SWITCH, ptr_owiStruct->ptr_value);
                   }
                   else
                   {
-                     snprintf_P(message, BUFFER_SIZE, PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping"), ptr_owiStruct->value, DS2413_MAX_WRITE_VALUE);
-                     CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+                     CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping"), ptr_owiStruct->value, DS2413_MAX_WRITE_VALUE);
                      return;
                   }
                }
@@ -110,25 +109,22 @@ void owiDualSwitches( struct uartStruct *ptr_uartStruct )
 
                   if ( DS2413_MAX_WRITE_VALUE >= ptr_owiStruct->value)
                   {
-                     owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2413_DUAL_SWITCH, ptr_owiStruct->ptr_value );
+                     owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2413_DUAL_SWITCH, ptr_owiStruct->ptr_value );
                   }
                   else
                   {
-                     snprintf_P(message, BUFFER_SIZE, PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping"), ptr_owiStruct->value, DS2413_MAX_WRITE_VALUE);
-                     CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+                     CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping"), ptr_owiStruct->value, DS2413_MAX_WRITE_VALUE);
                      return;
                   }
                }
                else
                {
-                  snprintf_P(message, BUFFER_SIZE, PSTR("write argument: invalid arguments"));
-                  CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+                  CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: invalid arguments"));
                   return;
                }
                break;
             default: /* invalid */
-               snprintf_P(message, BUFFER_SIZE, PSTR("write argument: too many arguments"));
-               CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+               CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: too many arguments"));
                break;
          }
       }
@@ -242,7 +238,7 @@ uint16_t WriteDualSwitches( unsigned char bus_pattern, unsigned char * id, uint8
    {
       OWI_DetectPresence(bus_pattern); /* generate RESET to stop slave sending its status and presence pulse*/
 
-      CommunicationError_p(ERRG, -1, 1, PSTR("OWI Dual Switch write value timeout"), 300);
+      CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI Dual Switch write value timeout"));
 
       return value | owiWriteStatus_Timeout << 8;
    }

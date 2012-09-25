@@ -173,15 +173,13 @@ void owiReadADCs( struct uartStruct *ptr_uartStruct )
           * read single ID w/ adc conversion of all buses and w/ initialization */
          if ( FALSE == ptr_owiStruct->idSelect_flag)
          {
-            snprintf_P(message, BUFFER_SIZE, PSTR("invalid arguments"));
-            CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+            CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid arguments"));
             return;
             break;
          }
          break;
       default:
-         snprintf_P(message, BUFFER_SIZE, PSTR("write argument: too many arguments"));
-         CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+         CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: too many arguments") );
          return;
          break;
    }
@@ -195,7 +193,7 @@ void owiReadADCs( struct uartStruct *ptr_uartStruct )
       owiAdcMask = 0;
 
       // scan for busses/pins connected to an ADC
-      if ( 0 < owiScanIDS(FAMILY_DS2450_ADC,p_owiAdcMask))
+      if ( 0 < owiScanIDS(OWI_FAMILY_DS2450_ADC,p_owiAdcMask))
       {
 
          /* Initialization */
@@ -243,11 +241,11 @@ void owiReadADCs( struct uartStruct *ptr_uartStruct )
           printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("call: FindFamilyDevicesAndAccessValues"));
 
          /*    - read DS2450 */
-         foundDevices += owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, FAMILY_DS2450_ADC, NULL );
+         foundDevices += owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2450_ADC, NULL );
 
          if ( TRUE == ptr_owiStruct->idSelect_flag && 0 == foundDevices)
          {
-            general_errorCode = CommunicationError(ERRG, -1, TRUE, PSTR("no matching ID was found"), 4000);
+            general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no matching ID was found"));
          }
 
           printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("end"));
@@ -375,7 +373,7 @@ int8_t owiInitializeADCs( uint8_t *pins )
 
 
    /*SET UP for non parasitic mode*/
-   for ( int8_t b = 0 ; b < PIN_BUS ; b++ )
+   for ( int8_t b = 0 ; b < OWI_MAX_NUM_PIN_BUS ; b++ )
    {
       // continue if bus doesn't contain any ADCS
       if ( 0 == (owiAdcMask & (0x1 << b)))
@@ -396,7 +394,7 @@ int8_t owiInitializeADCs( uint8_t *pins )
     		                          DS2450_DATA_MEMORY_MAP_PAGE_3_VCC_CONTROL_BYTE,
     		                          maxTrials))
       {
-         CommunicationError_p(ERRG, -1, FALSE, PSTR("init 1-wire ADCs: failed to set: VCC_CONTROL_BYTE"), 1000);
+         CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("init 1-wire ADCs: failed to set: VCC_CONTROL_BYTE"));
       }
 
 
@@ -409,13 +407,13 @@ int8_t owiInitializeADCs( uint8_t *pins )
          if ( 0 != owiADCMemoryWriteByte(pins[b], NULL, addressPORandAlarmsAndInputRange[channel],
                                          dataPORandAlarmsAndInputRange[channel], maxTrials))
          {
-            CommunicationError_p(ERRG, -1, FALSE, PSTR("init 1-wire ADCs: failed to set: POR, ALARM ENABLE, INPUT RANGE"), 1000);
+            CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("init 1-wire ADCs: failed to set: POR, ALARM ENABLE, INPUT RANGE"));
          }
 
          if ( 0 != owiADCMemoryWriteByte(pins[b], NULL, addressOutputAndResolution[channel],
                                          dataOutputAndResolution[0], maxTrials))
          {
-            CommunicationError_p(ERRG, -1, FALSE, PSTR("init 1-wire ADCs: failed to set: OUTPUT CONTROL, RESOLUTION"), 1000);
+            CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("init 1-wire ADCs: failed to set: OUTPUT CONTROL, RESOLUTION"));
          }
       }
    }
@@ -585,7 +583,7 @@ int8_t owiMakeADCConversions( uint8_t *pins )
 
    /* first loop checking busPattern against masks and creating common bus mask*/
 
-   for ( int8_t busPatternIndex = 0 ; busPatternIndex < PIN_BUS ; busPatternIndex++ )
+   for ( int8_t busPatternIndex = 0 ; busPatternIndex < OWI_MAX_NUM_PIN_BUS ; busPatternIndex++ )
    {
       // continue if bus isn't active
       if ( 0 == ((owiBusMask & pins[busPatternIndex]) & 0xFF) )
@@ -625,7 +623,7 @@ int8_t owiMakeADCConversions( uint8_t *pins )
    }
    else
    {
-      busPatternIndexMax = PIN_BUS;
+      busPatternIndexMax = OWI_MAX_NUM_PIN_BUS;
    }
 
    for ( int8_t busPatternIndex = 0 ; busPatternIndex < busPatternIndexMax ; busPatternIndex++ )
@@ -662,7 +660,7 @@ int8_t owiMakeADCConversions( uint8_t *pins )
       /*starting conversion sequence on all IDs */
       owiADCConvert(currentPins, NULL);
 
-   }//end of for ( int8_t b = 0 ; b < PIN_BUS ; b++ )
+   }//end of for ( int8_t b = 0 ; b < OWI_MAX_NUM_PIN_BUS ; b++ )
 
     printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("make conversion finished (owiAdcTimeoutMask = 0x%x)"), owiAdcTimeoutMask);
    return 1;
@@ -823,7 +821,7 @@ uint8_t owiADCConvert(unsigned char bus_pattern, unsigned char * id)
    {
 	   owiAdcTimeoutMask |= bus_pattern;
 
-	   CommunicationError_p(ERRG, -1, 0, PSTR("OWI ADC Conversion timeout"), 200);
+	   CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI ADC Conversion timeout"));
 
  	   printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("OWI Adc Conversion timeout (>%i ms) on bus_mask (%i)"),  maxConversionTime, bus_pattern);
    }
@@ -871,11 +869,7 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
    {
       //conversion went into timeout
 
-      snprintf_P(message, BUFFER_SIZE - 1, PSTR("OWI ADC Conversion timeout (>%i ms) on bus_pattern (%i)"),
-                 OWI_ADC_MAX_CONVERSION_TIME_MILLISECONDS, bus_pattern);
-
-      CommunicationError_p(ERRG, -1, 0, message, -1001);
-      clearString(message, BUFFER_SIZE);
+      CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI ADC Conversion timeout (>%i ms) on bus_pattern (%i)"), OWI_ADC_MAX_CONVERSION_TIME_MILLISECONDS, bus_pattern);
 
       return ((uint32_t) owiReadStatus_conversion_timeout) << OWI_ADC_DS2450_MAX_RESOLUTION;
    }

@@ -708,7 +708,7 @@ int8_t Decrypt_Uart_String( void )
 
 	if ( MAX_LENGTH_COMMAND < strlen(decrypt_uartString) )
 	{
-		uart_errorCode = CommunicationError(ERRA, SERIAL_ERROR_command_is_too_long, 0, NULL, 0);
+		uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
 
 		/* reset */
 		clearString(decrypt_uartString, BUFFER_SIZE);
@@ -736,7 +736,7 @@ int8_t Decrypt_Uart_String( void )
 		if (MAX_LENGTH_PARAMETER < strlen(result))
 		{
 			/* TODO: create correct error code*/
-			uart_errorCode = CommunicationError(ERRA, SERIAL_ERROR_command_is_too_long, 0, NULL, 0);
+			uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
 		    clearString(decrypt_uartString, BUFFER_SIZE);
 		    /* "reset": decrypt_uartString[0] = '\0'; */
 
@@ -749,7 +749,7 @@ int8_t Decrypt_Uart_String( void )
 
 		if ( MAX_PARAMETER < index_parameter )
 		{
-			uart_errorCode = CommunicationError(ERRA, SERIAL_ERROR_too_many_arguments, 0, NULL, 0);
+			uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_too_many_arguments, FALSE, NULL);
 	        clearString(decrypt_uartString, BUFFER_SIZE);
 	        /* "reset": decrypt_uartString[0] = '\0'; */
 			return 0;
@@ -920,7 +920,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
 
    if ( 0 > ptr_uartStruct->commandKeywordIndex )
    {
-      uart_errorCode = CommunicationError(ERRA, SERIAL_ERROR_no_valid_command_name,0,NULL,0);
+      uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name,0,NULL);
       error = TRUE;
    }
    else
@@ -929,7 +929,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
       {
          if (0 != *ptr_setParameter[index])
          {
-            uart_errorCode = CommunicationError(ERRA,SERIAL_ERROR_argument_has_invalid_type + index, 0, NULL, 0);
+            uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type + index, 0, NULL);
             error = TRUE;
          }
          else
@@ -949,7 +949,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
                         case 1:
                            if ( ( 0x7FFFFFF ) < ptr_uartStruct->Uart_Message_ID )
                            {
-                              uart_errorCode = CommunicationError(ERRA, SERIAL_ERROR_ID_is_too_long, 0, NULL, 0);
+                              uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_ID_is_too_long, FALSE, NULL);
                               error = TRUE;
                               break;
                            }
@@ -957,7 +957,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
                         case 2:
                            if ( ( 0x7FFFFFF ) < ptr_uartStruct->Uart_Mask )
                            {
-                              uart_errorCode = CommunicationError(ERRA, SERIAL_ERROR_mask_is_too_long, 0, NULL, 0);
+                              uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_mask_is_too_long, FALSE, NULL);
                               error = TRUE;
                               break;
                            }
@@ -966,7 +966,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
 
                            if ( ( 1 ) < ptr_uartStruct->Uart_Rtr )
                            {
-                              uart_errorCode = CommunicationError(ERRA, SERIAL_ERROR_rtr_is_too_long, 0, NULL, 0);
+                              uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_rtr_is_too_long, FALSE, NULL);
                               error = TRUE;
                               break;
                            }
@@ -975,7 +975,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
 
                            if ( ( 8 ) < ptr_uartStruct->Uart_Length )
                            {
-                              uart_errorCode = CommunicationError(ERRA, SERIAL_ERROR_length_is_too_long, 0, NULL, 0);
+                              uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_length_is_too_long, FALSE, NULL);
                               error = TRUE;
                               break;
                            }
@@ -992,7 +992,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
                            {
                               if ( ( 0XFF ) < ptr_uartStruct->Uart_Data[i] )
                               {
-                                 uart_errorCode = CommunicationError(ERRA, SERIAL_ERROR_data_0_is_too_long + i, 0, NULL, 0);
+                                 uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_data_0_is_too_long + i, 0, NULL);
                                  ptr_uartStruct->Uart_Data[i] = 0;
                                  error = TRUE;
                                  break;
@@ -1167,7 +1167,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 	case commandKeyNumber_RLSO: /*relay set output pin(s) to switch "out" */
 		break;
 	case commandKeyNumber_PARA: /*parasitic devices*/
-	   owiTemperatureFindParasiticlyPoweredDevices(TRUE);
+	   owiFindParasitePoweredDevices(TRUE);
 		break;
 //    case commandKeyNumber_WDOG: /*watch dog*/
 //        break;
@@ -1482,7 +1482,7 @@ int8_t UART0_Send_Message_String_woLF( char *tmp_str, uint32_t maxSize )
 }//END of UART0_Send_Message_String_woLF
 
 
-uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const uint8_t flag_printCommand, const prog_char *alternativeErrorMessage, const int16_t alternativeErrorNumber)
+uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const uint8_t flag_printCommand, const prog_char *alternativeErrorMessage, ...)
 {
 /* This (new) Communication Error function
  * sends a ((partly) predefined) error message to UART
@@ -1512,10 +1512,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
  *      - else add command sequence to error message
  *    - alternativeErrorMessage: message to be printed/attached if Error_Index exceeds limits / else
  *       - by default prog_char, i.e. FLASH data (otherwise see below)
- *    - alternativeErrorNumber :  number to be printed/attached if Error_Index exceeds limits / else
- *       - if this value is less than COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD:
- *            value < COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD,
- *            then instead of the text the global variable message is used
+ *    - alternativeErrorNumber :  number to be printed/attached if Error_Index exceeds limits
  *
  * returns:
  *    - 0 , if all o.k.
@@ -1558,21 +1555,21 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
     }
 
     /* check alternative pointer, return if empty*/
-    if ( TRUE == flag_UseOnlyAlternatives && NULL == alternativeErrorMessage && COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD <= alternativeErrorNumber)
+    if ( TRUE == flag_UseOnlyAlternatives && NULL == alternativeErrorMessage)
     {
      	printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("alternatives: NULL ... returning"));
     	return 1;
     }
 
     /* compose message
-     * output: ERRG/C/U/A/M <error number> <error message> [<alternative/extra Error> <alternative/extra number>]
-     * output: ERRA/C/U/A/M "<command key> <command arguments>" --- <error number> <error message>
+     * output: ERRG/C/U/A/M/T <error number> <error message> [<alternative/extra Error> <alternative/extra number>]
+     * output: ERRA/C/U/A/M/T "<command key> <command arguments>" --- <error number> <error message>
      * */
     /* clear string*/
     clearString(uart_message_string, BUFFER_SIZE);
 
     /* cat Error Type */
-    strncat_P(uart_message_string, (const char*) (pgm_read_word( &(errorTypes[errorType]))) ,BUFFER_SIZE - 1 );
+    strncat_P(uart_message_string, (const char*) (pgm_read_word( &(errorTypes[errorType]))), BUFFER_SIZE - 1 );
 
     /* "<command key> <command arguments>" */
     if ( TRUE == flag_printCommand)
@@ -1622,6 +1619,9 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
               snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, twi_error_number[errorIndex]);
               strncat_P(uart_message_string, (const char*) (pgm_read_word( &(twi_error[errorIndex]))), BUFFER_SIZE -1);
               break;
+          case ERRU:
+              snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, 0);
+              break;
           default:
          	  printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("wrong error type %i... returning"), errorType);
         	  return 1;
@@ -1629,26 +1629,23 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
        }
     }
 
-    if ( NULL != alternativeErrorMessage || COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD > alternativeErrorNumber)
+    if ( NULL != alternativeErrorMessage )
     {
        if (TRUE == flag_UseOnlyAlternatives)
        {
-          snprintf_P(uart_message_string,  BUFFER_SIZE - 1 , PSTR("%s %i "), uart_message_string, alternativeErrorNumber);
+          snprintf_P(uart_message_string,  BUFFER_SIZE - 1 , PSTR("%s %i "), uart_message_string, errorIndex);
        }
        else
        {
           strncat_P(uart_message_string, PSTR(" *** "), BUFFER_SIZE -1);
        }
 
-       /* if alternativeErrorIndex is smaller then COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD use global message variable instead*/
-       if ( COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD > alternativeErrorNumber )
-       {
-          strncat(uart_message_string, message, BUFFER_SIZE -1);
-       }
-       else
-       {
-          strncat_P(uart_message_string, alternativeErrorMessage, BUFFER_SIZE -1);
-       }
+       va_list argumentPointers;
+       va_start (argumentPointers, alternativeErrorMessage);
+       vsnprintf_P(message, BUFFER_SIZE - 1, alternativeErrorMessage, argumentPointers);
+       va_end(argumentPointers);
+
+       strncat_P(uart_message_string, message, BUFFER_SIZE -1);
     }
 
     UART0_Send_Message_String_p(NULL,0);
@@ -1704,7 +1701,7 @@ void Initialization( void )
 
    if( FALSE == twim_init)
    {
-	   twi_errorCode = CommunicationError(ERRT, TWI_ERROR_Error_in_initiating_TWI_interface, 0, NULL, 0);
+	   twi_errorCode = CommunicationError_p(ERRT, TWI_ERROR_Error_in_initiating_TWI_interface, FALSE, NULL);
    }
 
 #if (HADCON_VERSION == 1)
@@ -1718,14 +1715,13 @@ void Initialization( void )
    if( FALSE == owi_init)
    {
 #warning create realistic error message
-	//   owi_errorCode = CommunicationError(ERRA, , 0, NULL, 0);
    }
 
    can_init = CAN_Init(CAN_DEFAULT_BAUD_RATE); /* initialize can-controller with a baudrate 250kps */
 
    if ( -1 == can_init )
    {
-      can_errorCode = CommunicationError(ERRC, CAN_ERROR_CAN_was_not_successfully_initialized, 0, NULL, 0);
+      can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_CAN_was_not_successfully_initialized, FALSE, NULL);
       exit(0);
    }
    else
@@ -1735,7 +1731,7 @@ void Initialization( void )
 
    if ( 1 != timer0_init )
    {
-      general_errorCode = CommunicationError(ERRG, GENERAL_ERROR_init_for_timer0_failed, 0, NULL, 0);
+      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_init_for_timer0_failed, FALSE, NULL);
       exit(0);
    }
    else
@@ -1744,7 +1740,7 @@ void Initialization( void )
    }
    if ( 1 != timer0A_init )
    {
-      general_errorCode = CommunicationError(ERRG, GENERAL_ERROR_init_for_timer0A_failed, 0, NULL, 0);
+      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_init_for_timer0A_failed, FALSE, NULL);
       exit(0);
    }
 
@@ -1761,8 +1757,7 @@ void Initialization( void )
 
 	   if (FALSE == status)
 	   {
-		   snprintf_P(message, BUFFER_SIZE, PSTR("Relay Init Failed"));
-		   CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+		   CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("Relay Init Failed") );
 
 #warning TODO: missing action in case of failure: either exit or deactivate relay
 	   }
@@ -1807,12 +1802,12 @@ void Init_Port( void )
 
 #if HADCON_VERSION == 2
    /* use port G as output with deactivated pullups for lower pins (3 LEDs and PG3 for JTAG pull-ups*/
-    printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("going to set ports for JTAG from: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("going to set ports for JTAG from: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 
    DDRG  = (1 << DDG0)| (1 << DDG1)| (1 << DDG2)| (1 << DDG3) | (0 << DDG4);
    PORTG = (0 << PG0) | (0 << PG1) | (1 << PG2) | (1 << PG3)  | (1 << PG4);
 
-    printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("having changed ports for JTAG to: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("having changed ports for JTAG to: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 #endif
 
    /* enable ADC and set clock prescale factor to 64 (p.280)*/
@@ -2024,7 +2019,7 @@ int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value)
 {
 	if ( MAX_PARAMETER < parameterIndex || NULL == ptr_value)
 	{
-		CommunicationError_p(ERRG, -1, TRUE, PSTR("getNumericValueFromParameter: wrong input parameters"), -1);
+		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("getNumericValueFromParameter: wrong input parameters"));
 		return -1;
 	}
 
@@ -2043,7 +2038,7 @@ int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value)
 	}
 	else
 	{
-		CommunicationError_p(ERRA, -1, TRUE, PSTR("command argument not a numeric value"), -1);
+		CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("command argument not a numeric value"));
 		return -1;
 	}
 	return 0;

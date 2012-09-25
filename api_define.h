@@ -13,7 +13,6 @@
 
 /* threshold for CommunicationError, below this value the global variable message
  * is used instead of the constand alternative text */
-#define COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1000
 
 #define F_CPU 10000000UL
 
@@ -71,7 +70,8 @@
 #define TIMEOUT_C 5000 /*Timeout for CAN-communication*/
 
 /*Timeout error*/
-#define  TIME_S__ERROR "time is out for serial communication"
+#define TIME_S__ERROR "timeout for serial communication"
+
 /*currently selected default baud rate for the CAN communication: baud rate = 250kps
  *and other selected baud rate for the CAN communication: baud rate = 100 ... 1000kps*/
 #define ONETHOUSAND_KBPS          1000000UL
@@ -89,24 +89,24 @@
 #define  TLOW     100
 
 #warning HADCON devices are around, which exceed those 20 devices, formerly to be 60
-#define NUM_DEVICES       20
+#define OWI_MAX_NUM_DEVICES       20
 #define TRUE    1
 #define FALSE   0
 
-#define FAMILY_DS2450_ADC                 0x20
-#define FAMILY_DS18B20_TEMP               0x28
-#define FAMILY_DS18S20_TEMP               0x10
-#define FAMILY_DS2405_SIMPLE_SWITCH       0x05
-#define FAMILY_DS2413_DUAL_SWITCH         0x3A
-#define FAMILY_DS2408_OCTAL_SWITCH        0x29
+#define OWI_FAMILY_DS2450_ADC                 0x20
+#define OWI_FAMILY_DS18B20_TEMP               0x28
+#define OWI_FAMILY_DS18S20_TEMP               0x10
+#define OWI_FAMILY_DS2405_SIMPLE_SWITCH       0x05
+#define OWI_FAMILY_DS2413_DUAL_SWITCH         0x3A
+#define OWI_FAMILY_DS2408_OCTAL_SWITCH        0x29
 
-/*PIN_BUS indicates the number of active pins for 1-wire bus on the HadCon board */
+/*OWI_MAX_NUM_PIN_BUS indicates the number of active pins for 1-wire bus on the HadCon board */
 #if ( HADCON_VERSION == 1)
-#define PIN_BUS 8
+#define OWI_MAX_NUM_PIN_BUS 8
 #elif ( HADCON_VERSION == 2)
-#define PIN_BUS 6
+#define OWI_MAX_NUM_PIN_BUS 6
 #else
-#define PIN_BUS 0
+#define OWI_MAX_NUM_PIN_BUS 0
 #endif
 
 #define BV(x)  (1<<x)

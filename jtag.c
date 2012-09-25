@@ -61,8 +61,7 @@ void disableJTAG(uint8_t disable)
     *the upper four ADC channels (used for JTAG, too)
     */
 #ifndef ALLOW_DISABLE_JTAG
-   general_errorCode = CommunicationError(ERRG, -1001, TRUE, PSTR("disabling JTAG not ALLOWED"),
-                      100);
+   general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("disabling JTAG not ALLOWED"));
 #else
 
    disableJTAG_flag = (FALSE != disable);
@@ -180,7 +179,7 @@ void modifyJTAG(struct uartStruct *ptr_uartStruct)
       }
       break;
       default:
-         general_errorCode = CommunicationError(ERRG, -1001, TRUE, PSTR("invalid number of arguments"), 101);
+         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
    return;

@@ -41,8 +41,17 @@
 #include "OWIDeviceSpecific.h"
 #include "OWIHighLevelFunctions.h"
 #include "OWIBitFunctions.h"
+#include "OWIcrc.h"
 
 char owi_id_string[OWI_ID_LENGTH];
+
+void owiCreateIdString(char string[OWI_ID_LENGTH], uint8_t array[])
+{
+	clearString(string, OWI_ID_LENGTH);
+	/* assign current id to string */
+	snprintf(string, OWI_ID_LENGTH, "%02X%02X%02X%02X%02X%02X%02X%02X",
+			array[0], array[1], array[2], array[3], array[4], array[5], array[6], array[7]);
+}
 
 /*
  * this function collects all ID of devices connected to bus
@@ -58,35 +67,35 @@ int8_t owiReadDevicesID( uint8_t *pins )
     * check if its also possible to it per bus mask
     */
 
-   for ( int8_t b = 0 ; b < PIN_BUS && countDEV < NUM_DEVICES; b++ )
+   for ( int8_t pinBusPatternIndex = 0 ; pinBusPatternIndex < OWI_MAX_NUM_PIN_BUS && countDEV < OWI_MAX_NUM_DEVICES; pinBusPatternIndex++ )
    {
       /* clear last index of IDs array use as previous Address pointer from IDs array
        * see owiSearch_Rom for more details */
       for ( int8_t a = 0 ; a < 7 ; a++ )
       {
-         owi_IDs[NUM_DEVICES - 1][a] = 0;
+         owi_IDs[OWI_MAX_NUM_DEVICES - 1][a] = 0;
       }
 
       /* check bus active mask */
-      if ( 0 == ((owiBusMask & pins[b]) & 0xFF) )
+      if ( 0 == ((owiBusMask & pins[pinBusPatternIndex]) & 0xFF) )
       {
      	  printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("message %s"), owiBusMask);
 
-     	  printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("bus: %i passive (pin pattern 0x%x owiBusMask 0x%x)"), b, pins[b],owiBusMask);
+     	  printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("bus: %i passive (pin pattern 0x%x owiBusMask 0x%x)"), pinBusPatternIndex, pins[pinBusPatternIndex],owiBusMask);
           continue;
       }
       else
       {
-           printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"), b, pins[b],owiBusMask);
+           printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"), pinBusPatternIndex, pins[pinBusPatternIndex],owiBusMask);
       }
 
       if ( debugLevelEventDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemOWI) & 0x1))
       {
-           printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"), b, pins[b],owiBusMask);
+           printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"), pinBusPatternIndex, pins[pinBusPatternIndex],owiBusMask);
       }
 
 
-      if ( 0 != OWI_DetectPresence(pins[b]) )
+      if ( 0 != OWI_DetectPresence(pins[pinBusPatternIndex]) )
       {
          /*this will search the devices IDs till the max number of devices is reached or
           *all the devices have been read out
@@ -104,11 +113,13 @@ int8_t owiReadDevicesID( uint8_t *pins )
          firstSearchOnBus_flag = TRUE;
          owiSearchLastBitDeviation = OWI_ROM_SEARCH_FINISHED + 1;
 
-         while ( countDEV < NUM_DEVICES && owiSearchLastBitDeviation != OWI_ROM_SEARCH_FINISHED )
+         uint16_t trialsCounter = 0;
+         while ( OWI_MAX_NUM_DEVICES > countDEV && owiSearchLastBitDeviation != OWI_ROM_SEARCH_FINISHED && OWI_MAX_NUM_DEVICES > trialsCounter)
          {
+        	trialsCounter++;
             owi_IDs_pinMask[countDEV] = 0;
 
-            OWI_DetectPresence(pins[b]);
+            OWI_DetectPresence(pins[pinBusPatternIndex]);
 
             /* reset search last bit deviation */
             if ( TRUE == firstSearchOnBus_flag ) { owiSearchLastBitDeviation = 0; firstSearchOnBus_flag = FALSE; }
@@ -120,43 +131,61 @@ int8_t owiReadDevicesID( uint8_t *pins )
             *                          last found identifier should be supplied in
             *                          the array, or the search will fail.
             */
-            owiSearchLastBitDeviation = OWI_SearchRom(owi_IDs[NUM_DEVICES - 1], owiSearchLastBitDeviation, pins[b]);
+            /* - misusing the last array element to store the latest result*/
+            owiSearchLastBitDeviation = OWI_SearchRom(owi_IDs[OWI_MAX_NUM_DEVICES - 1], owiSearchLastBitDeviation, pins[pinBusPatternIndex]);
 
+            unsigned char result = OWI_CheckRomCRC(owi_IDs[OWI_MAX_NUM_DEVICES - 1]);
+            unsigned char skip_flag = FALSE;
+            switch(result)
+            {
+            case OWI_CRC_OK:
+            	printDebug_p(debugLevelEventDebugVerbose, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("OWI CRC check passed"));
+            	break;
+            case OWI_CRC_ERROR:
+                owiCreateIdString(owi_id_string, owi_IDs[OWI_MAX_NUM_DEVICES -1]);
+            	CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("bus: %i (Mask:0x%x) - OWI CRC check failure, skipping current id: %s"), pinBusPatternIndex, owiBusMask, owi_id_string);
+            	skip_flag = TRUE;
+            	break;
+            default:
+            	CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI CRC check internal failure"));
+            	return countDEV;
+            	break;
+            }
+
+            if (TRUE == skip_flag)
+            {
+            	continue;
+            }
 
             for ( int8_t a = 0 ; a < 8 ; a++ )
             {
-               owi_IDs[countDEV][a] = owi_IDs[NUM_DEVICES - 1][a];
+               owi_IDs[countDEV][a] = owi_IDs[OWI_MAX_NUM_DEVICES - 1][a];
             }
-            owi_IDs_pinMask[countDEV] = pins[b];
+            owi_IDs_pinMask[countDEV] = pins[pinBusPatternIndex];
 
             if ( debugLevelEventDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemOWI) & 0x1))
             {
-               /*clear strings*/
-               clearString(owi_id_string, OWI_ID_LENGTH);
-               /* assign current id to string */
-               snprintf(owi_id_string, OWI_ID_LENGTH, "%02X%02X%02X%02X%02X%02X%02X%02X",
-                        owi_IDs[countDEV][0], owi_IDs[countDEV][1], owi_IDs[countDEV][2],
-                        owi_IDs[countDEV][3], owi_IDs[countDEV][4], owi_IDs[countDEV][5],
-                        owi_IDs[countDEV][6], owi_IDs[countDEV][7]);
-                printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("bus: %i (0x%x), search loop total: %i 1/bus: %i ID: %s"), b, owi_IDs_pinMask[countDEV], countDEV, countDEVbus, owi_id_string );
+               owiCreateIdString(owi_id_string, owi_IDs[countDEV]);
+                printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("bus: %i (0x%x), search loop total: %i 1/bus: %i ID: %s"), pinBusPatternIndex, owi_IDs_pinMask[countDEV], countDEV, countDEVbus, owi_id_string );
             }
 
             countDEVbus++;
             countDEV++;
 
-         } // end of while ( countDEV < NUM_DEVICES && res != OWI_ROM_SEARCH_FINISHED )
+         } // end of while ( countDEV < OWI_MAX_NUM_DEVICES && res != OWI_ROM_SEARCH_FINISHED )
 
-          printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("bus: %i found %i devices"), b, countDEVbus);
-      } //end of if((PD=OWI_DetectPresence(pins[b]))!=0)
+          printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("bus: %i found %i valid devices, within %i trials"), pinBusPatternIndex, countDEVbus, trialsCounter);
+      } //end of if((PD=OWI_DetectPresence(pins[pinBusPatternIndex]))!=0)
       else
       {
          printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("no_device_is_connected_to_the_bus"));
          continue;
       }
-   }// end of for ( int8_t b = 0 ; b < PIN_BUS ; b++ )
+   }// end of for ( int8_t b = 0 ; b < OWI_MAX_NUM_PIN_BUS ; b++ )
+
    if ( 0 == countDEV )
    {
-      general_errorCode = CommunicationError(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, 1, NULL, 0);
+      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, TRUE, NULL);
    }
 
 
@@ -174,6 +203,7 @@ int8_t owiReadDevicesID( uint8_t *pins )
 
 int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
 {
+#warning TODO: remove local foundDevice string, not neccessary
 #define OWI_FOUND_DEVICE_STRING_LENGTH 60
    char foundDevice[OWI_FOUND_DEVICE_STRING_LENGTH]; /*string variable to store all found devices*/
    uint8_t familyCode = 0;
@@ -188,7 +218,7 @@ int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
    }
 */
 
-
+   /* read in list of devices */
    countDEV = owiReadDevicesID( BUSES );
 
    /* once clear output string (later cleared by output procedure) */
@@ -199,7 +229,7 @@ int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
    {
        printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("invalid family code %i"), ptr_uartStruct->Uart_Message_ID   );
 
-      CommunicationError_p(ERRA, -1, 1, PSTR("invalid family code, exceeding limits [0,0xFF]"),-100);
+      CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid family code, exceeding limits [0,0xFF]"));
       return 0;
    }
    else
@@ -233,9 +263,7 @@ int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
       clearString(owi_id_string, OWI_ID_LENGTH);
 
       /* assign current id to string */
-      snprintf(owi_id_string, OWI_ID_LENGTH, "%02X%02X%02X%02X%02X%02X%02X%02X",
-               owi_IDs[deviceIndex][0], owi_IDs[deviceIndex][1], owi_IDs[deviceIndex][2], owi_IDs[deviceIndex][3],
-               owi_IDs[deviceIndex][4], owi_IDs[deviceIndex][5], owi_IDs[deviceIndex][6], owi_IDs[deviceIndex][7]);
+      owiCreateIdString(owi_id_string, owi_IDs[deviceIndex]);
 
       /*send the data to see the list of all found devices*/
       snprintf_P(foundDevice, OWI_FOUND_DEVICE_STRING_LENGTH - 1, PSTR("%sbus mask: "), message, countFoundFamilyCode);
@@ -258,7 +286,7 @@ int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
    // found any matching device??
    if ( 0 == countFoundFamilyCode && 0 != familyCode )
    {
-      general_errorCode = CommunicationError(ERRG, GENERAL_ERROR_family_code_not_found, TRUE, NULL, 0);
+      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_family_code_not_found, TRUE, NULL);
    }//end of if ( 0 == countFoundFamilyCode && 0 != familyCode )
 
    return countFoundFamilyCode;
@@ -274,11 +302,11 @@ int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
  *
  * supported devices are:
  *
- *    - FAMILY_DS18B20_TEMP
- *    - FAMILY_DS18S20_TEMP
- *    - FAMILY_DS2405_SIMPLE_SWITCH
- *    - FAMILY_DS2413_DUAL_SWITCH
- *    - FAMILY_DS2450_ADC
+ *    - OWI_FAMILY_DS18B20_TEMP
+ *    - OWI_FAMILY_DS18S20_TEMP
+ *    - OWI_FAMILY_DS2405_SIMPLE_SWITCH
+ *    - OWI_FAMILY_DS2413_DUAL_SWITCH
+ *    - OWI_FAMILY_DS2450_ADC
  *
  * inputs:
  *    - pins:
@@ -323,15 +351,13 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
    /* check input */
    if (NULL == pins)
    {
-      CommunicationError_p(ERRG, -1, 0,
-                            PSTR("fcn:FindFamilyDevicesAndGetValues: 1st argument is NULL ... skipping"),
-                            COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD + 1);
+      CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("fcn:FindFamilyDevicesAndGetValues: 1st argument is NULL ... skipping"));
       return -1;
    }
 
    if ( 0 == countDev )
    {
-      general_errorCode = CommunicationError(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, 0, NULL, 0);
+      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, FALSE, NULL);
       return 0;
    }
 
@@ -345,18 +371,14 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
       }
       if ( -1 > selectedDeviceIndex )
       {
-         CommunicationError_p(ERRG, -1, 1,
-                               PSTR("fcn:owiFindFamilyDevicesAndGetValues: error while searching for id's index ... skipping"),
-                               COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD + 1);
+         CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("fcn:owiFindFamilyDevicesAndGetValues: error while searching for id's index ... skipping") );
          return -1;
       }
    }
 
    if ( selectedDeviceIndex >=  countDev )
    {
-      CommunicationError_p(ERRG, -1, 0,
-                           PSTR("fcn:FindFamilyDevicesAndGetValues: selected device index (arg 4) is out of range ... skipping"),
-                           COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD + 2);
+      CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("fcn:FindFamilyDevicesAndGetValues: selected device index (arg 4) is out of range ... skipping") );
       return -1;
    }
 
@@ -387,21 +409,19 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
 
       /*clear strings*/
       clearString(message, BUFFER_SIZE);
-      clearString(owi_id_string, OWI_ID_LENGTH);
 
       /* assign current id to string */
-      snprintf(owi_id_string, OWI_ID_LENGTH, "%02X%02X%02X%02X%02X%02X%02X%02X",
-              owi_IDs[deviceIndex][0], owi_IDs[deviceIndex][1], owi_IDs[deviceIndex][2], owi_IDs[deviceIndex][3],
-              owi_IDs[deviceIndex][4], owi_IDs[deviceIndex][5], owi_IDs[deviceIndex][6], owi_IDs[deviceIndex][7]);
+      owiCreateIdString(owi_id_string, owi_IDs[deviceIndex]);
 
 #warning TODO: put everything in the cases in one function getXXX(bus, ID) filling the message string, since the output is device specific
 #warning       and call the functions via a pre-defined jump table
+
       if ( FALSE == write_flag )
       {
      	  printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("READ ACCESS"));
          switch ( familyCode )
          {
-            case FAMILY_DS2450_ADC:
+            case OWI_FAMILY_DS2450_ADC:
              	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus %i call: ReadADCchannels"), owi_IDs_pinMask[deviceIndex]);
 
             	readValueADC = owiReadChannelsOfSingleADCs(owi_IDs_pinMask[deviceIndex], owi_IDs[deviceIndex], ADCValues, 4);
@@ -415,8 +435,8 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
                snprintf(message, BUFFER_SIZE - 1, "%s %.4X %.4X %.4X %.4X",
                         owi_id_string, ADCValues[0], ADCValues[1], ADCValues[2], ADCValues[3]);
                break;
-            case FAMILY_DS18S20_TEMP:
-            case FAMILY_DS18B20_TEMP:
+            case OWI_FAMILY_DS18S20_TEMP:
+            case OWI_FAMILY_DS18B20_TEMP:
              	printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("bus_pattern %x : returned %i"), owi_IDs_pinMask[deviceIndex], readValueADC);
 
                readValueTemp = owiTemperatureReadSingleSensor(owi_IDs_pinMask[deviceIndex], owi_IDs[deviceIndex]);
@@ -430,7 +450,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
                clearString(message, BUFFER_SIZE);
                snprintf(message, BUFFER_SIZE - 1, "%s %.4lX", owi_id_string,readValueTemp);
                break;
-            case FAMILY_DS2408_OCTAL_SWITCH:
+            case OWI_FAMILY_DS2408_OCTAL_SWITCH:
             	readValueOS = ReadOctalSwitches(owi_IDs_pinMask[deviceIndex], owi_IDs[deviceIndex]);
             	if ( 0 != owiCheckReadWriteReturnStatus( readValueOS >> 8)) { continue; }
 
@@ -440,7 +460,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
             	clearString(message, BUFFER_SIZE);
             	snprintf(message, BUFFER_SIZE - 1, "%s %.2X", owi_id_string, readValueOS);
             	break;
-            case FAMILY_DS2413_DUAL_SWITCH:
+            case OWI_FAMILY_DS2413_DUAL_SWITCH:
                readValueDS = ReadDualSwitches(owi_IDs_pinMask[deviceIndex], owi_IDs[deviceIndex]);
                /* read return status checking */
                if ( 0 != owiCheckReadWriteReturnStatus( readValueDS >> 8)) { continue; }
@@ -451,7 +471,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
                clearString(message, BUFFER_SIZE);
                snprintf(message, BUFFER_SIZE - 1, "%s %.2X", owi_id_string, readValueDS);
                break;
-            case FAMILY_DS2405_SIMPLE_SWITCH:
+            case OWI_FAMILY_DS2405_SIMPLE_SWITCH:
                readValueSS = ReadSimpleSwitches(owi_IDs_pinMask[deviceIndex], owi_IDs[deviceIndex]);
                /* read return status checking */
                if ( 0 != owiCheckReadWriteReturnStatus( readValueSS >> 8)) { continue; }
@@ -463,7 +483,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
                snprintf(message, BUFFER_SIZE - 1, "%s %.2X", owi_id_string, readValueSS);
                break;
             default:
-               general_errorCode = CommunicationError(ERRG, GENERAL_ERROR_undefined_family_code, 0, NULL, 0);
+               general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_undefined_family_code, FALSE, NULL);
                continue;
                break;
          }
@@ -474,7 +494,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
 
          switch ( familyCode )
          {
-            case FAMILY_DS2408_OCTAL_SWITCH:
+            case OWI_FAMILY_DS2408_OCTAL_SWITCH:
                writeValueOS = 0xFF & *((uint8_t*) ptr_value);
                readValueOS = WriteOctalSwitches(owi_IDs_pinMask[deviceIndex], owi_IDs[deviceIndex], writeValueOS);
 
@@ -488,7 +508,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
                snprintf(message, BUFFER_SIZE - 1, "%s %.2X", owi_id_string, readValueOS);
             break;
 
-            case FAMILY_DS2413_DUAL_SWITCH:
+            case OWI_FAMILY_DS2413_DUAL_SWITCH:
                writeValueDS = 0xFF & *((uint8_t*) ptr_value);
                readValueDS = WriteDualSwitches(owi_IDs_pinMask[deviceIndex], owi_IDs[deviceIndex], writeValueDS);
 
@@ -501,7 +521,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
                clearString(message, BUFFER_SIZE);
                snprintf(message, BUFFER_SIZE - 1, "%s %.2X", owi_id_string, readValueDS);
                break;
-//            case FAMILY_DS2405_SIMPLE_SWITCH:
+//            case OWI_FAMILY_DS2405_SIMPLE_SWITCH:
 //               readValueSS = ReadSimpleSwitches(owi_IDs_pinMask[deviceIndex], owi_IDs[deviceIndex]);
 //               /* read return status checking */
 //               if ( 0 != owiCheckReadWriteReturnStatus( readValueSS >> 8)) { continue; }
@@ -513,7 +533,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
 //               snprintf(message, BUFFER_SIZE - 1, "%s %.2X", owi_id_string, readValueSS);
                break;
             default:
-               general_errorCode = CommunicationError(ERRG, GENERAL_ERROR_undefined_family_code, 0, NULL, 0);
+               general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_undefined_family_code, FALSE, NULL);
                continue;
                break;
          }
@@ -579,7 +599,7 @@ void setOneWireBusMask(struct uartStruct *ptr_uartStruct)
       default:
          if ( 0xFFFF < ptr_uartStruct->Uart_Message_ID )
          {
-            CommunicationError_p(ERRA, SERIAL_ERROR_mask_is_too_long, 0, NULL, 0);
+            CommunicationError_p(ERRA, SERIAL_ERROR_mask_is_too_long, FALSE, NULL);
             return;
          }
          owiBusMask = (uint16_t) (ptr_uartStruct->Uart_Message_ID & 0xFFFF);
@@ -655,12 +675,11 @@ uint8_t owiCheckReadWriteReturnStatus( uint32_t status )
          return 1;
          break;
       case owiReadStatus_no_device_presence: /*presence pulse without response*/
-         CommunicationError_p(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, 0, NULL, 0);
+         CommunicationError_p(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, FALSE, NULL);
          return 1;
          break;
       default:
-         snprintf_P(message, BUFFER_SIZE - 1, PSTR("Error reading %s"), owi_id_string);
-         CommunicationError_p(ERRG, -1, 0, message, -1003);
+         CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("Error reading %s"), owi_id_string);
          for ( uint8_t clearIndex = 0 ; clearIndex < BUFFER_SIZE ; clearIndex++ )
          {
             message[clearIndex] = STRING_END;
@@ -714,7 +733,7 @@ uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex)
 
    if ( MAX_PARAMETER < parameterIndex)
    {
-      CommunicationError_p(ERRG,-1,1,PSTR("invalid argument index"), 1000);
+      CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid argument index"));
       return 0;
    }
    ptr_owiStruct->idSelect_flag = FALSE;
@@ -738,13 +757,8 @@ uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex)
       ptr_owiStruct->idSelect_flag = TRUE;
       if ( debugLevelEventDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemOWI) & 0x1))
       {
-         /*clear strings*/
-         clearString(owi_id_string, OWI_ID_LENGTH);
-         /* assign current id to string */
-         snprintf(owi_id_string, OWI_ID_LENGTH, "%02X%02X%02X%02X%02X%02X%02X%02X",
-                 ptr_owiStruct->id[0], ptr_owiStruct->id[1], ptr_owiStruct->id[2], ptr_owiStruct->id[3],
-                 ptr_owiStruct->id[4], ptr_owiStruct->id[5], ptr_owiStruct->id[6], ptr_owiStruct->id[7]);
-          printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("argument %i is an ID: %s"), parameterIndex, owi_id_string );
+         owiCreateIdString(owi_id_string, ptr_owiStruct->id);
+         printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("argument %i is an ID: %s"), parameterIndex, owi_id_string );
       }
       return 1;
    }
@@ -965,7 +979,7 @@ uint8_t ConvertUartDataToOwiStruct(void)
          }
          else
          {
-            CommunicationError_p(ERRA,-1,1,PSTR("invalid number of arguments"), 1000);
+            CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
             return 1;
          }
          break;
@@ -982,7 +996,7 @@ uint8_t ConvertUartDataToOwiStruct(void)
  *      - id
  *          pointer to 8 byte array containing the ID to be searched for
  * Return values:
- *      - index of found item [ 0, NUM_DEVICES ]
+ *      - index of found item [ 0, OWI_MAX_NUM_DEVICES ]
  *      - -1 if not found
  *      - -1000 in case of error
  *
@@ -1015,7 +1029,7 @@ int16_t owiFindIdAndGetIndex(uint8_t id[])
 
    /* loop over all available and found device IDs*/
 
-   for (deviceIndex = 0; deviceIndex < NUM_DEVICES; deviceIndex++)
+   for (deviceIndex = 0; deviceIndex < OWI_MAX_NUM_DEVICES; deviceIndex++)
    {
       /* reset match flag */
       match_flag = TRUE;
@@ -1120,7 +1134,7 @@ uint8_t generateCommonPinsPattern(uint8_t *pins, const uint16_t owiBusMask, cons
 
     printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("bus: owiDeviceMask = 0x%x"), owiDeviceMask);
 
-   for ( int8_t busPatternIndex = 0 ; busPatternIndex < PIN_BUS ; busPatternIndex++ )
+   for ( int8_t busPatternIndex = 0 ; busPatternIndex < OWI_MAX_NUM_PIN_BUS ; busPatternIndex++ )
    {
       if ( 0 != checkBusAndDeviceActivityMasks(pins[busPatternIndex], busPatternIndex, owiBusMask, owiDeviceMask, TRUE ))
       {
@@ -1138,3 +1152,105 @@ uint8_t generateCommonPinsPattern(uint8_t *pins, const uint16_t owiBusMask, cons
    return commonPins;
 }
 
+
+/*
+ * find parasite powered devices
+ */
+
+void owiFindParasitePoweredDevices(unsigned char verbose)
+{
+
+   /* In some situations the bus master may not know whether the DS18B20s on the bus are parasite powered
+    * or powered by external supplies. The master needs this information to determine if the strong bus pullup
+    * should be used during temperature conversions. To get this information, the master can issue a Skip ROM
+    * [CCh] command followed by a Read Power Supply [B4h] command followed by a “read time slot”.
+    * During the read time slot, parasite powered DS18B20s will pull the bus low, and externally powered
+    * DS18B20s will let the bus remain high. If the bus is pulled low, the master knows that it must supply the
+    * strong pullup on the 1-Wire bus during temperature conversions
+    */
+
+
+   uint8_t *pins = BUSES;
+   uint8_t busPatternIndexMax = OWI_MAX_NUM_PIN_BUS;
+
+   for ( int8_t busPatternIndex = 0 ; busPatternIndex < busPatternIndexMax ; busPatternIndex++ )
+   {
+      uint8_t currentPins = pins[busPatternIndex];
+
+      /*
+       * detect presence
+       */
+
+      if ( 0 == OWI_DetectPresence(currentPins) )
+      {
+          printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("no Device present (pin pattern 0x%x)"), currentPins);
+         continue;
+      }
+      else
+      {
+          printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("some devices present (pin pattern 0x%x)"), currentPins);
+      }
+
+
+      /*
+       * send read power supply to all devices
+       */
+
+      OWI_SendByte(OWI_ROM_SKIP, currentPins);
+      OWI_SendByte(DS1820_READ_POWER_SUPPLY, currentPins);
+
+      /*
+       * wait
+       */
+
+      uint32_t maxcount = 5; /* 5ms */
+      uint32_t count = maxcount;
+      uint8_t timeout_flag = FALSE;
+      uint8_t owiReadBit = 0;
+      static uint8_t delay = 1; /*ms*/
+
+      while ( 0 == owiReadBit)
+      {
+          owiReadBit = OWI_ReadBit(currentPins);
+
+          _delay_ms(delay);
+
+            /* timeout check */
+          if ( 0 == --count)
+          {
+               timeout_flag = TRUE;
+               break;
+          }
+      }
+
+      if ( TRUE == timeout_flag )
+      {
+         /* some devices are parasitic mode*/
+
+         if ( FALSE != verbose)
+         {
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
+                       PSTR("RECV PARA parasitic devices SOME on pins 0x%x "),
+                       currentPins);
+            UART0_Send_Message_String_p(NULL,0);
+         }
+         /*set current pins in parasitic mode mask*/
+         owiTemperatureParasiticModeMask |= (currentPins & 0xF);
+          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic devices SOME on pins 0x%x ") ,currentPins);
+      }
+      else
+      {
+         //owiTemperatureParasiticModeMask |= pins;
+         if ( FALSE != verbose)
+         {
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
+                       PSTR("RECV PARA parasitic devices NONE on pins 0x%x (pulled HIGH within %i ms)"),
+                       currentPins, (maxcount-count)*delay);
+            UART0_Send_Message_String_p(NULL,0);
+         }
+         /*set current pins in parasitic mode mask*/
+         owiTemperatureParasiticModeMask &= !(currentPins & 0xF);
+          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic devices NONE on pins 0x%x ") ,currentPins);
+      }
+   }
+}

@@ -53,6 +53,10 @@ uint8_t generateCommonPinsPattern(uint8_t *pins, const uint16_t owiBusMask, cons
 
 uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex);
 
+void owiCreateIdString(char string[OWI_ID_LENGTH], uint8_t array[]);
+
+void owiFindParasitePoweredDevices(unsigned char verbose);
+
 enum owiReadWriteStatus
 {
    owiReadWriteStatus_OK = 0x0,
@@ -70,7 +74,7 @@ enum owiReadWriteStatus
 //    uint8_t busPin;
 //};
 //
-//extern struct owiIdStruct owiIDs[NUM_DEVICES];
-//extern struct owiIdStruct *ptr_owiIDs[NUM_DEVICES];
+//extern struct owiIdStruct owiIDs[OWI_MAX_NUM_DEVICES];
+//extern struct owiIdStruct *ptr_owiIDs[OWI_MAX_NUM_DEVICES];
 
 #endif

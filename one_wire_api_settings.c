@@ -87,7 +87,7 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
               owiApiFlag(ptr_uartStruct, index);
               break;
            default:
-              CommunicationError_p(ERRA, -1, 0, PSTR("owiApi:invalid argument"), -1);
+              CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("owiApi:invalid argument"));
               return 1;
               break;
         }
@@ -111,7 +111,7 @@ int8_t owiApiFlag(struct uartStruct * ptr_uartStruct, uint8_t index)
          ptr_flag = &owiUseCommonTemperatureConversion_flag;
          break;
       default:
-         CommunicationError_p(ERRA, -1, 0, PSTR("owiApiFlag:invalid argument"), -1);
+         CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("owiApiFlag:invalid argument"));
          return 1;
          break;
    }

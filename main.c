@@ -47,8 +47,8 @@ uint16_t atmelAdcValues[8]; /* current supply voltages of the board*/
 uint8_t res0, res1, res2, res3;/*parameter back to reading the voltage on ADC-channel*/
 uint8_t res4, res5, res6, res7;/*parameter back to reading the voltage on ADC-channel, if JTAG is disabled*/
 
-uint8_t owi_IDs[NUM_DEVICES][8]; /*Global variable to store the ID numbers of ALL devices*/
-uint8_t owi_IDs_pinMask[NUM_DEVICES]; /*Global variable to store the bus position corresponding*/
+uint8_t owi_IDs[OWI_MAX_NUM_DEVICES][8]; /*Global variable to store the ID numbers of ALL devices*/
+uint8_t owi_IDs_pinMask[OWI_MAX_NUM_DEVICES]; /*Global variable to store the bus position corresponding*/
 uint8_t NumDevicesFound;
 uint8_t BUSES[8] = { OWI_PIN_0, OWI_PIN_1, OWI_PIN_2, OWI_PIN_3, OWI_PIN_4, OWI_PIN_5, OWI_PIN_6, OWI_PIN_7 };
 
@@ -151,15 +151,15 @@ struct owiStruct *ptr_owiStruct;
 
 /*define function pointers*/
 int16_t (*UART0_Send_Message_String_p)( char *, uint16_t ) = UART0_Send_Message_String;
-uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, const prog_char*, const int16_t) = CommunicationError;
+uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, const prog_char*, ...) = CommunicationError;
 void (*printDebug_p)(uint8_t, uint32_t, uint32_t, const prog_char*, const prog_char*, ...) = printDebug;
 void (*UART0_Transmit_p)( uint8_t ) = UART0_Transmit;
 void (*relayThresholdDetermineStateAndTriggerRelay_p)(uint8_t) = relayThresholdDetermineStateAndTriggerRelay;
 void (*Process_Uart_Event_p)( void ) = Process_Uart_Event;
 uint16_t (*clearString_p)( char[], uint16_t ) = clearString;
 
-//struct owiIdStruct owiIDs[NUM_DEVICES];
-//struct owiIdStruct *ptr_owiIDs[NUM_DEVICES];
+//struct owiIdStruct owiIDs[OWI_MAX_NUM_DEVICES];
+//struct owiIdStruct *ptr_owiIDs[OWI_MAX_NUM_DEVICES];
 
 uint16_t owiBusMask;
 uint16_t adcBusMask;
@@ -171,11 +171,11 @@ int main( void )
 {
    unusedMemoryStart = get_mem_unused(); /* get initial memory status */
 
-//   globalDebugLevel = debugLevelNoDebug;
+   globalDebugLevel = debugLevelNoDebug;
    globalDebugLevel = debugLevelVerboseDebug;
-//   globalDebugLevel = debugLevelEventDebug;
-   globalDebugLevel = debugLevelEventDebugVerbose;
-//   globalDebugLevel = debugLevelPeriodicDebug;
+   //   globalDebugLevel = debugLevelEventDebug;
+   //   globalDebugLevel = debugLevelEventDebugVerbose;
+
    globalDebugSystemMask = (0x1L << debugSystem_MAXIMUM_INDEX) -1; /*all enabled*/
 
    ptr_uartStruct = &uartFrame; /* initialize pointer for CPU-structure */
@@ -224,7 +224,7 @@ int main( void )
 
    if ( debugLevelVerboseDebug <= globalDebugLevel && ( ( globalDebugSystemMask >> debugSystemMain ) & 0x1 ) )
    {
-	   owiTemperatureFindParasiticlyPoweredDevices(TRUE);
+	   owiFindParasitePoweredDevices(TRUE);
    }
 
    // main endless loop

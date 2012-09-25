@@ -71,7 +71,7 @@ void atmelReadADCs( struct uartStruct *ptr_uartStruct)
       }
       break;
       default:
-         general_errorCode = CommunicationError(ERRG, -1001, TRUE, PSTR("invalid number of arguments"), 101);
+         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
    return;
@@ -111,12 +111,12 @@ uint8_t atmelCollectSingleADCChannel( int8_t channelIndex, uint8_t quiet )
       case 7:
          if ( FALSE == disableJTAG_flag)
          {
-            general_errorCode = CommunicationError(ERRG, GENERAL_ERROR_channel_undefined, TRUE, NULL, 0);
+            general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_channel_undefined, TRUE, NULL);
             return eADCwrongAddress;
          }
          break;
       default:
-         general_errorCode = CommunicationError(ERRG, GENERAL_ERROR_channel_undefined, TRUE, NULL, 0);
+         general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_channel_undefined, TRUE, NULL);
          return eADCwrongAddress;
          break;
    }
@@ -156,10 +156,7 @@ uint8_t atmelCollectSingleADCChannel( int8_t channelIndex, uint8_t quiet )
    /* check status return*/
    if ( status != eNoError )
    {
-      snprintf_P(message, BUFFER_SIZE - 1,
-                 PSTR("error accessing ADC channel %i"), ptr_uartStruct->Uart_Message_ID);
-      CommunicationError_p(ERRG, -100, TRUE, PSTR("error accessing ADCs"),
-                         COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD - 100 );
+      CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("error accessing ADC channel %i"), ptr_uartStruct->Uart_Message_ID);
       return status;
    }
     printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, PSTR(__FILE__), PSTR("value %i"), atmelAdcValues[channelIndex]) ;

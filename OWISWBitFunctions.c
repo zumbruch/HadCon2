@@ -97,7 +97,7 @@ uint8_t OWI_Init(unsigned char pins)
 	uint8_t address = TWI_OWI_DEVICE_0_ADDRESS; // 0
 	uint8_t configuration_nibble = (0<<TWI_OWI_CONFIG_BIT_1WS)|(0<<TWI_OWI_CONFIG_BIT_SPU)|(1<<TWI_OWI_CONFIG_BIT_APU);
 
-	for(uint8_t i = 0; i < PIN_BUS ; i++) {
+	for(uint8_t i = 0; i < OWI_MAX_NUM_PIN_BUS ; i++) {
 		if(!(i%2) && i!=0) {
 				chan++;
 		}
@@ -114,7 +114,7 @@ uint8_t OWI_Init(unsigned char pins)
 			Twim_Owi_Reset_Device(address);
 			status = Twim_Owi_Set_Configuration(address, configuration_nibble);
 			if(FALSE == status) {
-				general_errorCode = CommunicationError(ERRG, -1001, FALSE, PSTR("Error while OWI_init()"), 101);
+				general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("Error while OWI_init()"));
 			}
 		}
 	}
@@ -157,7 +157,7 @@ void OWI_WriteBit1(unsigned char pins)
 	uint8_t chan = TWI_MPX_CHAN5; // 5
 	uint8_t address = TWI_OWI_DEVICE_0_ADDRESS; // 0
 
-	for(uint8_t i = 0; i < PIN_BUS ; i++) {
+	for(uint8_t i = 0; i < OWI_MAX_NUM_PIN_BUS ; i++) {
 
 		if(!(i%2) && i!=0)  {
 			chan++;
@@ -213,7 +213,7 @@ void OWI_WriteBit0(unsigned char pins)
 	uint8_t chan = TWI_MPX_CHAN5; // 5
 	uint8_t address = TWI_OWI_DEVICE_0_ADDRESS; // 0
 
-	for(uint8_t i = 0; i < PIN_BUS ; i++) {
+	for(uint8_t i = 0; i < OWI_MAX_NUM_PIN_BUS ; i++) {
 		if(!(i%2) && i!=0) {
 			chan++;
 		}
@@ -302,7 +302,7 @@ unsigned char OWI_ReadBit(unsigned char pins)
 	uint8_t address = TWI_OWI_DEVICE_0_ADDRESS; // 0
 	uint8_t busy_counter;
 
-	for(uint8_t i = 0; i < PIN_BUS ; i++) {
+	for(uint8_t i = 0; i < OWI_MAX_NUM_PIN_BUS ; i++) {
 		busy_counter = 5;	// Reset busy_counter
 
 		if(!(i%2) && i!=0) {
@@ -325,7 +325,7 @@ unsigned char OWI_ReadBit(unsigned char pins)
 			} // Status Register is in twi_data[0] after this block
 
 			if(0 == busy_counter) {
-				CommunicationError_p(ERRG,-1,1,PSTR("OW read bit busy time out"), 1000);
+				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OW read bit busy time out"));
 			}
 
 			if( 0x20 == (0x20 & twi_data[0]) ) { // read bit result?
@@ -406,7 +406,7 @@ unsigned char OWI_DetectPresence(unsigned char pins)
 	uint8_t address = TWI_OWI_DEVICE_0_ADDRESS;
 	uint8_t busy_counter;
 
-	for(uint8_t i = 0; i < PIN_BUS ; i++) {
+	for(uint8_t i = 0; i < OWI_MAX_NUM_PIN_BUS ; i++) {
 		busy_counter = 5;	// Reset busy_counter
 
 		if(!(i%2) && i!=0) {
@@ -429,7 +429,7 @@ unsigned char OWI_DetectPresence(unsigned char pins)
 			} // Status Register is in twi_data[0] after this block
 
 			if(0 == busy_counter) {
-				CommunicationError_p(ERRG,-1,1,PSTR("OW detect presence busy time out"), 1000);
+				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OW detect presence busy time out"));
 			}
 
 			if( 2 == (0x02 & twi_data[0]) ) { //presence detected?

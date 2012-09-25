@@ -109,7 +109,7 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		   default:
  		      printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("call Communication_Error"));
 
-		      CommunicationError_p(ERRA, -1, 0, PSTR("show:invalid argument"), -1);
+		      CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("show:invalid argument"));
 		      return 1;
 		      break;
 		}
@@ -141,7 +141,7 @@ int8_t showMem(struct uartStruct * ptr_uartStruct, uint8_t index)
          memory = unusedMemoryStart;
          break;
       default:
-         CommunicationError_p(ERRA, -1, 0, PSTR("show:invalid argument"), -1);
+         CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("show:invalid argument"));
          return 1;
          break;
    }
@@ -219,7 +219,7 @@ void showErrors(struct uartStruct * ptr_uartStruct, uint8_t index)
     {
        for (int err=0; err < errmax[errType]; err++)
        {
-          CommunicationError_p(errType, err ,0,PSTR("SHOW messages"),0);
+          CommunicationError_p(errType, err ,FALSE ,PSTR("SHOW messages"));
        }
     }
 }

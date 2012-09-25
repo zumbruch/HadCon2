@@ -37,12 +37,6 @@
 #include "OWIHighLevelFunctions.h"
 #include "OWIBitFunctions.h"
 
-#define DS1820_START_CONVERSION         0x44
-#define DS1820_READ_SCRATCHPAD          0xbe
-#define DS1820_WRITE_SCRATCHPAD         0x4E
-#define DS1820_CONFIG_REGISTER          0x7f
-#define DS1820_READ_POWER_SUPPLY        0xb4
-
 #ifndef OWI_TEMPERATURE_MAX_CONVERSION_TIME_MILLISECONDS
 #define OWI_TEMPERATURE_MAX_CONVERSION_TIME_MILLISECONDS 750
 //#warning move this 20% shift to the code not directly into the default settings
@@ -164,8 +158,8 @@ void owiTemperatureReadSensors( struct uartStruct *ptr_uartStruct, uint8_t conve
        */
 
       int8_t familyCode[] = {
-               FAMILY_DS18B20_TEMP,
-               FAMILY_DS18S20_TEMP
+               OWI_FAMILY_DS18B20_TEMP,
+               OWI_FAMILY_DS18S20_TEMP
       };
 
       uint8_t foundDevices = 0;
@@ -179,12 +173,12 @@ void owiTemperatureReadSensors( struct uartStruct *ptr_uartStruct, uint8_t conve
 
       if ( TRUE == ptr_owiStruct->idSelect_flag && 0 == foundDevices)
       {
-         general_errorCode = CommunicationError(ERRG, -1, TRUE, PSTR("no matching ID was found"), 4000);
+         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no matching ID was found"));
       }
    }
    else
    {
-      general_errorCode = CommunicationError(ERRG, -1, TRUE, PSTR("no supported 1-wire temperature device present"), 4000);
+      general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no supported 1-wire temperature device present"));
    }
 }
 
@@ -212,15 +206,13 @@ uint8_t owiTemperatureReadSensorsCheckCommandSyntax(struct uartStruct *ptr_uartS
           * read single ID w/ temperature conversion of all buses*/
          if ( FALSE == ptr_owiStruct->idSelect_flag)
          {
-            snprintf_P(message, BUFFER_SIZE, PSTR("invalid arguments"));
-            CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+            CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid arguments"));
             status = -1;
             break;
          }
          break;
       default:
-         snprintf_P(message, BUFFER_SIZE, PSTR("write argument: too many arguments"));
-         CommunicationError_p(ERRA, -1, TRUE, message, COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -1 );
+         CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: too many arguments"));
          status = -1;
          break;
    }
@@ -242,7 +234,7 @@ uint16_t owiTemperatureGetNumberOfDevicesAndSetTemperatureMask(struct uartStruct
    NumDevicesFound = owiReadDevicesID(BUSES);
    if ( 0 == NumDevicesFound )
    {
-      general_errorCode = CommunicationError(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, 0, NULL, 0);
+      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, FALSE, NULL);
       tempDevices = 0;
    }
    else
@@ -250,8 +242,8 @@ uint16_t owiTemperatureGetNumberOfDevicesAndSetTemperatureMask(struct uartStruct
       /* reset mask of busses with sensors*/
       owiTemperatureMask = 0;
 
-      tempDevices += owiScanIDS(FAMILY_DS18B20_TEMP, p_owiTemperatureMask_DS18B20);
-      tempDevices += owiScanIDS(FAMILY_DS18S20_TEMP, p_owiTemperatureMask_DS18B20);
+      tempDevices += owiScanIDS(OWI_FAMILY_DS18B20_TEMP, p_owiTemperatureMask_DS18B20);
+      tempDevices += owiScanIDS(OWI_FAMILY_DS18S20_TEMP, p_owiTemperatureMask_DS18B20);
        printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("misc temp commands keyword %s matches"), ptr_owiStruct->command);
 
       if ( 0 < tempDevices )
@@ -309,7 +301,7 @@ void owiTemperatureMiscSubCommandGetSetFlag(struct uartStruct *ptr_uartStruct, u
          ptr_uartStruct->number_of_arguments=2;
          break;
       default:
-         general_errorCode = CommunicationError(ERRG, -1001, TRUE, PSTR("invalid number of arguments"), 101);
+         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
 }
@@ -349,7 +341,7 @@ void owiTemperatureMiscSubCommandGetSetStepByStepParasiticConversion(struct uart
          ptr_uartStruct->number_of_arguments=2;
          break;
       default:
-         general_errorCode = CommunicationError(ERRG, -1001, TRUE, PSTR("invalid number of arguments"), 101);
+         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
 }
@@ -390,7 +382,7 @@ void owiTemperatureMiscSubCommandGetSetForceParasiticMode(struct uartStruct *ptr
          ptr_uartStruct->number_of_arguments=2;
          break;
       default:
-         general_errorCode = CommunicationError(ERRG, -1001, TRUE, PSTR("invalid number of arguments"), 101);
+         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
 }
@@ -420,7 +412,7 @@ void owiTemperatureMiscSubCommandGetSetMaxConversionTime(struct uartStruct *ptr_
          ptr_uartStruct->number_of_arguments=2;
          break;
       default:
-         general_errorCode = CommunicationError(ERRG, -1001, TRUE, PSTR("invalid number of arguments"), 101);
+         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
 }
@@ -454,11 +446,7 @@ void owiTemperatureMiscSubCommandGetSetResolution_DS18B20(struct uartStruct *ptr
                owiTemperatureResolution_DS18B20 = value;
                break;
             default:
-               clearString(message, BUFFER_SIZE);
-               snprintf_P(message, BUFFER_SIZE-1 , PSTR("%s value '%i' out of range [9,..,12]"),value);
-
-               general_errorCode = CommunicationError(ERRG, -1001, TRUE, NULL ,
-                                                         COMMUNICATION_ERROR_USE_GLOBAL_MESSAGE_STRING_INDEX_THRESHOLD -111);
+               general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("%s value '%i' out of range [9,..,12]"), value);
                return;
                break;
          }
@@ -470,7 +458,7 @@ void owiTemperatureMiscSubCommandGetSetResolution_DS18B20(struct uartStruct *ptr
       }
       break;
       default:
-         general_errorCode = CommunicationError(ERRG, -1001, TRUE, PSTR("invalid number of arguments"), 101);
+         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
 }
@@ -495,7 +483,7 @@ void owiTemperatureMiscSubCommandConvertOnly(struct uartStruct *ptr_uartStruct)
          }
          else
          {
-            general_errorCode = CommunicationError(ERRG, -1, TRUE, PSTR("no supported 1-wire temperature device present"), 4000);
+            general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no supported 1-wire temperature device present"));
          }
          break;
       case 1:
@@ -517,11 +505,11 @@ void owiTemperatureMiscSubCommandConvertOnly(struct uartStruct *ptr_uartStruct)
          }
          else
          {
-            general_errorCode = CommunicationError(ERRG, -1, TRUE, PSTR("no supported 1-wire temperature device present"), 4000);
+            general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no supported 1-wire temperature device present"));
          }
          break;
       default:
-         CommunicationError_p(ERRA, -1, 0, PSTR("invalid number of arguments"), -1);
+         CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("invalid number of arguments"));
          break;
    }
 }
@@ -570,7 +558,7 @@ void owiTemperatureMiscSubCommands( struct uartStruct *ptr_uartStruct )
 	 owiTemperatureMiscSubCommandGetSetStepByStepParasiticConversion(ptr_uartStruct);
 	break;
       default:
-         CommunicationError_p(ERRA, -1, 0, PSTR("invalid argument"), -1);
+         CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("invalid argument"));
          return;
          break;
    }
@@ -656,8 +644,8 @@ void owiTemperatureSensorBySensorParasiticConversion(uint8_t currentPins, uint16
 {
    uint8_t deviceIndex = 0;
    static const int8_t familyCode[] = {
-            FAMILY_DS18B20_TEMP,
-            FAMILY_DS18S20_TEMP
+            OWI_FAMILY_DS18B20_TEMP,
+            OWI_FAMILY_DS18S20_TEMP
    };
    uint8_t skipDevice = FALSE;
    uint8_t index = 0;
@@ -704,12 +692,12 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
    static uint32_t count;
    static uint32_t maxcount;
    uint8_t currentPins = 0x0;
-   uint8_t busPatternIndexMax = PIN_BUS;
+   uint8_t busPatternIndexMax = OWI_MAX_NUM_PIN_BUS;
    uint8_t status = 0;
    uint16_t selectedDeviceIndex = -1;
 
    /* check for parasitic lines , non verbose*/
-   owiTemperatureFindParasiticlyPoweredDevices(FALSE);
+   owiFindParasitePoweredDevices(FALSE);
 
    /* fill ID table and ID bus table OUTSIDE this loop !
     *   if some of the pins have parasitic devices 
@@ -860,7 +848,7 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
              owiTemperatureConversionGoingOnCountDown = (1 > (maxConversionTime / 1000)) ? 1: (maxConversionTime / 1000);
           }
        }
-   }//end of for ( int8_t busPatternIndex = 0 ; busPatternIndex < PIN_BUS ; busPatternIndex++ )
+   }//end of for ( int8_t busPatternIndex = 0 ; busPatternIndex < OWI_MAX_NUM_PIN_BUS ; busPatternIndex++ )
 
     printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("finished (Timeout: current = 0x%x, all = 0x%x)"), currentTimeoutMask, owiTemperatureTimeoutMask);
 
@@ -914,7 +902,7 @@ uint8_t owiTemperatureConversionEvaluateTimeoutFlag(const unsigned char timeout_
       {
          owiTemperatureTimeoutMask |= currentPins;
          *currentTimeoutMask |= currentPins;
-         CommunicationError_p(ERRG, -1, 0, PSTR("OWI Temperature Conversion timeout"), 200);
+         CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI Temperature Conversion timeout"));
 
          return 1;
       }
@@ -950,11 +938,8 @@ uint32_t owiTemperatureReadSingleSensor( unsigned char bus_pattern, unsigned cha
    if ( 0 != ((owiTemperatureTimeoutMask & bus_pattern) & 0xFF) )
    {
       /*conversion went into timeout*/
-      snprintf_P(message, BUFFER_SIZE - 1, PSTR("OWI Temperature Conversion timeout (>%i ms, %s, bus_pattern 0x%x vs. mask: 0x%x)"),
-                 OWI_TEMPERATURE_MAX_CONVERSION_TIME_MILLISECONDS, owi_id_string, bus_pattern, owiTemperatureTimeoutMask);
-      CommunicationError_p(ERRG, -1, 0, message, -1001);
+      CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI Temperature Conversion timeout (>%i ms, %s, bus_pattern 0x%x vs. mask: 0x%x)"), OWI_TEMPERATURE_MAX_CONVERSION_TIME_MILLISECONDS, owi_id_string, bus_pattern, owiTemperatureTimeoutMask);
 
-      clearString(message, BUFFER_SIZE);
       return (0x0L | owiReadStatus_conversion_timeout) << 16;
    }
 #warning TODO: consider the case that bus_pattern has more than one bit active, but the conversion failed/succeeded not on all the same way
@@ -998,105 +983,3 @@ uint32_t owiTemperatureReadSingleSensor( unsigned char bus_pattern, unsigned cha
 }// END of owiTemperatureReadSingleSensor function
 
 
-
-/*
- * find parasiticly powered devices
- */
-
-void owiTemperatureFindParasiticlyPoweredDevices(unsigned char verbose)
-{
-
-   /* In some situations the bus master may not know whether the DS18B20s on the bus are parasite powered
-    * or powered by external supplies. The master needs this information to determine if the strong bus pullup
-    * should be used during temperature conversions. To get this information, the master can issue a Skip ROM
-    * [CCh] command followed by a Read Power Supply [B4h] command followed by a “read time slot”.
-    * During the read time slot, parasite powered DS18B20s will pull the bus low, and externally powered
-    * DS18B20s will let the bus remain high. If the bus is pulled low, the master knows that it must supply the
-    * strong pullup on the 1-Wire bus during temperature conversions
-    */
-
-
-   uint8_t *pins = BUSES;
-   uint8_t busPatternIndexMax = PIN_BUS;
-
-   for ( int8_t busPatternIndex = 0 ; busPatternIndex < busPatternIndexMax ; busPatternIndex++ )
-   {
-      uint8_t currentPins = pins[busPatternIndex];
-
-      /*
-       * detect presence
-       */
-
-      if ( 0 == OWI_DetectPresence(currentPins) )
-      {
-          printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("no Device present (pin pattern 0x%x)"), currentPins);
-         continue;
-      }
-      else
-      {
-          printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("some devices present (pin pattern 0x%x)"), currentPins);
-      }
-
-
-      /*
-       * send read power supply to all devices
-       */
-
-      OWI_SendByte(OWI_ROM_SKIP, currentPins);
-      OWI_SendByte(DS1820_READ_POWER_SUPPLY, currentPins);
-
-      /*
-       * wait
-       */
-
-      uint32_t maxcount = 5; /* 5ms */
-      uint32_t count = maxcount;
-      uint8_t timeout_flag = FALSE;
-      uint8_t owiReadBit = 0;
-      static uint8_t delay = 1; /*ms*/
-
-      while ( 0 == owiReadBit)
-      {
-          owiReadBit = OWI_ReadBit(currentPins);
-
-          _delay_ms(delay);
-
-            /* timeout check */
-          if ( 0 == --count)
-          {
-               timeout_flag = TRUE;
-               break;
-          }
-      }
-
-      if ( TRUE == timeout_flag )
-      {
-         /* some devices are parasitic mode*/
-
-         if ( FALSE != verbose)
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("RECV PARA parasitic devices SOME on pins 0x%x "),
-                       currentPins);
-            UART0_Send_Message_String_p(NULL,0);
-         }
-         /*set current pins in parasitic mode mask*/
-         owiTemperatureParasiticModeMask |= (currentPins & 0xF);
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic devices SOME on pins 0x%x ") ,currentPins);
-      }
-      else
-      {
-         //owiTemperatureParasiticModeMask |= pins;
-         if ( FALSE != verbose)
-         {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("RECV PARA parasitic devices NONE on pins 0x%x (pulled HIGH within %i ms)"),
-                       currentPins, (maxcount-count)*delay);
-            UART0_Send_Message_String_p(NULL,0);
-         }
-         /*set current pins in parasitic mode mask*/
-         owiTemperatureParasiticModeMask &= !(currentPins & 0xF);
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic devices NONE on pins 0x%x ") ,currentPins);
-      }
-   }
-}

@@ -143,7 +143,7 @@ int8_t apiDebug(struct uartStruct *ptr_uartStruct)
 					readModifyDebugMask(ptr_uartStruct);
 					break;
 				default:
-					CommunicationError_p(ERRU, -1, 0, PSTR("apiDebug:invalid command"), -1);
+					CommunicationError_p(ERRU, dynamicMessage_ErrorIndex, FALSE, PSTR("apiDebug:invalid command"));
 					break;
 	    	}
 	    	break;
@@ -162,7 +162,7 @@ int8_t apiDebug(struct uartStruct *ptr_uartStruct)
 						readModifyDebugMask(ptr_uartStruct);
 						break;
 					default:
-						CommunicationError_p(ERRU, -1, 0, PSTR("apiDebug:invalid command"), -1);
+						CommunicationError_p(ERRU, dynamicMessage_ErrorIndex, FALSE, PSTR("apiDebug:invalid command"));
 						break;
 		    	}
 	    	}
@@ -238,7 +238,7 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 			}
 			break;
 		default:
-			CommunicationError_p(ERRA, -1, 0, PSTR("apiDebugSubCommands:invalid argument"), -1);
+			CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("apiDebugSubCommands:invalid argument"));
 			return 1;
 			break;
 		}
@@ -260,7 +260,7 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 				if ( 0 != status ) { return -1; }
 				break;
            default:
-              CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
+              CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid command argument"));
               return -1;
               break;
         }
@@ -288,7 +288,7 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 				if ( 0 != status ) { return -1; }
 				break;
            default:
-              CommunicationError_p(ERRA, -1, TRUE, PSTR("invalid command argument"), -1);
+              CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid command argument"));
               return -1;
               break;
         }
@@ -451,7 +451,7 @@ int8_t apiDebugSetDebugLevel(uint32_t value)
 {
 	if ( debugLevel_MAXIMUM_INDEX <= value )
 	{
-		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1, NULL, 0);
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, TRUE, NULL);
 		return -1;
 	}
 	globalDebugLevel = (uint8_t) (value & 0xFF);
@@ -463,7 +463,7 @@ int8_t apiDebugSetDebugMask(uint32_t value)
 {
     if ( (0x1UL << debugSystem_MAXIMUM_INDEX) -1 < value )
 	{
-		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1, NULL, 0);
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, TRUE, NULL);
 		return -1 ;
 	}
 	globalDebugSystemMask = (uint32_t) (value & 0xFFFFFFFF);

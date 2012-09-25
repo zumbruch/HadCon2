@@ -81,8 +81,8 @@ extern uint8_t res4, res5, res6, res7; /*parameter back to reading the voltage o
 
 extern uint8_t NumDevicesFound;
 
-extern uint8_t owi_IDs[NUM_DEVICES][8]; /*Global variable to store the ID numbers of ALL devices*/
-extern uint8_t owi_IDs_pinMask[NUM_DEVICES]; /*Global variable to store the bus position corresponding*/
+extern uint8_t owi_IDs[OWI_MAX_NUM_DEVICES][8]; /*Global variable to store the ID numbers of ALL devices*/
+extern uint8_t owi_IDs_pinMask[OWI_MAX_NUM_DEVICES]; /*Global variable to store the bus position corresponding*/
 
 extern uint8_t BUSES[8];
 //extern uint8_t BUSES_all[8];

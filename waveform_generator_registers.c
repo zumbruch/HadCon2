@@ -31,7 +31,7 @@ void waveformGeneratorWriteRegister(struct uartStruct *ptr_uartStruct)
 	{
 		case 0:
 		case 1:
-			CommunicationError_p(ERRG, -1, 1, PSTR("too few arguments"), -1000);
+			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("too few arguments"));
 			status = 1;
 			break;
 		default:
@@ -87,7 +87,7 @@ void waveformGeneratorWriteRegister(struct uartStruct *ptr_uartStruct)
 							PSTR("%sPSEUDORANDOM TIME PULSE(100ns) WAVEFORM OUTPUT"),  uart_message_string);
 					break;
 				default:
-					CommunicationError_p(ERRG, -1, 1, PSTR("invalid argument"), -1000);
+					CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid argument"));
 					status = 1;
 					break;
 			}
@@ -136,7 +136,7 @@ void waveformGeneratorWriteRegister(struct uartStruct *ptr_uartStruct)
 			break;
 		}
 		default:
-			CommunicationError_p(ERRG, -1, 1, PSTR("invalid address"), -1000);
+			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid address"));
 			status = 1;
 			break;
 	}
@@ -245,7 +245,7 @@ void waveformGeneratorPrintSingleRegister( uint8_t registerId, uint8_t registers
 			waveformGeneratorPrintSingleRegister(CONTROL_REGISTER,       registers, size);
 			break;
 		default:
-			CommunicationError_p(ERRG, -1, 1, PSTR("wrong register address"), -1000);
+			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("wrong register address"));
 			status = 1;
 			break;
 	}

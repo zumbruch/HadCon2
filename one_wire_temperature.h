@@ -1,10 +1,16 @@
-/* The one_wire_temperatur.h is a header file for the functions specific to read temperatur of sensor via one wire bus*/
+/* The one_wire_temperatur.h is a header file for the functions specific to read temperature of sensor via one wire bus*/
 #ifndef ONE_WIRE_TEMPERATURE__H
 #define ONE_WIRE_TEMPERATURE__H
 #include "api_define.h"
 #include "api_global.h"
 
 #include "api_debug.h"#include "api.h"
+
+#define DS1820_START_CONVERSION         0x44
+#define DS1820_READ_SCRATCHPAD          0xbe
+#define DS1820_WRITE_SCRATCHPAD         0x4E
+#define DS1820_CONFIG_REGISTER          0x7f
+#define DS1820_READ_POWER_SUPPLY        0xb4
 
 extern uint16_t owiTemperatureTimeoutMask;
 extern uint8_t owiUseCommonTemperatureConversion_flag;
@@ -28,8 +34,6 @@ uint8_t owiTemperatureConversionEvaluateTimeoutFlag(const unsigned char timeout_
                                             const uint32_t maxcount, const uint32_t count, uint16_t *currentTimeoutMask,
                                             const uint16_t maxConversionTime);
 void owiTemperatureSensorBySensorParasiticConversion(uint8_t currentPins, uint16_t selectedDeviceIndex);
-
-void owiTemperatureFindParasiticlyPoweredDevices(unsigned char verbose);
 
 void owiTemperatureMiscSubCommands( struct uartStruct *ptr_uartStruct );
 void owiTemperatureMiscSubCommandGetSetForceParasiticMode(struct uartStruct *ptr_uartStruct);
