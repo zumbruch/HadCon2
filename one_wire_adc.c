@@ -38,6 +38,7 @@
 #include "OWIDeviceSpecific.h"
 #include "OWIHighLevelFunctions.h"
 #include "OWIBitFunctions.h"
+#include "OWIcrc.h"
 
 #define DS2450_CONVERT                  0x3C
 #define DS2450_READ_MEMORY              0xAA
@@ -81,7 +82,7 @@
 #define DS2450_OUTPUT_CONTROL_INPUT_C 0x0
 #define DS2450_OUTPUT_CONTROL_INPUT_D 0x0
 
-#if 1
+#if 0
 #define DS2450_RESOLUTION_INPUT_A     0x8 /* 8, bit resolution, only mask 0xF is taken, so 0x0 -> 16 bits, ..0x1 -> 1 bit */
 #define DS2450_RESOLUTION_INPUT_B     0x8
 #define DS2450_RESOLUTION_INPUT_C     0x8
@@ -122,7 +123,7 @@
 
 uint16_t owiAdcMask = 0;
 uint16_t* p_owiAdcMask = &owiAdcMask;
-uint16_t owiAdcTimeoutMask = 0xFFFF; /*bit mask of non converted channels/pins 1:conversion timeout*/
+uint16_t owiAdcTimeoutAndFailureBusMask = 0xFFFF; /*bit mask of non converted channels/pins 1:conversion timeout*/
 uint8_t owiUseCommonAdcConversion_flag = TRUE;
 
 /* global address settings */
@@ -371,7 +372,6 @@ int8_t owiInitializeADCs( uint8_t *pins )
 	dataPORandAlarmsAndInputRange[3] |= (  DS2450_ALARM_ENABLE_INPUT_D & 0x3) << 2;
 	dataPORandAlarmsAndInputRange[3] |= (   DS2450_INPUT_RANGE_INPUT_D & 0x1) << 0;
 
-
 	/*SET UP for non parasitic mode*/
 	for ( int8_t b = 0 ; b < OWI_MAX_NUM_PIN_BUS ; b++ )
 	{
@@ -386,17 +386,6 @@ int8_t owiInitializeADCs( uint8_t *pins )
 			continue; // Error
 		}
 
-		/*
-		 * changing settings of VCC_CONTROL_BYTE of all connected devices
-		 */
-		if ( 0 != owiADCMemoryWriteByte(pins[b],NULL,
-				DS2450_ADDRESS_MEMORY_MAP_PAGE_3_VCC_CONTROL_BYTE,
-				DS2450_DATA_MEMORY_MAP_PAGE_3_VCC_CONTROL_BYTE,
-				maxTrials))
-		{
-			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("init 1-wire ADCs: failed to set: VCC_CONTROL_BYTE"));
-		}
-
 
 		/*
 		 * changing settings of channels  of all connected devices
@@ -404,17 +393,23 @@ int8_t owiInitializeADCs( uint8_t *pins )
 
 		for (int channel = 0; channel < 4; channel++)
 		{
-			if ( 0 != owiADCMemoryWriteByte(pins[b], NULL, addressPORandAlarmsAndInputRange[channel],
-					dataPORandAlarmsAndInputRange[channel], maxTrials))
-			{
-				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("init 1-wire ADCs: failed to set: POR, ALARM ENABLE, INPUT RANGE"));
-			}
-
-			if ( 0 != owiADCMemoryWriteByte(pins[b], NULL, addressOutputAndResolution[channel],
-					dataOutputAndResolution[0], maxTrials))
+			if ( 0 != owiADCMemoryWriteByte(pins[b], NULL, addressOutputAndResolution[channel], dataOutputAndResolution[0], maxTrials))
 			{
 				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("init 1-wire ADCs: failed to set: OUTPUT CONTROL, RESOLUTION"));
 			}
+
+			if ( 0 != owiADCMemoryWriteByte(pins[b], NULL, addressPORandAlarmsAndInputRange[channel], dataPORandAlarmsAndInputRange[channel], maxTrials))
+			{
+				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("init 1-wire ADCs: failed to set: POR, ALARM ENABLE, INPUT RANGE"));
+			}
+		}
+
+		/*
+		 * changing settings of VCC_CONTROL_BYTE of all connected devices
+		 */
+		if ( 0 != owiADCMemoryWriteByte(pins[b],NULL, DS2450_ADDRESS_MEMORY_MAP_PAGE_3_VCC_CONTROL_BYTE, DS2450_DATA_MEMORY_MAP_PAGE_3_VCC_CONTROL_BYTE, maxTrials))
+		{
+			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("init 1-wire ADCs: failed to set: VCC_CONTROL_BYTE"));
 		}
 	}
 	return 1;
@@ -449,12 +444,15 @@ int8_t owiInitializeADCs( uint8_t *pins )
  *    1: failed
  *
  */
+
 uint8_t owiADCMemoryWriteByte(unsigned char bus_pattern, unsigned char * id, uint16_t address, uint8_t data, uint8_t maxTrials)
 {
 	uint16_t receive_CRC;
 	uint8_t flag = FALSE;
 	uint8_t verificationData = 0x0;
 	uint8_t trialsCounter = maxTrials;
+
+	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("writing to ADC memory address: 0x%x \tdata: 0x%x"),address, data);
 
 	/* 0 trials, give it a chance */
 	if (0 == trialsCounter) { trialsCounter++;}
@@ -524,15 +522,14 @@ uint8_t owiADCMemoryWriteByte(unsigned char bus_pattern, unsigned char * id, uin
 		 */
 
 		OWI_SendByte(DS2450_WRITE_MEMORY, bus_pattern);
-		OWI_SendByte((uint8_t) ((address >> 0) & 0xF), bus_pattern); /*LSB*/
-		OWI_SendByte((uint8_t) ((address >> 4) & 0xF), bus_pattern); /*MSB*/
+		OWI_SendWord(address, bus_pattern);
+//		OWI_SendByte((uint8_t) ((address)      & 0xFF), bus_pattern); /*LSB*/
+//		OWI_SendByte((uint8_t) ((address >> 8) & 0xFF), bus_pattern); /*MSB*/
 
 		OWI_SendByte(data, bus_pattern);
 
 		/* receive 16bit CRC */
-		receive_CRC = OWI_ReceiveByte(bus_pattern);           /* IMPORTANT AFTER EACH 'MEMORY WRITE' OPERATION to start memory writing*/
-		receive_CRC |= ( OWI_ReceiveByte(bus_pattern) << 8 ); /* IMPORTANT AFTER EACH 'MEMORY WRITE' OPERATION to start memory writing*/
-
+		receive_CRC = OWI_ReceiveWord(bus_pattern);           /* IMPORTANT AFTER EACH 'MEMORY WRITE' OPERATION to start memory writing*/
 
 		/* only possible if there is not OWI_ROM_SKIP, so wait until this device specific is implemented*/
 		if (id != NULL)
@@ -589,7 +586,6 @@ int8_t owiMakeADCConversions( uint8_t *pins )
 		if ( 0 == ((owiBusMask & pins[busPatternIndex]) & 0xFF) )
 		{
 			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i differs (pin pattern 0x%x owiBusMask 0x%x)"), busPatternIndex, pins[busPatternIndex],owiBusMask);
-
 			continue;
 		}
 		else
@@ -609,17 +605,15 @@ int8_t owiMakeADCConversions( uint8_t *pins )
 
 		if ( TRUE == owiUseCommonAdcConversion_flag)
 		{
-			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i combining 0x%x to common set of pins 0x%x)"), busPatternIndex, pins[busPatternIndex],commonPins);
-
 			commonPins |= pins[busPatternIndex];
+			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i combining 0x%x to common set of pins 0x%x)"), busPatternIndex, pins[busPatternIndex],commonPins);
 		}
 	}
 
 	if ( TRUE == owiUseCommonAdcConversion_flag)
 	{
-		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("final common pins: 0x%x"), commonPins);
-
 		busPatternIndexMax = 1; /*only once */
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("final common pins: 0x%x"), commonPins);
 	}
 	else
 	{
@@ -637,32 +631,35 @@ int8_t owiMakeADCConversions( uint8_t *pins )
 			currentPins = pins[busPatternIndex];
 
 			// continue if bus isn't active
-			if ( 0 == ((owiBusMask & currentPins) & 0xFF) ){  continue; }
+			if (0 == ((owiBusMask & currentPins) & 0xFF))
+			{
+				continue;
+			}
 
 			// continue if bus doesn't contain any ADCs
-			if ( 0 == ((owiAdcMask & currentPins) & 0xFF ) ){  continue; }
-
+			if (0 == ((owiAdcMask & currentPins) & 0xFF))
+			{
+				continue;
+			}
 		}
 
 		/* now first access to bus, within the function  */
 		if ( 0 == OWI_DetectPresence(currentPins) )
 		{
 			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i no Device present (pin pattern 0x%x)"), busPatternIndex, currentPins);
-
 			continue;
 		}
 		else
 		{
 			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i some devices present (pin pattern 0x%x)"), busPatternIndex, currentPins);
-			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i starting conversion sequence"), busPatternIndex );
 		}
 
 		/*starting conversion sequence on all IDs */
 		owiADCConvert(currentPins, NULL);
 
-	}//end of for ( int8_t b = 0 ; b < OWI_MAX_NUM_PIN_BUS ; b++ )
+	}//end of: 	for ( int8_t busPatternIndex = 0 ; busPatternIndex < busPatternIndexMax ; busPatternIndex++ )
 
-	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("make conversion finished (owiAdcTimeoutMask = 0x%x)"), owiAdcTimeoutMask);
+	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("make conversion finished (owiAdcTimeoutMask = 0x%x)"), owiAdcTimeoutAndFailureBusMask);
 	return 1;
 }//END of owiMakeADCConversions function
 
@@ -689,45 +686,21 @@ int8_t owiMakeADCConversions( uint8_t *pins )
  *    1: failed
  *
  */
-uint8_t owiADCConvert(unsigned char bus_pattern, unsigned char * id)
+uint8_t owiADCConvert(unsigned char currentPins, unsigned char * id)
 {
-	uint16_t receive_CRC;
+	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus_pattern: 0x%x starting conversion sequence"), currentPins );
+
 	static uint16_t maxConversionTime = OWI_ADC_MAX_CONVERSION_TIME_MILLISECONDS;
 	static uint32_t count;
 	static uint32_t maxcount;
-	static unsigned char timeoutFlag;
-
-	/* select one or all, depending if id is given */
-	if ( id == NULL)
-	{
-		/*
-		 * SKIP ROM [CCH]
-		 *
-		 * This command can save time in a single drop bus system by allowing the bus master to access the
-		 * memory/ convert functions without providing the 64-bit ROM code. If more than one slave is present on
-		 * the bus and a read command is issued following the Skip ROM command, data collision will occur on the
-		 * bus as multiple slaves transmit simultaneously (open drain pulldowns will produce a wired-AND result).
-		 */
-		OWI_SendByte(OWI_ROM_SKIP, bus_pattern);
-	}
-	else
-	{
-		/*
-		 * MATCH ROM [55H]
-		 *
-		 * The match ROM command, followed by a 64-bit ROM sequence, allows the bus master to address a
-		 * specific DS2450 on a multidrop bus. Only the DS2450 that exactly matches the 64-bit ROM sequence
-		 * will respond to the following memory/convert function command. All slaves that do not match the 64-bit
-		 * ROM sequence will wait for a reset pulse. This command can be used with a single or multiple devices
-		 * on the bus.
-		 */
-		OWI_MatchRom(id, bus_pattern); // Match id found earlier
-	}
+	static unsigned char timeout_flag;
+	//uint8_t trialsCounter = 0;
+	uint8_t result = RESULT_OK;
+    uint16_t receive_CRC;
 
 	maxcount = ( OWI_ADC_CONVERSION_DELAY_MILLISECONDS > 0 ) ? maxConversionTime / OWI_ADC_CONVERSION_DELAY_MILLISECONDS : 1;
-
 	count = maxcount;
-	timeoutFlag = FALSE;
+	timeout_flag = FALSE;
 
 	/*
 	 * CONVERT [3CH]
@@ -784,62 +757,153 @@ uint8_t owiADCConvert(unsigned char bus_pattern, unsigned char * id)
 	 * continuously generate read data time slots. As long as the DS2450 is busy with conversions the bus
 	 * master will read 0’s. After the conversion is completed the bus master will receive 1’s instead. Since in a
 	 * open-drain environment a single 0 overwrites multiple 1’s the bus master can monitor multiple devices
-	 * converting simultaneously and immediately knows when the last one is ready. As in the parasitically
+	 * converting simultaneously and immediately knows when the last one is ready. As in the parasite
 	 * powered scenario the bus master finally has to exit the Convert command by issuing a rest pulse.
+	 *
+	 * from data sheet: http://datasheets.maximintegrated.com/en/ds/DS2450.pdf
 	 */
 
-	OWI_SendByte(OWI_ROM_SKIP, bus_pattern);
-	OWI_SendByte(DS2450_CONVERT, bus_pattern); /*conversion*/
-	OWI_SendByte(DS2450_CONVERSION_CHANNEL_SELECT_MASK, bus_pattern); /* select mask*/
-	OWI_SendByte(DS2450_CONVERSION_READOUT_CONTROL, bus_pattern); /* select read out control*/
-
-	receive_CRC = OWI_ReceiveByte(bus_pattern);           /*IMPORTANT AFTER EACH 'MEMORY WRITE' OPERATION*/
-	receive_CRC |= ( OWI_ReceiveByte(bus_pattern) << 8 ); /*IMPORTANT AFTER EACH 'MEMORY WRITE' OPERATION*/
-
-	//loop that waits for the conversion to be done
-
-	while ( OWI_ReadBit(bus_pattern) == 0 )
+	if ( 0 == OWI_DetectPresence(currentPins) )
 	{
-		_delay_ms(OWI_ADC_CONVERSION_DELAY_MILLISECONDS);
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus pins: 0x%x no Device present"), currentPins);
+		return RESULT_FAILURE;
+	}
+	else
+	{
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus pins: 0x%x some devices present Device present"), currentPins);
 
-		/* timeout check */
-		if ( 0 == --count)
+		OWI_SendByte(OWI_ROM_SKIP, currentPins);
+		OWI_SendByte(DS2450_CONVERT, currentPins); /*conversion*/
+		OWI_SendByte(DS2450_CONVERSION_CHANNEL_SELECT_MASK, currentPins); /* select mask*/
+		OWI_SendByte(DS2450_CONVERSION_READOUT_CONTROL, currentPins); /* select read out control*/
+
+		receive_CRC = OWI_ReceiveWord(currentPins);           /*IMPORTANT AFTER EACH 'MEMORY WRITE' OPERATION*/
+
+		//loop that waits for the conversion to be done
+
+		while ( OWI_ReadBit(currentPins) == 0 )
 		{
-			timeoutFlag = TRUE;
-			break;
+			_delay_ms(OWI_ADC_CONVERSION_DELAY_MILLISECONDS);
+
+			/* timeout check */
+			if ( 0 == --count)
+			{
+				timeout_flag = TRUE;
+				result = RESULT_FAILURE;
+				break;
+			}
+		}
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("waited %i times a delay of %i ms"), maxcount - count, OWI_ADC_CONVERSION_DELAY_MILLISECONDS);
+	}
+
+	/* ending the Convert command sequence in any case by issuing a Reset Pulse*/
+	OWI_DetectPresence(currentPins); /*the "DetectPresence" function includes sending a Reset Pulse*/
+
+	if (RESULT_FAILURE != result)
+	{
+		owiAdcTimeoutAndFailureBusMask &= ~(currentPins);
+		result = RESULT_OK;
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("OWI ADC Conversion failed (bus_pattern: 0x%x)"), currentPins);
+	}
+	else
+	{
+		result = RESULT_FAILURE;
+
+		if ( NULL == id )
+		{
+			owiAdcTimeoutAndFailureBusMask |= currentPins;
+			if ( FALSE != timeout_flag )
+			{
+				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion timeout (bus_pattern: 0x%x"), currentPins);
+				printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("OWI Adc Conversion timeout (>%i ms) on bus_mask (0x%x)"),  maxConversionTime, currentPins);
+			}
+			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion failed (bus_pattern: 0x%x)"), currentPins);
+		}
+		else
+		{
+			owiCreateIdString(owi_id_string, id);
+			if ( FALSE != timeout_flag )
+			{
+				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion timeout (id: %s"), owi_id_string);
+				printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("OWI Adc Conversion timeout (>%i ms) (id: %s)"),  maxConversionTime, owi_id_string);
+			}
+			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion failed (id: %s"), owi_id_string);
 		}
 	}
 
-	if ( FALSE == timeoutFlag )
-	{
-		owiAdcTimeoutMask &= ~(bus_pattern);
+	/* ending the Convert command sequence in any case by issuing a Reset Pulse*/
+	OWI_DetectPresence(currentPins); /*the "DetectPresence" function includes sending a Reset Pulse*/
 
-		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("waited %i times a delay of %i ms"), maxcount - count, OWI_ADC_CONVERSION_DELAY_MILLISECONDS);
-		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("conversion done"));
-	}
-	else
-	{
-		owiAdcTimeoutMask |= bus_pattern;
+//
+//	while( trialsCounter < OWI_SEND_BYTE_MAX_TRIALS )
+//	{
+//		trialsCounter++;
+//        receive_CRC = 0;
+//
+//		/* select one or all, depending if id is given */
+////		if ( id == NULL)
+////		{
+////			/*
+////			 * SKIP ROM [CCH]
+////			 *
+////			 * This command can save time in a single drop bus system by allowing the bus master to access the
+////			 * memory/ convert functions without providing the 64-bit ROM code. If more than one slave is present on
+////			 * the bus and a read command is issued following the Skip ROM command, data collision will occur on the
+////			 * bus as multiple slaves transmit simultaneously (open drain pulldowns will produce a wired-AND result).
+////			 */
+////			OWI_SkipRom(currentPins);
+////		}
+////		else
+////		{
+////			/*
+////			 * MATCH ROM [55H]
+////			 *
+////			 * The match ROM command, followed by a 64-bit ROM sequence, allows the bus master to address a
+////			 * specific DS2450 on a multidrop bus. Only the DS2450 that exactly matches the 64-bit ROM sequence
+////			 * will respond to the following memory/convert function command. All slaves that do not match the 64-bit
+////			 * ROM sequence will wait for a reset pulse. This command can be used with a single or multiple devices
+////			 * on the bus.
+////			 */
+////			OWI_MatchRom(id, currentPins); // Match id found earlier
+////		}
+//
+//		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus_pattern: 0x%x sending command, mask, readout byte"),currentPins );
+//
+////		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("crc16 checksum 3 bytes 0x%x ?"), owiComputeCRC16(0x0000, 3, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
+////		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("crc16 checksum 4 bytes 0x%x ?"), owiComputeCRC16(0x0000, 4, OWI_ROM_SKIP, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
+////		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("crc16 checksum 3 bytes 0x%x ?"), owiComputeCRC16(0xFFFF, 3, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
+////		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("crc16 checksum 4 bytes 0x%x ?"), owiComputeCRC16(0xFFFF, 4, OWI_ROM_SKIP, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
+//
+////		result = owiSendBytesAndCheckCRC16(currentPins, 3,
+////				DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL);
+//
+//		result = RESULT_OK; /*disable CRC check*/
+//		if ( RESULT_OK != result )
+//		{
+//			OWI_DetectPresence(currentPins); /*the "DetectPresence" function includes sending a Reset Pulse*/
+//
+//			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("CRC16 check send byte failed - trial no. %i, computed 0x%x != received 0x%x"), trialsCounter);
+//
+//			if (OWI_SEND_BYTE_MAX_TRIALS == trialsCounter)
+//			{
+//				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("CRC16 check reached max trials (%i) on send byte"), OWI_SEND_BYTE_MAX_TRIALS);
+//				return RESULT_FAILURE;
+//			}
+//		}
+//	}
+//
+//#warning put CRC test only to id != NULL
+//
+//	if ( RESULT_OK == result)
+//	{
+//	}
+//	else
+//	{
+//		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: 0x%x sendByte failed"),currentPins );
+//	}
 
-		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI ADC Conversion timeout"));
-
-		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("OWI Adc Conversion timeout (>%i ms) on bus_mask (%i)"),  maxConversionTime, bus_pattern);
-	}
-
-	/* ending the Convert command sequence by issuing a Reset Pulse*/
-	OWI_DetectPresence(bus_pattern); /*the "DetectPresence" function includes sending a Reset Pulse*/
-
-	if (FALSE == timeoutFlag)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+	return result;
 }
-
-
 
 /*
  *this function gets the ADC-value of all channels of one device
@@ -865,11 +929,11 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 		return ((uint32_t) owiReadStatus_owi_bus_mismatch) << OWI_ADC_DS2450_MAX_RESOLUTION;
 	}
 
-	if ( 0 != ((owiAdcTimeoutMask & bus_pattern) & 0xFF) )
+	if ( 0 != ((owiAdcTimeoutAndFailureBusMask & bus_pattern) & 0xFF) )
 	{
 		//conversion went into timeout
-
-		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI ADC Conversion timeout (>%i ms) on bus_pattern (%i)"), OWI_ADC_MAX_CONVERSION_TIME_MILLISECONDS, bus_pattern);
+		owiCreateIdString(owi_id_string, id);
+		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion Error id: %s (bus_pattern 0x%x)"), owi_id_string, bus_pattern);
 
 		return ((uint32_t) owiReadStatus_conversion_timeout) << OWI_ADC_DS2450_MAX_RESOLUTION;
 	}
@@ -884,6 +948,8 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 
 	/* Send READ MEMORY command
 	 *
+	 * READ MEMORY [AAH]
+	 *
 	 * The Read Memory command is used to read conversion results, control/status data and alarm settings.
 	 * The bus master follows the command byte with a two byte address (TA1=(T7:T0), TA2=(T15:T8)) that
 	 * indicates a starting byte location within the memory map.
@@ -894,7 +960,15 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 	 * address bytes and data bytes. This CRC is computed by the DS2450 and read back by the bus master to check
 	 * if the command word, starting address and data were received correctly. If the CRC read by the bus master
 	 * is incorrect, a Reset Pulse must be issued and the entire sequence must be repeated.
-	 * (http://datasheets.maxim-ic.com/en/ds/DS2450.pdf)
+	 *
+	 * Note that the initial pass through the Read Memory flow chart will generate a 16-bit CRC value that is the
+	 * result of clearing the CRC-generator and then shifting in the command byte followed by the two address
+	 * bytes, and finally the data bytes beginning at the first addressed memory location and continuing through
+	 * to the last byte of the addressed page. Subsequent passes through the Read Memory flow chart will
+	 * generate a 16-bit CRC that is the result of clearing the CRC-generator and then shifting in the new data
+	 * bytes starting at the first byte of the next page.
+	 *
+	 * (http://datasheets.maximintegrated.com/en/ds/DS2450.pdf)
 	 * */
 
 	while ( FALSE == flag && trialsCounter != 0)
@@ -902,32 +976,12 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 		/* Match id found earlier*/
 		OWI_MatchRom(id, bus_pattern); // Match id found earlier
 
-		/*
-		 * READ MEMORY [AAH]
-		 *
-		 * The Read Memory command is used to read conversion results, control/status data and alarm settings.
-		 * The bus master follows the command byte with a two byte address (TA1=(T7:T0), TA2=(T15:T8)) that
-		 * indicates a starting byte location within the memory map. With every subsequent read data time slot the
-		 * bus master receives data from the DS2450 starting at the supplied address and continuing until the end of
-		 * an eight-byte page is reached. At that point the bus master will receive a 16-bit CRC of the command
-		 * byte, address bytes and data bytes. This CRC is computed by the DS2450 and read back by the bus
-		 * master to check if the command word, starting address and data were received correctly. If the CRC read
-		 * by the bus master is incorrect, a Reset Pulse must be issued and the entire sequence must be repeated.
-		 * Note that the initial pass through the Read Memory flow chart will generate a 16-bit CRC value that is the
-		 * result of clearing the CRC-generator and then shifting in the command byte followed by the two address
-		 * bytes, and finally the data bytes beginning at the first addressed memory location and continuing through
-		 * to the last byte of the addressed page. Subsequent passes through the Read Memory flow chart will
-		 * generate a 16-bit CRC that is the result of clearing the CRC-generator and then shifting in the new data
-		 * bytes starting at the first byte of the next page.
-		 *
-		 */
-
 #warning TODO: is the CRC check described above done here? if this sequence is repeated implement a timeout counter
 
 		OWI_SendByte(DS2450_READ_MEMORY, bus_pattern);
 		/* set starting address for memory read */
-		OWI_SendByte((uint8_t)((DS2450_ADDRESS_MEMORY_MAP_PAGE_0_CONVERSION_READOUT_INPUT_A_LSB >> 0) &0xF), bus_pattern); //Send two bytes address (ie: 0x00 & 0x00,0x08 & 0x00,0x10 & 0x00,0x18 & 0x00)
-		OWI_SendByte((uint8_t)((DS2450_ADDRESS_MEMORY_MAP_PAGE_0_CONVERSION_READOUT_INPUT_A_LSB >> 4) &0xF), bus_pattern); //Send two bytes address (ie: 0x00 & 0x00,0x08 & 0x00,0x10 & 0x00,0x18 & 0x00)
+		OWI_SendByte((uint8_t)((DS2450_ADDRESS_MEMORY_MAP_PAGE_0_CONVERSION_READOUT_INPUT_A_LSB >> 0) &0xFF), bus_pattern); //Send two bytes address (ie: 0x00 & 0x00,0x08 & 0x00,0x10 & 0x00,0x18 & 0x00)
+		OWI_SendByte((uint8_t)((DS2450_ADDRESS_MEMORY_MAP_PAGE_0_CONVERSION_READOUT_INPUT_A_LSB >> 8) &0xFF), bus_pattern); //Send two bytes address (ie: 0x00 & 0x00,0x08 & 0x00,0x10 & 0x00,0x18 & 0x00)
 
 		for (channelIndex = 0; channelIndex < 4; channelIndex++)
 		{
@@ -937,7 +991,6 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 
 		/* Receive CRC */
 		CRC = OWI_ReceiveWord(bus_pattern);
-		CRC |= OWI_ReceiveWord(bus_pattern);
 
 		/* Check CRC */
 		flag = TRUE;
