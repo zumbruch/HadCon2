@@ -1,0 +1,39 @@
+#!/usr/bin/perl -w
+
+
+#perl -e 'while(1) {print "text $i\n"; $i++; sleep 1;}'
+
+my $DEFAULT_TTY = "/dev/hadcon2";
+
+my $a = $ARGV[0];
+
+if(!$a) {
+    $a=$DEFAULT_TTY;
+}
+
+my $c = "stty -F $a -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke speed 115200";
+
+print "setting up interface $a: baud rate: ";
+system($c);
+
+#$c = "cat $a";
+
+my $ln = 0;
+
+LOOP: while (1) {
+    print "trying to read from device $a\n";
+    my $fh;
+    my $or = open $fh, "<$a";
+    if (!defined $or || $or == 0 || !defined $fh) {
+	sleep 1;
+	next LOOP;
+    }
+    #print "fh: $fh\n";
+    while (<$fh>) {
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	printf "%3.3d %2.2d:%2.2d:%2.2d: %s", $ln, $hour, $min, $sec , $_;
+	$ln++;
+    }
+    sleep 1;
+}
+
