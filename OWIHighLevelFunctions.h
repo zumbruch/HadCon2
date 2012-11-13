@@ -29,6 +29,7 @@ void OWI_ReadRom(unsigned char * romValue, unsigned char pins);
 void OWI_MatchRom(unsigned char * romValue, unsigned char pins);
 unsigned char OWI_SearchRom(unsigned char * bitPattern, unsigned char lastDeviation, unsigned char pins);
 unsigned char OWI_SearchAlarm(unsigned char * bitPattern, unsigned char lastDeviation, unsigned char pins);
+void OWI_SendWord( uint16_t data, unsigned char pins );
 
 uint16_t OWI_ReceiveWord( unsigned char pin ); /* added by P.Zumbruch, GSI */
 

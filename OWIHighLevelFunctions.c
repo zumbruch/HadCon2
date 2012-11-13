@@ -61,6 +61,40 @@ void OWI_SendByte( unsigned char data, unsigned char pins )
    }
 }
 
+/*! \brief  Sends one byte of data on the 1-Wire(R) bus(es).
+ *
+ *  This function automates the task of sending a complete word (2 byte)
+ *  starting from lsb
+ *  of data on the 1-Wire bus(es).
+ *
+ *  \param  data    The data word to send on the bus(es).
+ *
+ *  \param  pins    A bitmask of the buses to send the data to.
+ */
+void OWI_SendWord( uint16_t data, unsigned char pins )
+{
+   uint16_t temp;
+   unsigned char i;
+
+   // Do once for each bit
+   for ( i = 0; i < 16 ; i++ )
+   {
+      // Determine if lsb is '0' or '1' and transmit corresponding
+      // waveform on the bus.
+      temp = data & 0x0001;
+      if ( temp )
+      {
+         OWI_WriteBit1(pins);
+      }
+      else
+      {
+         OWI_WriteBit0(pins);
+      }
+      // Right shift the data to get next bit.
+      data >>= 1;
+   }
+}
+
 /*! \brief  Receives one word (2 bytes) of data from the 1-Wire(R) bus.
  *
  *  This function automates the task of receiving a complete word (2 bytes)
