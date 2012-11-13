@@ -22,6 +22,8 @@ struct owiStruct
 extern struct owiStruct owiFrame;
 extern struct owiStruct *ptr_owiStruct;
 
+#define OWI_SEND_BYTE_MAX_TRIALS 3
+
 #define OWI_ID_LENGTH 17 /*(16+1)*/
 extern char owi_id_string[OWI_ID_LENGTH];
 
@@ -56,6 +58,15 @@ uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex);
 void owiCreateIdString(char string[OWI_ID_LENGTH], uint8_t array[]);
 
 void owiFindParasitePoweredDevices(unsigned char verbose);
+
+uint8_t owiSendBytesAndCheckCRC16(unsigned char bus_pattern, uint8_t nArgs, ... );
+extern uint8_t (*owiSendBytesAndCheckCRC16AndRepeatOnFailure_p)(unsigned char, uint8_t, ... );
+
+uint16_t owiComputeCRC16(uint16_t seed, uint8_t nArgs, ...);
+extern uint16_t (*owiComputeCRC16_p)(uint16_t, uint8_t, ...);
+
+uint16_t vOwiComputeCRC16(uint16_t seed, uint8_t nArgs, va_list argumentPointers);
+extern uint16_t (*vOwiComputeCRC16_p)(uint16_t, uint8_t, va_list);
 
 enum owiReadWriteStatus
 {
