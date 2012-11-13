@@ -1487,7 +1487,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
 /* This (new) Communication Error function
  * sends a ((partly) predefined) error message to UART
  *
- * output: ERRG/C/U/A/M <error number> <error message> [<alternative/extra Error> <alternative/extra number>]
+ * output: ERRG/C/U/A/M <error number> <error message> [<alternative/extra Error>]
  * output: ERRA/C/U/A/M "<command key> <command arguments>" --- <error number> <error message>
  *
  * arguments:
@@ -1512,7 +1512,6 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
  *      - else add command sequence to error message
  *    - alternativeErrorMessage: message to be printed/attached if Error_Index exceeds limits / else
  *       - by default prog_char, i.e. FLASH data (otherwise see below)
- *    - alternativeErrorNumber :  number to be printed/attached if Error_Index exceeds limits
  *
  * returns:
  *    - 0 , if all o.k.
@@ -1645,7 +1644,9 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
        vsnprintf_P(message, BUFFER_SIZE - 1, alternativeErrorMessage, argumentPointers);
        va_end(argumentPointers);
 
-       strncat_P(uart_message_string, message, BUFFER_SIZE -1);
+       strncat(uart_message_string, "\"", BUFFER_SIZE -1);
+       strncat(uart_message_string, message, BUFFER_SIZE -1);
+       strncat(uart_message_string, "\"", BUFFER_SIZE -1);
     }
 
     UART0_Send_Message_String_p(NULL,0);
@@ -1910,7 +1911,6 @@ uint8_t createReceiveHeader( struct uartStruct *ptr_myUartStruct, char message_s
    if (NULL == message_string) { message_string = uart_message_string; }
    if (0 == size) { size = BUFFER_SIZE; }
 
-   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("commandKeywordIndex %i"), ptr_myUartStruct->commandKeywordIndex);
 
    clearString(message_string, size);
    strncat_P(message_string, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_RECV])) ), size - 1);
@@ -1949,7 +1949,6 @@ void toggle_pin( unsigned char pin_number )
    /*toggle FrontLED*/
    PINA = 0x3;
 }//END of toggle_pin function
-
 
 /*
  * adds to the normal receive header created internally the additional command key word of sub command
@@ -2105,3 +2104,4 @@ uint8_t initUartStruct(struct uartStruct *ptr_myUartStruct)
 //   }
 //   //safePArrayFree(array,level);
 //}
+
