@@ -19,6 +19,7 @@ extern char *ptr_setParameter[MAX_PARAMETER];
 extern char uart_message_string[BUFFER_SIZE];
 extern char message[BUFFER_SIZE];
 extern char uartString[BUFFER_SIZE]; /* variable for storage received a complete string via UART */
+extern char resultString[BUFFER_SIZE];
 extern char keepAliveString[15];
 
 extern int8_t can_init; /* variable to call CAN_Init function*/
