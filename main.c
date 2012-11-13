@@ -119,6 +119,7 @@ char ring_buffer[MAX_INPUT][MAX_LENGTH_CAN_DATA]; /*buffer to store CAN data*/
 char setParameter[MAX_PARAMETER][MAX_LENGTH_PARAMETER];
 char uart_message_string[BUFFER_SIZE];
 char message[BUFFER_SIZE];
+char resultString[BUFFER_SIZE];
 unsigned char nextCharPos; /*pointer of the variable uartString  */
 uint8_t can_errorCode = 0; /* error code for CAN-communication */
 uint8_t twi_errorCode = 0; /* error code for I2C/TWI-communication */
