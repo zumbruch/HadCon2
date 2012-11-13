@@ -90,8 +90,12 @@
 
 #warning HADCON devices are around, which exceed those 20 devices, formerly to be 60
 #define OWI_MAX_NUM_DEVICES       20
+
 #define TRUE    1
 #define FALSE   0
+
+#define RESULT_OK 0
+#define RESULT_FAILURE 1
 
 #define OWI_FAMILY_DS2450_ADC                 0x20
 #define OWI_FAMILY_DS18B20_TEMP               0x28
