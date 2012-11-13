@@ -9,7 +9,7 @@
 
 extern uint16_t owiAdcMask;
 extern uint16_t* p_owiAdcMask;
-extern uint16_t owiAdcTimeoutMask;
+extern uint16_t owiAdcTimeoutAndFailureBusMask;
 extern uint8_t owiUseCommonAdcConversion_flag;
 
 void owiReadADCs( struct uartStruct *ptr_uartStruct ); /*this function contains all the functions that are necessary to
