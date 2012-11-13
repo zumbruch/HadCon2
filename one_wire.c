@@ -334,6 +334,7 @@ int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
 int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uint8_t familyCode, void *ptr_value)
 {
    int8_t deviceIndex = 0;
+# warning replace by a union
    uint32_t readValueADC  = 0;/*variable to read value of ADC channel*/
    uint32_t readValueTemp = 0;/*variable to read temperature of sensor*/
    uint16_t readValueDS   = 0;/*variable to read value of dual switch*/
@@ -342,8 +343,8 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
    
    uint16_t readValueOS   = 0;/*variable to read value of octal switch*/
    uint16_t writeValueOS  = 0;/*variable to write value of octal switch*/
-   
    uint16_t ADCValues[4];
+   
    uint8_t foundCounter = 0;
    uint8_t write_flag = FALSE;
    int8_t selectedDeviceIndex = -1;
@@ -366,7 +367,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
       selectedDeviceIndex = owiFindIdAndGetIndex(ptr_owiStruct->id);
       if ( -1 == selectedDeviceIndex)
       {
-          printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("no matching ID found"));
+    	 printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("no matching ID found"));
          return 0;
       }
       if ( -1 > selectedDeviceIndex )
@@ -376,7 +377,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
       }
    }
 
-   if ( selectedDeviceIndex >=  countDev )
+   if ( selectedDeviceIndex >= countDev )
    {
       CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("fcn:FindFamilyDevicesAndGetValues: selected device index (arg 4) is out of range ... skipping") );
       return -1;
@@ -409,6 +410,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
 
       /*clear strings*/
       clearString(message, BUFFER_SIZE);
+      clearString(resultString, BUFFER_SIZE);
 
       /* assign current id to string */
       owiCreateIdString(owi_id_string, owi_IDs[deviceIndex]);
@@ -432,8 +434,9 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
                if ( 0 != owiCheckReadWriteReturnStatus( readValueADC >> OWI_ADC_DS2450_MAX_RESOLUTION )) { continue; }
 
                clearString(message, BUFFER_SIZE);
-               snprintf(message, BUFFER_SIZE - 1, "%s %.4X %.4X %.4X %.4X",
-                        owi_id_string, ADCValues[0], ADCValues[1], ADCValues[2], ADCValues[3]);
+               snprintf(message, BUFFER_SIZE - 1, "%s%s", owi_id_string, resultString);
+//               snprintf(message, BUFFER_SIZE - 1, "%s %.4X %.4X %.4X %.4X",
+//                        owi_id_string, ADCValues[0], ADCValues[1], ADCValues[2], ADCValues[3]);
                break;
             case OWI_FAMILY_DS18S20_TEMP:
             case OWI_FAMILY_DS18B20_TEMP:
@@ -559,8 +562,6 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
 #else
 #error undefined HADCON_VERSION
 #endif
-      /*send the data*/
-      UART0_Send_Message_String_woLF(uart_message_string, BUFFER_SIZE - 1);
 
       /*clear strings*/
       clearString(uart_message_string, BUFFER_SIZE);
@@ -569,10 +570,12 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
       foundCounter++;
    }//for (deviceIndex=0;deviceIndex<countDev;deviceIndex++)
 
+#if HADCON_VERSION == 1
    if ( 0 < foundCounter)
    {
       UART0_Transmit_p('\n');
    }
+#endif
 
    return foundCounter;
 }//END of owiFindFamilyDevicesAndAccessValues
@@ -679,7 +682,7 @@ uint8_t owiCheckReadWriteReturnStatus( uint32_t status )
          return 1;
          break;
       default:
-         CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("Error reading %s"), owi_id_string);
+         CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("Error reading %s"), owi_id_string);
          for ( uint8_t clearIndex = 0 ; clearIndex < BUFFER_SIZE ; clearIndex++ )
          {
             message[clearIndex] = STRING_END;
@@ -1253,4 +1256,89 @@ void owiFindParasitePoweredDevices(unsigned char verbose)
           printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic devices NONE on pins 0x%x ") ,currentPins);
       }
    }
+}
+
+/*
+ * send variable (nArgs) number of bytes to bus_pattern
+ * 		note:
+ * 				due to the limitation of variable argument lists,
+ * 			  	bytes are of type int masked down to (byte & 0xFF)
+ * 			  	and converted to unsigned char
+ * compute CRC16 of the whole data stream and
+ * compare with received CRC16.
+ *
+ * In case of mismatch:
+ * 		repeat generate via DetectPresence a reset pulse and repeat OWI_SEND_BYTE_MAX_TRIALS times
+ *
+ * return 0 on success
+ * return 1 else
+ */
+uint8_t owiSendBytesAndCheckCRC16(unsigned char bus_pattern, uint8_t nArgs, ... )
+{
+	uint8_t arg = 0;
+	uint16_t receiveCRC16 = 0;
+	uint16_t computeCRC16 = 0; //or 0xFFFF ?
+	va_list argumentPointers;
+
+	receiveCRC16 = 0;
+	computeCRC16 = 0;
+
+	// compute expected CRC16
+	printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("CRC16 computing inputs:"));
+
+	va_start(argumentPointers, nArgs);
+	computeCRC16 = vOwiComputeCRC16(computeCRC16, nArgs, argumentPointers);
+	va_end(argumentPointers);
+
+	// send bytes
+	va_start(argumentPointers, nArgs);
+	for (uint8_t argCounter = 0; argCounter < nArgs; argCounter++)
+	{
+		arg = va_arg(argumentPointers, int);
+		OWI_SendByte((unsigned char)(arg & 0xFF), bus_pattern);
+	}
+	va_end(argumentPointers);
+
+	receiveCRC16 = OWI_ReceiveWord(bus_pattern);           /*IMPORTANT AFTER EACH 'MEMORY WRITE' OPERATION*/
+
+	if ( computeCRC16 != receiveCRC16 )
+	{
+		OWI_DetectPresence(bus_pattern); /*the "DetectPresence" function includes sending a Reset Pulse*/
+
+		printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("CRC16 check send byte failed - computed 0x%x != received 0x%x"), computeCRC16, receiveCRC16);
+
+		return RESULT_FAILURE;
+	}
+	else
+	{
+		return RESULT_OK;
+	}
+}
+
+uint16_t owiComputeCRC16(uint16_t seed, uint8_t nArgs, ...)
+{
+	uint16_t computeCRC16 = 0;
+	va_list argumentPointers;
+
+	va_start (argumentPointers, nArgs);
+	computeCRC16 = vOwiComputeCRC16(seed, nArgs, argumentPointers);
+	va_end(argumentPointers);
+
+	return computeCRC16;
+}
+
+uint16_t vOwiComputeCRC16(uint16_t seed, uint8_t nArgs, va_list argumentPointers)
+{
+	uint16_t computeCRC16 = seed;
+	uint8_t arg = 0;
+
+	computeCRC16 = 0;
+	for (uint8_t argCounter = 0; argCounter < nArgs; argCounter++)
+	{
+		arg = va_arg(argumentPointers, int);
+		computeCRC16 = OWI_ComputeCRC16((unsigned char)(arg & 0xFF), computeCRC16);
+		printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("CRC16 computing no %i: 0x%x"), argCounter, arg);
+	}
+
+	return computeCRC16;
 }
