@@ -1694,7 +1694,7 @@ void Initialization( void )
 
    UART0_Init();
 
-   Init_Port();
+   InitIOPorts();
 
    disableJTAG(FALSE);
 
@@ -1772,7 +1772,7 @@ void Initialization( void )
  *the  function has no input and output variable
  */
 
-void Init_Port( void )
+void InitIOPorts( void )
 {
    uint8_t intstate = SREG; /* save global interrupt flag */
    cli();

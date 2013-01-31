@@ -55,7 +55,7 @@ void Receive_Message( struct uartStruct *PtrFrame ); /* function for the SEND co
 
 void Initialization( void ); /*this function initialize all init functions again and actives the interrupt*/
 
-void Init_Port( void );/*this function initializes all input /output of the microcontroller*/
+void InitIOPorts( void );/*this function initializes all input /output of the microcontroller*/
 
 void Send_Message( struct uartStruct *PtrFrame );/*function for the SEND command name and RTR is not set, initialization of the registers with elements of the structure uartStruct*/
 
