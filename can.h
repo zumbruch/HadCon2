@@ -1,7 +1,7 @@
 /* The can.h is a header file for the functions and structure specific to the CAN interface between the microcontroller and CAN devices.
- *the baudrate is 250Kbit/s
+ *the baud rate is 250Kbit/s
  */
-/* Structur for CAN data */
+/* Structure for CAN data */
 #ifndef CAN__H
 #define CAN__H
 #include "api.h"
@@ -11,6 +11,18 @@
 #include "api_debug.h"
 #define CAN_DEFAULT_BAUD_RATE TWOHUNDERTFIFTY_KBPS
 #define CAN_MAX_DATA_ELEMENTS 8
+
+#define CAN_BIT_TIMING_INFORMATION_PROCESSING_TIME 2
+#define CAN_BIT_TIMING_SYNCHRONIZATION_SEGMENT_TIME 2
+#define CAN_BIT_TIMING_PROPAGATION_SEGMENT_TIME_MIN 1
+#define CAN_BIT_TIMING_PROPAGATION_SEGMENT_TIME_MAX 8
+#define CAN_BIT_TIMING_PHASE_SEGMENT_1_TIME_MIN 1
+#define CAN_BIT_TIMING_PHASE_SEGMENT_1_TIME_MAX 8
+#define CAN_BIT_TIMING_SYNC_JUMP_WIDTH_TIME_MIN 1
+#define CAN_BIT_TIMING_SYNC_JUMP_WIDTH_TIME_MAX 4
+#define CAN_BIT_TIMING_BIT_RATE_PRESCALER_MIN 1
+#define CAN_BIT_TIMING_BIT_RATE_PRESCALER_MAX 64
+
 struct canStruct
 {
 	uint32_t Can_Message_ID;
@@ -53,5 +65,11 @@ void clearCanStruct( struct canStruct *ptr_canStruct); /*resets the canStruct st
 void Convert_pack_canFrame_to_UartFormat( struct canStruct *ptr_canStruct );/* this function collects the various CAN data in a string */
 
 int setCanBaudRate( const uint32_t rate, const uint32_t freq );
+
+uint8_t setCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2BaudRatio, int8_t bitRatePreScaler,
+		                       uint8_t propagationTimeSegment, uint8_t phaseSegment1, uint8_t phaseSegment2, uint8_t syncJumpWidth,
+				               uint8_t multipleSamplePointSampling_flag, uint8_t autoCorrectBaudRatePreScalerNull_flag);
+uint8_t canBitTimingTQBasicBoundaryChecks(uint8_t propagationTimeSegment, uint8_t phaseSegment1, uint8_t phaseSegment2, uint8_t syncJumpWidth);
+
 
 #endif

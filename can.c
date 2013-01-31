@@ -173,8 +173,8 @@ void Send_Message( struct uartStruct *ptr_uartStruct )
 {
 
 	CANPAGE = ( 1 << MOBNB0 );/*set channel number  */
-	CANIDT4 = ( ptr_uartStruct->Uart_Rtr << RTRTAG ); /* enable remote transmition request */
-	CANCDMOB = ( ptr_uartStruct->Uart_Length << DLC0 ); /* set lenght of data*/
+	CANIDT4 = ( ptr_uartStruct->Uart_Rtr << RTRTAG ); /* enable remote transmission request */
+	CANCDMOB = ( ptr_uartStruct->Uart_Length << DLC0 ); /* set length of data*/
 
 	if ( ( MAX_ELF_BIT ) >= ( ptr_uartStruct->Uart_Message_ID ) )
 	{
@@ -185,6 +185,7 @@ void Send_Message( struct uartStruct *ptr_uartStruct )
 	}
 	else
 	{
+#warning Is this correct? Look into Manual
 		CANCDMOB |= ( 1 << IDE ); /* enable CAN standard 29 bit */
 		/*set Identifier to send  */
 		CANIDT2 = ( ( ptr_uartStruct->Uart_Message_ID ) & 0x7 ) << 3;
@@ -200,7 +201,7 @@ void Send_Message( struct uartStruct *ptr_uartStruct )
 	}
 
 	CANSTMOB = 0x00;
-	CANCDMOB |= ( 1 << CONMOB0 ); /*enable transmition mode*/
+	CANCDMOB |= ( 1 << CONMOB0 ); /*enable transmission mode*/
 	/*call the function verify that the sending of data is complete*/
 	Wait_for_Can_Send_Message_Finished();
 }//END of Send_Message function
@@ -265,8 +266,9 @@ void Wait_for_Can_Send_Message_Finished( void )
 	while ( !( CANSTMOB & ( 1 << TXOK ) ) && ( --can_timeout1 > 0 ) )
 	{
 		/* do nothing  */
+#warning ussleep needed?
 	}
-	if ( 1 >= can_timeout1 )
+	if ( 0 >= can_timeout1 )
 	{
 		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_timeout_for_CAN_communication, FALSE, NULL);
 		can_timeout1 = TIMEOUT_C;
@@ -412,6 +414,231 @@ void clearCanStruct( struct canStruct *ptr_canStruct)
    }
 }//END of clearCanStruct
 
+/* setCanBitTimingTQUnits
+ *
+ * This functions sets/alters the can bit timing in units of the timing quanta TQ aka T_sql
+ *
+ * Based on a given integer F_CPU/Baudrate ratio two option are possible:
+ * 		since N_TQ = F_CPU/Baudrate * 1/BitRatePrescaler
+ * 			either the number of TQ is given and bitRateScaler<0
+ * 				-> bit rate Scaler will be calculated
+ * 			or the bit rate Scaler is given and number of TQ < 0
+ * 				-> number of TQ will be calculated
+ *
+ * 	With those settings boundary and consistency checks are performed
+ *  on the segment timings:
+ *  	propagation time segment		: integer number of TQ
+ *  	phase 1 segment               	: ""
+ *  	phase 2 segment					: ""
+ *  	optional, if > 0              	: ""
+ *  		synchronization jump width	: ""
+ *
+ *  the flags:
+ *  	multiple sample point sampling 	 		: TRUE/FALSE,
+ *  		enables triple sampling before the sampling point
+ *  	auto correct baud rate prescaler null	: TRUE/FALSE,
+ *  		if baud rate prescaler = 1, phases1/2 have to be adopted +/-,
+ *  		enables automatic correction
+ *
+ *  return values:
+ *  	0	: everything OK
+ *  	>0	: else
+ */
+uint8_t setCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2BaudRatio, int8_t bitRatePreScaler,
+		                       uint8_t propagationTimeSegment, uint8_t phaseSegment1, uint8_t phaseSegment2, uint8_t syncJumpWidth,
+				               uint8_t multipleSamplePointSampling_flag, uint8_t autoCorrectBaudRatePreScalerNull_flag)
+{
+    int8_t tBitTime = 0;
+    int8_t a = 0;
+	// checks
+    // numberOfTimeQuanta < 0 xor bitRateScaler < 0
+    if (!(( 0 < numberOfTimeQuanta ) ^ ( 0 < bitRatePreScaler)))
+    {
+		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
+				PSTR("setCanBitTiming: no. of Time Quanta (%i) and bit rate scaler (%i) are both (un)set"),
+				numberOfTimeQuanta, bitRatePreScaler);
+		return 1;
+    }
+
+    if ( 0 != canBitTimingTQBasicBoundaryChecks(propagationTimeSegment, phaseSegment1, phaseSegment2, syncJumpWidth))
+    {
+		return 1;
+    }
+
+	// - resulting T_bit [8,25] in units of TQ
+    tBitTime = 0;
+    tBitTime += CAN_BIT_TIMING_SYNCHRONIZATION_SEGMENT_TIME;
+    tBitTime += propagationTimeSegment;
+    tBitTime += phaseSegment1;
+    tBitTime += phaseSegment2;
+
+    // calculate bitRateScaler or numberOfTimeQuanta
+    if ( 0 > bitRatePreScaler )
+	{
+		// calculate integer bitRatePreScaler without using division
+		// replacing bitRatePreScaler = (freq2BaudRatio/numberOfTimeQuanta);
+
+		a = freq2BaudRatio;
+		bitRatePreScaler=0;
+		while ( a >= numberOfTimeQuanta )
+		{
+			a -= numberOfTimeQuanta;
+			bitRatePreScaler++;
+		}
+		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+				PSTR("setCanBitTiming: bit rate pre scaler calculated: %i"),
+				bitRatePreScaler);
+	}
+
+    if ( 0 > numberOfTimeQuanta)
+    {
+//    	numberOfTimeQuanta = freq2BaudRatio / bitRatePreScaler;
+		a = freq2BaudRatio;
+		numberOfTimeQuanta=0;
+		while ( a >= bitRatePreScaler )
+		{
+			a -= bitRatePreScaler;
+			numberOfTimeQuanta++;
+		}
+		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+				PSTR("setCanBitTiming: no. of Time Quanta calculated: %i"),
+				numberOfTimeQuanta);
+    }
+
+	// - N_TQ [8,25]
+    if (0 < numberOfTimeQuanta)
+    {
+    	if ( 8 > numberOfTimeQuanta || 25 < numberOfTimeQuanta)
+    	{
+    		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+    				PSTR("setCanBitTiming: no. of Time Quanta (%i) out of [8,25]"),
+    				numberOfTimeQuanta);
+    		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
+    				PSTR("setCanBitTiming: no. of Time Quanta (%i) out of [8,25]"),
+    				numberOfTimeQuanta);
+    		return 1;
+    	}
+	}
+
+    // bitRatePreScaler [1,64]
+	if ( CAN_BIT_TIMING_BIT_RATE_PRESCALER_MIN > bitRatePreScaler || CAN_BIT_TIMING_BIT_RATE_PRESCALER_MAX < bitRatePreScaler)
+	{
+		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
+				PSTR("setCanBitTiming: bit rate pre scaler (%i) out of [%i,%i]"),
+				CAN_BIT_TIMING_BIT_RATE_PRESCALER_MIN, CAN_BIT_TIMING_BIT_RATE_PRESCALER_MAX, bitRatePreScaler);
+		return 1;
+	}
+
+    // bitRatePreScaler == 1 [BRP = 0]
+	// -- swj not allowed
+	// -- multipleSamplePointSampling
+	// -- autoCorrectBaudRatePreScalerNull_flag TRUE boundary check on phase segments
+
+	if ( 1 == bitRatePreScaler )
+	{
+	    // -- swj not allowed
+		if ( 0 < syncJumpWidth )
+		{
+			CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
+					PSTR("setCanBitTiming: bit rate pre scaler (%i) forbids sync jump width (%i) > 0"),
+					bitRatePreScaler, syncJumpWidth);
+			return 1;
+		}
+		// -- multipleSamplePointSampling
+		if ( FALSE != multipleSamplePointSampling_flag )
+		{
+			CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
+					PSTR("setCanBitTiming: bit rate pre scaler (%i) forbids multiple sample points"),
+					bitRatePreScaler);
+			return 1;
+		}
+
+		// apply corrections PHS1 + 1 TQ and PHS2 - 1 TQ
+		if ( FALSE != autoCorrectBaudRatePreScalerNull_flag)
+		{
+			printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+					PSTR("setCanBitTiming: bit rate pre scaler (%i) auto corrected phase 1/2: %i/%i"),
+					bitRatePreScaler, phaseSegment1, phaseSegment2);
+			phaseSegment1++;
+			phaseSegment2--;
+		}
+
+		if ( 0 != canBitTimingTQBasicBoundaryChecks(propagationTimeSegment, phaseSegment1, phaseSegment2, syncJumpWidth))
+	    {
+			return 1;
+	    }
+
+	}
+
+	CANBT1 = ( (  (bitRatePreScaler - 1) << BRP0) & 0xFF );
+	CANBT2 = ( ( ((propagationTimeSegment -1 ) << PRS0) | (( syncJumpWidth -1 ) << SJW0) ) & 0xFF );
+	CANBT3 = ( ( (( phaseSegment2 -1 ) << PHS20) | (( phaseSegment1 -1 ) << PHS10) | ( ((FALSE != multipleSamplePointSampling_flag)?1:0) << SMP)) && 0xFF );
+
+	printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+			PSTR("setCanBitTiming: register CANBT1/2/3: %x / %x / %x"), CANBT1, CANBT2, CANBT3);
+
+	return 0;
+}
+
+/* performs a boundary check on the basic bit timing times in units of the time quanta TQ
+ * input: in units of TQ
+ * 	propagationTimeSegments
+ * 	phaseSegment1
+ * 	phaseSegment2
+ * 	syncJumpWidth
+ *
+ * returns:
+ * 	0 ok
+ * 	1 else
+ */
+
+uint8_t canBitTimingTQBasicBoundaryChecks(uint8_t propagationTimeSegment, uint8_t phaseSegment1, uint8_t phaseSegment2, uint8_t syncJumpWidth)
+{
+	// - propagation segment time [1,8]
+	if ( CAN_BIT_TIMING_PROPAGATION_SEGMENT_TIME_MIN > propagationTimeSegment ||
+		 CAN_BIT_TIMING_PROPAGATION_SEGMENT_TIME_MAX < propagationTimeSegment)
+	{
+		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
+				PSTR("setCanBitTiming: propagation time segment (%i TQ) out of [%i,%i]"),
+				propagationTimeSegment, CAN_BIT_TIMING_PROPAGATION_SEGMENT_TIME_MIN, CAN_BIT_TIMING_PROPAGATION_SEGMENT_TIME_MAX);
+		return 1;
+	}
+
+	// - phase segment 1 PHYS1 [1,8]
+	if ( CAN_BIT_TIMING_PHASE_SEGMENT_1_TIME_MIN > phaseSegment1 || CAN_BIT_TIMING_PHASE_SEGMENT_1_TIME_MAX < phaseSegment1)
+	{
+		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
+				PSTR("setCanBitTiming: phase segment 1 (%i TQ) out of [%i,%i]"),
+				phaseSegment1, CAN_BIT_TIMING_PHASE_SEGMENT_1_TIME_MIN, CAN_BIT_TIMING_PHASE_SEGMENT_1_TIME_MAX);
+		return 1;
+	}
+
+	// - phase segment 2 PHYS2 [INFORMATION PROCESSING TIME, PHS1]
+	if ( CAN_BIT_TIMING_INFORMATION_PROCESSING_TIME > phaseSegment2 ||
+			phaseSegment1 < phaseSegment2)
+	{
+		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
+				PSTR("setCanBitTiming: phase segment 2 (%i TQ) out of [%i,%i]"),
+				phaseSegment2, CAN_BIT_TIMING_INFORMATION_PROCESSING_TIME, phaseSegment1);
+		return 1;
+	}
+
+	// - sync jump width 0 or [1,min(4, phase segment 1 ] <= PHS2
+	if ( 0 < syncJumpWidth )
+	{
+		if ( CAN_BIT_TIMING_SYNC_JUMP_WIDTH_TIME_MIN > syncJumpWidth ||
+			 min(CAN_BIT_TIMING_SYNC_JUMP_WIDTH_TIME_MAX, phaseSegment1) < syncJumpWidth ||
+			 phaseSegment2 < syncJumpWidth)
+		{
+			CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
+					PSTR(__FILE__), PSTR("setCanBitTiming: sync jump width (%i TQ) out of [%i,%i]"),
+					syncJumpWidth, min(CAN_BIT_TIMING_SYNC_JUMP_WIDTH_TIME_MIN, min(phaseSegment1,phaseSegment2)));
+			return 1;
+		}
+	}
+	return 0;
+}
+
 /*
  * this function calculates settings for the CanBus timing registers CANBTx
  * to achieve the given baudrate
@@ -428,6 +655,8 @@ int setCanBaudRate( const uint32_t rate, const uint32_t freq )
 {
 	/*max data rate @ 8000 kHz 1Mbit*/
 
+	uint16_t freq2BbaudRatio = 0;
+    uint8_t result = 0;
 	switch( freq )
 	{
 	case 10000000UL: /* 10 MHz */
@@ -435,30 +664,43 @@ int setCanBaudRate( const uint32_t rate, const uint32_t freq )
 		switch( rate )
 		{
 		case ONETHOUSAND_KBPS:
+			freq2BbaudRatio = 10;
 			CANBT1 = ( 0 << BRP0 ); /* 0x00 */
 			CANBT2 = ( 2 << PRS0 ) | ( 1 << SJW0 ); /* 0x24 */
 			CANBT3 = ( 1 << PHS20 ) | ( 1 << PHS10 ); /* 0x12 */
 			break;
 		case FIVEHUNDERT_KBPS:
+			freq2BbaudRatio = 20;
 			CANBT1 = ( 3 << BRP0 ); /* 0x06 */
 			CANBT2 = ( 4 << PRS0 ) | ( 0 << SJW0 ); /* 0x08 */
 			CANBT3 = ( 1 << PHS20 ) | ( 1 << PHS10 ) | ( 1 << SMP ); /* 0x13 */
 			break;
 		case TWOHUNDERTFIFTY_KBPS:
+			freq2BbaudRatio = 40;
 			CANBT1 = ( 3 << BRP0 ); /* 0x06 */
 			CANBT2 = ( 4 << PRS0 ) | ( 0 << SJW0 ); /* 0x08 */
-
-#warning @FLORIAN: what is the meaning for SMP, the code which has been used in experiment, did not set it
 			/*CANBT3 = ( 1 << PHS20 ) | ( 1 << PHS10 ) | ( 1 << SMP );*/ /* 0x13 */
 			CANBT3 = ( 1 << PHS20 ) | ( 1 << PHS10 );
 			break;
 		case ONEHUNDERTTWENTYFIVE_KBPS:
-			// --- use 10 TQ (Swj = 1, Prs = 5, Phs1 = 2, Phs2 = 2)
-			CANBT1 = ( 1 << BRP2 ) | ( 1 << BRP1 ) | ( 1 << BRP0 );
-			CANBT2 = ( 1 << PRS2 );
-			CANBT3 = ( 1 << PHS20 ) | ( 1 << PHS10 );
+#define ONEHUNDERTTWENTYFIVE_NUMBER_OF_TQ 10
+			freq2BbaudRatio = 80;
+			switch (ONEHUNDERTTWENTYFIVE_NUMBER_OF_TQ)
+			{
+			case 20:
+				break;
+			case 16:
+				break;
+			case 10:
+				// --- use 10 TQ (Prs = 5, Phs1 = 2, Phs2 = 2, Swj = 2, sample Points)
+				result = setCanBitTimingTQUnits(10, freq2BbaudRatio, -1, 5, 2, 2, 2, TRUE, TRUE);
+				break;
+			case 8:
+				break;
+			}
 			break;
 		case ONEHUNDERT_KBPS:
+			freq2BbaudRatio = 100;
 			CANBT1 = ( 7 << BRP0 ); /* 0x0e*/
 			CANBT2 = ( 4 << PRS0 ) | ( 0 << SJW0 ); /* 0x08 */
 			CANBT3 = ( 1 << PHS20 ) | ( 1 << PHS10 ) | ( 1 << SMP ) ; /* 0x13 */
@@ -475,31 +717,37 @@ int setCanBaudRate( const uint32_t rate, const uint32_t freq )
 		switch( rate )
 		{
 		case ONETHOUSAND_KBPS:
+			freq2BbaudRatio = 16;
 			CANBT1 = ( 1 << BRP0 );                                  /*0x02*/
 			CANBT2 = ( 2 << PRS0 )  | ( 0 << SJW0 );                 /*0x04*/
 			CANBT3 = ( 1 << PHS20 ) | ( 1 << PHS10 ) | ( 1 << SMP ); /*0x13*/
 			break;
 		case FIVEHUNDERT_KBPS:
+			freq2BbaudRatio = 32;
 			CANBT1 = ( 1 << BRP0 );                                  /*0x02*/
 			CANBT2 = ( 6 << PRS0 )  | ( 0 << SJW0 );                 /*0x0C*/
 			CANBT3 = ( 3 << PHS20 ) | ( 3 << PHS10 ) | ( 1 << SMP ); /*0x37*/
 			break;
 		case TWOHUNDERTFIFTY_KBPS:
+			freq2BbaudRatio = 64;
 			CANBT1 = ( 3 << BRP0 );                                  /*0x06*/
 			CANBT2 = ( 6 << PRS0 )  | ( 0 << SJW0 );                 /*0x0C*/
 			CANBT3 = ( 3 << PHS20 ) | ( 3 << PHS10 ) | ( 1 << SMP ); /*0x37*/
 			break;
 		case TWOHUNDERT_KBPS:
+			freq2BbaudRatio = 80;
 			CANBT1 = ( 4 << BRP0 );                                  /*0x08*/
 			CANBT2 = ( 6 << PRS0 )  | ( 0 << SJW0 );                 /*0x0C*/
 			CANBT3 = ( 3 << PHS20 ) | ( 3 << PHS10 ) | ( 1 << SMP ); /*0x37*/
 			break;
 		case ONEHUNDERTTWENTYFIVE_KBPS:
+			freq2BbaudRatio = 128;
 			CANBT1 = ( 7 << BRP0 );                                  /*0x0E*/
 			CANBT2 = ( 6 << PRS0 )  | ( 0 << SJW0 );                 /*0x0C*/
 			CANBT3 = ( 3 << PHS20 ) | ( 3 << PHS10 ) | ( 1 << SMP ); /*0x37*/
 			break;
 		case ONEHUNDERT_KBPS:
+			freq2BbaudRatio = 160;
 			CANBT1 = ( 9 << BRP0 );                                  /*0x12*/
 			CANBT2 = ( 6 << PRS0 )  | ( 0 << SJW0 );                 /*0x0C*/
 			CANBT3 = ( 3 << PHS20 ) | ( 3 << PHS10 ) | ( 1 << SMP ); /*0x37*/
@@ -515,6 +763,12 @@ int setCanBaudRate( const uint32_t rate, const uint32_t freq )
 		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, TRUE, PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination"), rate, freq);
 		return -1;
 		break;
+	}
+
+	if (0 != result)
+	{
+		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, TRUE, PSTR("CAN bit timing failed"), rate, freq);
+		return -1;
 	}
 	return 0;
 }
