@@ -121,5 +121,7 @@
 
 #define OWI_ADC_DS2450_MAX_RESOLUTION 16
 
+#define min(a,b) ( ((a)<(b))?(a):(b) )
+
 #endif
 
