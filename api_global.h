@@ -9,10 +9,7 @@
 
 
 /* Canapi.h*/
-extern char temp_canString[MAX_LENGTH_CAN_DATA];/*temporary variable for storage received CAN data*/
-extern char canString[MAX_LENGTH_CAN_DATA];/*variable for storage received CAN data*/
 extern char decrypt_uartString[BUFFER_SIZE];
-extern char store_canData[MAX_LENGTH_CAN_DATA];//new
 extern char ring_buffer[MAX_INPUT][MAX_LENGTH_CAN_DATA];/*variable for storage all received CAN data*/
 extern char setParameter[MAX_PARAMETER][MAX_LENGTH_PARAMETER]; /*storage of cut string */
 extern char *ptr_setParameter[MAX_PARAMETER];
@@ -22,7 +19,7 @@ extern char uartString[BUFFER_SIZE]; /* variable for storage received a complete
 extern char resultString[BUFFER_SIZE];
 extern char keepAliveString[15];
 
-extern int8_t can_init; /* variable to call CAN_Init function*/
+extern int8_t can_init; /* variable to call canInit function*/
 extern int8_t twim_init; /* variable to call TWIM_Init function*/
 extern int8_t owi_init; /* variable to call TWIM_Init function*/
 extern int8_t timer0_init; /* variable to call Timer0_Init function*/
@@ -36,6 +33,10 @@ extern uint8_t uart_errorCode; /* error code for UART-communication */
 
 extern volatile unsigned char BufferFull;/*variable for UART Interrupt*/
 extern volatile unsigned char canReady; /* variable for CAN ISR */
+extern volatile unsigned char canCurrentGeneralStatus;/*variable for can interrupt*/
+extern volatile unsigned char canCurrentMObStatus;/*variable for can interrupt*/
+extern volatile unsigned char canCurrentTransmitErrorCounter;/*variable for can error handling*/
+extern volatile unsigned char canCurrentReceiveErrorCounter;/*variable for can error handling*/
 
 extern volatile unsigned char timer0Ready;/*variable for Timer  Interrupt*/
 extern volatile unsigned char timer1Ready;/*variable for Timer  Interrupt*/
@@ -43,11 +44,11 @@ extern volatile unsigned char timer0AReady;/*variable for Timer0 Output Compare 
 extern volatile unsigned char timer0ASchedulerReady;/*variable for Timer0 Output Compare A  Interrupt*/
 extern volatile unsigned char uartReady;/*variable for UART Interrupt*/
 
-extern uint8_t mob; /*variable  for Message Object Block in the interrupt routine*/
+extern uint8_t canMob; /*variable  for Message Object Block in the interrupt routine*/
 extern unsigned char nextCharPos;/* variable for the storage of data in serial string variable */
 
-extern uint16_t subscribe_ID[MAX_LENGTH_SUBSCRIBE];
-extern uint16_t subscribe_mask[MAX_LENGTH_SUBSCRIBE];
+extern uint32_t subscribe_ID[MAX_LENGTH_SUBSCRIBE];
+extern uint32_t subscribe_mask[MAX_LENGTH_SUBSCRIBE];
 
 extern uint8_t *ptr_buffer_in; /*pointer for write in ring_buffer*/
 extern uint8_t *ptr_buffer_out; /*pointer for read in ring_buffer*/
