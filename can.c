@@ -39,9 +39,87 @@
 #include "can.h"
 #include "mem-check.h"
 
-/*variable to subscribe and unsubcribe some messages via CAN bus */
-uint16_t subscribe_ID[MAX_LENGTH_SUBSCRIBE];
-uint16_t subscribe_mask[MAX_LENGTH_SUBSCRIBE];
+volatile unsigned char canUseOldRecvMessage_flag;
+volatile unsigned char canUseNewRecvMessage_flag;
+
+/*variable to subscribe and unsubscribe some messages via CAN bus */
+uint32_t subscribe_ID[MAX_LENGTH_SUBSCRIBE];
+uint32_t subscribe_mask[MAX_LENGTH_SUBSCRIBE];
+
+/*
+ * setCanIDandMask
+ * 		sets for the current MOb, set via CANPAGE,
+ * 		the
+ * 			ID
+ * 			MASK
+ * 		    flags:
+ * 		    	enable RTR mask bit comparison
+ * 		    	enable ID Extension mask bit comparison
+ * 		Depending on the size (> 2**11) of id and mask either V2.0 part A or part B format is chosen
+ */
+void setCanIDandMask(uint32_t id, uint32_t mask, uint8_t enableRTRMaskBitComparison_flag, uint8_t enableIDExtensionMaskBitComparison_flag)
+{
+    // set identifier to send
+    if ( ( MAX_ELEVEN_BIT >= id ) || ( MAX_ELEVEN_BIT >= mask ) )
+    {
+    	// V2.0 part A
+    	CANIDT4 &= 0x5;
+        CANIDT3  = 0x0;
+    	CANIDT2  = 0xff & ( id << 5 );
+        CANIDT1  = 0xff & ( id >> 3 );
+    }
+    else
+    {
+    	// V2.0 part B
+    	CANIDT4 &= 0xff & (( id <<  3 ) | 0x7)  ;
+        CANIDT3  = 0xff & (  id >>  5 );
+    	CANIDT2  = 0xff & (  id >> 13 );
+        CANIDT1  = 0xff & (  id >> 21 );
+    }
+
+    // mask comparison bits
+    /* RTR mask bit comparison*/
+    if ( enableRTRMaskBitComparison_flag )
+    {
+    	// compare RTR
+    	CANIDM4 |= ( 1 << RTRMSK );
+    }
+    else
+    {
+    	// always true
+    	CANIDM4 &= ~( 1 << RTRMSK );
+    }
+
+    // ID Extension (IDE) mask bit comparison
+    if ( enableIDExtensionMaskBitComparison_flag )
+    {
+    	// compare IDE
+    	CANIDM4 |= ( 1 << IDEMSK );
+    }
+    else
+    {
+    	// always true
+    	CANIDM4 &= ~( 1 << IDEMSK );
+    }
+
+    // set identifier Mask
+    if ( ( MAX_ELEVEN_BIT >= id ) || ( MAX_ELEVEN_BIT >= mask ) )
+    {
+    	// V2.0 part A
+        CANIDM4 &= 0x5;
+        CANIDM3  = 0x0;
+        CANIDM2  = 0xff & (( mask & 0x7 ) << 5);
+        CANIDM1  = 0xff & (  mask >> 3  );
+    }
+    else
+    {
+    	// V2.0 part B
+        CANIDM4 &= 0xff & (( mask <<  3 ) | 0x5 );
+        CANIDM3  = 0xff & (  mask >>  5 );
+        CANIDM2  = 0xff & (  mask >> 13 );
+        CANIDM1  = 0xff & (  mask >> 21 );
+    }
+}
 
 /*
  * this function will read certain messages on the bus
@@ -83,33 +161,10 @@ void Subscribe_Message( struct uartStruct *ptr_uartStruct )
          CANPAGE = ( findMob << MOBNB0 );
          CANSTMOB = 0x00; /* cancel pending operation */
          CANCDMOB = 0x00;
-         CANHPMOB = 0x00; /* enable direct mob indexing */
+         CANHPMOB = 0x00; /* enable direct canMob indexing */
 
-         if ( ( ( MAX_ELF_BIT ) >= ( ptr_uartStruct->Uart_Message_ID ) ) || ( ( MAX_ELF_BIT ) >= ( ptr_uartStruct->Uart_Mask ) ) )
-         {
-            /*set identifier to send*/
-            CANIDT2 = ( ( ptr_uartStruct->Uart_Message_ID ) & 0x7 ) << 5;
-            CANIDT1 = ( ptr_uartStruct->Uart_Message_ID ) >> 3;
-            /* enable comparison*/
-            CANIDM4 = ( 1 << RTRMSK );
+         setCanIDandMask(ptr_uartStruct->Uart_Message_ID, ptr_uartStruct->Uart_Mask, TRUE, FALSE);
 
-            /* set identifier Mask*/
-            CANIDM2 = ( ( ptr_uartStruct->Uart_Mask ) & 0x7 ) << 5;
-            CANIDM1 = ( ptr_uartStruct->Uart_Mask ) >> 3;
-         }
-         else
-         {
-            /*set identifier to send  */
-            CANIDT4 = ( ( ptr_uartStruct->Uart_Message_ID ) & 0x7 ) << 3;
-            CANIDT3 = ( ptr_uartStruct->Uart_Message_ID ) >> 5;
-            CANIDT2 = ( ptr_uartStruct->Uart_Message_ID ) >> 5;
-            CANIDT1 = ( ptr_uartStruct->Uart_Message_ID ) >> 3;
-            /*set identifier mask  */
-            CANIDM4 = ( ( ptr_uartStruct->Uart_Mask ) & 0x7 ) << 3;
-            CANIDM3 = ( ptr_uartStruct->Uart_Mask ) >> 5;
-            CANIDM2 = ( ptr_uartStruct->Uart_Mask ) >> 5;
-            CANIDM1 = ( ptr_uartStruct->Uart_Mask ) >> 3;
-         }
          CANCDMOB = ( 1 << CONMOB1 ); /* enable reception mode */
          unsigned mask = 1 << findMob;
          CANIE2 |= mask;
@@ -138,10 +193,9 @@ void Unsubscribe_Message( struct uartStruct *ptr_uartStruct )
          CANSTMOB = 0x00; /* cancel pending operation */
          CANCDMOB = 0x00; /* very important,that disable MOB*/
          CANHPMOB = 0x00;
-         CANIDM1 = 0X00;
-         CANIDM2 = 0X00;
-         CANIDT1 = 0X00;
-         CANIDT2 = 0X00;
+
+         setCanIDandMask(0x0, 0x0, FALSE, FALSE);
+
          unsigned mask = 1 << count_mob;
          CANIE2 &= ~mask;
          CANIE1 &= ~( mask >> 8 );
@@ -165,219 +219,218 @@ void Unsubscribe_Message( struct uartStruct *ptr_uartStruct )
 
 
 /*
- * this function runs a command and expects no data
- *the function has a pointer of the serial structure as input and returns no parameter
+ * this function runs a command and might expect (RTR=1) data
+ * the function has a pointer of the serial structure as input and returns no parameter
  */
 
-void Send_Message( struct uartStruct *ptr_uartStruct )
+void canSendMessage( struct uartStruct *ptr_uartStruct )
 {
+	uint32_t id     = ptr_uartStruct->Uart_Message_ID;
+	uint32_t mask   = ptr_uartStruct->Uart_Mask;
+	uint8_t  rtr    = ptr_uartStruct->Uart_Rtr;
+	uint8_t  length = ptr_uartStruct->Uart_Length;
 
-	CANPAGE = ( 1 << MOBNB0 );/*set channel number  */
-	CANIDT4 = ( ptr_uartStruct->Uart_Rtr << RTRTAG ); /* enable remote transmission request */
-	CANCDMOB = ( ptr_uartStruct->Uart_Length << DLC0 ); /* set length of data*/
-
-	if ( ( MAX_ELF_BIT ) >= ( ptr_uartStruct->Uart_Message_ID ) )
+	if ( 0 == rtr )
 	{
-		CANCDMOB |= ( 0 << IDE ); /* enable CAN standard 11 bit */
-		/*set Identifier to send */
-		CANIDT2 = ( ( ptr_uartStruct->Uart_Message_ID ) & 0x7 ) << 5;
-		CANIDT1 = ( ptr_uartStruct->Uart_Message_ID ) >> 3;
+		/* set channel number to 1 */
+		CANPAGE = ( 1 << MOBNB0 );
+	}
+	else /*RTR*/
+	{
+		/* set channel number to 0 */
+		CANPAGE = ( 0 << MOBNB0 );
+	}
+
+	CANSTMOB = 0x00; /* cancel pending operation */
+	CANCDMOB = 0x00; /* disable communication of current MOb */
+
+	/* set remote transmission request bit */
+	CANIDT4 = ( rtr << RTRTAG );
+
+	/* set length of data*/
+	CANCDMOB = ( length << DLC0 );
+
+	/*set ID / MASK*/
+
+    if ( MAX_ELEVEN_BIT >= id && MAX_ELEVEN_BIT >= mask)
+	{
+		/* enable CAN standard 11 bit */
+		CANCDMOB &= ~( 1 << IDE );
+		if (0 == rtr )
+		{
+			setCanIDandMask(id, mask, FALSE, FALSE);
+		}
+		else /*RTR*/
+		{
+			// set ID to send
+			// set mask to receive only this message */
+			setCanIDandMask(id, 0 != mask ? mask : 0x000007FF, TRUE, TRUE);
+		}
 	}
 	else
 	{
-#warning Is this correct? Look into Manual
-		CANCDMOB |= ( 1 << IDE ); /* enable CAN standard 29 bit */
-		/*set Identifier to send  */
-		CANIDT2 = ( ( ptr_uartStruct->Uart_Message_ID ) & 0x7 ) << 3;
-		CANIDT2 = ( ptr_uartStruct->Uart_Message_ID ) >> 5;
-		CANIDT2 = ( ptr_uartStruct->Uart_Message_ID ) >> 5;
-		CANIDT1 = ( ptr_uartStruct->Uart_Message_ID ) >> 5;
+		/* enable CAN standard 29 bit */
+		CANCDMOB |= ( 1 << IDE );
+		if (0 == rtr )
+		{
+			setCanIDandMask(id, mask, FALSE, FALSE);
+		}
+		else /*RTR*/
+		{
+			// set ID to send
+			// set mask to receive only this message */
+			setCanIDandMask(id, 0 != mask ? mask : 0x1FFFFFFF, TRUE, TRUE);
+		}
 	}
 
-	/*put data in mailbox*/
-	for ( uint8_t count_data = 0 ; count_data < 8 ; count_data++ )
+	if ( 0 == rtr )
 	{
-		CANMSG = ptr_uartStruct->Uart_Data[count_data];
+		/*put data in mailbox*/
+		for ( uint8_t count_data = 0 ; count_data < length ; count_data++ )
+		{
+			CANMSG = ptr_uartStruct->Uart_Data[count_data];
+		}
 	}
 
 	CANSTMOB = 0x00;
 	CANCDMOB |= ( 1 << CONMOB0 ); /*enable transmission mode*/
-	/*call the function verify that the sending of data is complete*/
-	Wait_for_Can_Send_Message_Finished();
-}//END of Send_Message function
 
-/*
- * this function runs a command and expects data
- * the function has a pointer of the serial structure as input and returns no parameter
- */
-
-void Receive_Message( struct uartStruct *ptr_uartStruct )
-{
-	CANPAGE = ( 0 << MOBNB0 );/*set channel number */
-	CANSTMOB = 0x00; /* cancel pending operation */
-	CANCDMOB = 0x00;
-	CANIDT4 = ( ptr_uartStruct->Uart_Rtr << RTRTAG ); /* enable remote transmission request */
-	CANCDMOB = ( ptr_uartStruct->Uart_Length << DLC0 ); /* set length of data*/
-
-	if ( ( ( MAX_ELF_BIT ) >= ( ptr_uartStruct->Uart_Message_ID ) )
-			|| ( ( MAX_ELF_BIT ) >= ( ptr_uartStruct->Uart_Mask ) ) )
+	/*call the function verify that the sending (and receiving) of data is complete*/
+	if ( 0 == rtr )
 	{
-		CANCDMOB |= ( 0 << IDE ); /* enable CAN standard 11 bit */
-		/*set Identifier to send */
-		CANIDT2 = ( ( ptr_uartStruct->Uart_Message_ID ) & 0x7 ) << 5;
-		CANIDT1 = ( ptr_uartStruct->Uart_Message_ID ) >> 3;
-		/*set Mask to receive only Message */
-		CANIDM1 = 0xFF;
-		CANIDM2 = 0xFF;
-		CANIDM3 = 0xFF;
-		CANIDM4 = 0xFF;
+		canWaitForCanSendMessageFinished();
 	}
-	else
+	else /*RTR*/
 	{
-		CANCDMOB |= ( 1 << IDE ); /* enable CAN standard 29 bit */
-		/*set Identifier to send  */
-		CANIDT2 = ( ( ptr_uartStruct->Uart_Message_ID ) & 0x7 ) << 3;
-		CANIDT2 = ( ptr_uartStruct->Uart_Message_ID ) >> 5;
-		CANIDT2 = ( ptr_uartStruct->Uart_Message_ID ) >> 5;
-		CANIDT1 = ( ptr_uartStruct->Uart_Message_ID ) >> 5;
+		canWaitForCanSendRemoteTransmissionRequestMessageFinished();
 	}
-
-	/* put data in mailbox*/
-	for ( uint8_t count_data = 0 ; count_data < 8 ; count_data++ )
-	{
-		CANMSG = ptr_uartStruct->Uart_Data[count_data];
-	}
-	CANSTMOB = 0;
-
-	CANCDMOB |= ( 1 << CONMOB0 ); /*enable transmition mode*/
-
-	/*call the function verify that the sending of data is complete*/
-	Wait_for_Can_Receive_message_Finished();
-
-}//END of Receive_Message function
+}//END of canSendMessage function
 
 /*
  *this function wait until the command is sent
  *the function has no input and output parameter
  */
-void Wait_for_Can_Send_Message_Finished( void )
+void canWaitForCanSendMessageFinished( void )
 {
-	double can_timeout1 = TIMEOUT_C; /*Timeout for CAN-communication*/
+	uint32_t can_timeout1 = CAN_TIMEOUT_US; /*Timeout for CAN-communication*/
 	while ( !( CANSTMOB & ( 1 << TXOK ) ) && ( --can_timeout1 > 0 ) )
 	{
-		/* do nothing  */
-#warning ussleep needed?
+		_delay_us(1);
 	}
-	if ( 0 >= can_timeout1 )
-	{
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_timeout_for_CAN_communication, FALSE, NULL);
-		can_timeout1 = TIMEOUT_C;
-	}
-
 	CANSTMOB &= ~( 1 << TXOK ); /* reset transmission flag */
 	CANCDMOB &= ~( 1 << CONMOB0 ); /* disable transmission mode */
 
-	/* give feedback for successful transmit */
-    if ( debugLevelVerboseDebug <= globalDebugLevel && ( ( globalDebugSystemMask >> debugSystemCAN ) & 0x1 ) )
-    {
-       snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV %s"), READY);
-       UART0_Send_Message_String_p(NULL,0);
-    }
+	if ( 0 == can_timeout1 )
+	{
+	    /* timeout */
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_timeout_for_CAN_communication, FALSE, PSTR("(%i us)"), CAN_TIMEOUT_US);
+		can_timeout1 = CAN_TIMEOUT_US;
+	}
+	else
+	{
+		/* give feedback for successful transmit */
+		if ( debugLevelVerboseDebug <= globalDebugLevel && ( ( globalDebugSystemMask >> debugSystemCAN ) & 0x1 ) )
+		{
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV (%s)"), READY);
+			UART0_Send_Message_String_p(NULL,0);
+		}
+	}
 
 	/* all parameter initializing */
-	Reset_Parameter_CANSend_Message();
+	canResetParametersCANSend();
 
-}//END of Wait_for_Can_Send_Message_Finished
-
+}//END of canWaitForCanSendMessageFinished
 
 /*
  *this function wait until the command in case the request is sent
  *the function has no input and output parameter
  */
 
-void Wait_for_Can_Receive_message_Finished( void )
+void canWaitForCanSendRemoteTransmissionRequestMessageFinished( void )
 {
-
-	double can_timeout2 = TIMEOUT_C; /*Timeout for CAN-communication*/
+	uint32_t can_timeout2 = CAN_TIMEOUT_US; /*Timeout for CAN-communication*/
 	while ( !( CANSTMOB & ( 1 << RXOK ) ) && ( --can_timeout2 > 0 ) )
 	{
-		/* do nothing  */
+		_delay_us(1);
 	}
 
-	if ( ( 1 >= can_timeout2 ) && ( CANSTMOB & ( 1 << TXOK ) ) )
+	if ( ( 0 == can_timeout2 ) && ( CANSTMOB & ( 1 << TXOK ) ) )
 	{
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_timeout_for_CAN_communication, FALSE, NULL);
-		can_timeout2 = TIMEOUT_C;
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_timeout_for_CAN_communication, FALSE, PSTR("(%i us)"), CAN_TIMEOUT_US);
+		can_timeout2 = CAN_TIMEOUT_US;
 	}
 	else
 	{
-		CANSTMOB &= ~( 1 << TXOK ); /* reset transmition flag */
-		CANCDMOB &= ~( 1 << CONMOB0 ); /* disable transmition mode */
+		CANSTMOB &= ~( 1 << TXOK ); /* reset transmission flag */
+		CANCDMOB &= ~( 1 << CONMOB0 ); /* disable transmission mode */
 	}
 
-	/* all parameter initialisieren */
-	Reset_Parameter_CANSend_Message();
-	//Reset_Parameter_CANReceive();
+	/* reset all send parameters */
+	canResetParametersCANSend();
 
-}//END of Wait_for_Can_Receive_message_Finished function
+}//END of canWaitForCanSendRemoteTransmissionRequestMessageFinished function
 
 /*
  *This function grabs the CAN data received in a string
- *the function has a poimter of the CAN structur as input and returns no parameter
+ *the function has a pointer of the CAN structure as input and returns no parameter
  */
 
-void Convert_pack_canFrame_to_UartFormat( struct canStruct *ptr_canStruct )
+void canConvertCanFrameToUartFormat( struct canStruct *ptr_canStruct )
 {
 
-	uint16_t pack_canFrame[MAX_CAN_DATA];/* variable for storage received a complete CAN-Frame via CAN-Bus*/
-	uint8_t ptr_pack_canFrame = START_POINTER_TO_RECEIVE_CAN_DATEN; /*pointer to receive CAN-data */
+#warning TODO RECV messages twice with and without obsolete mob. Which Keyword?
 
-	pack_canFrame[0] = ptr_canStruct->Can_Mob;
-	pack_canFrame[1] = ptr_canStruct->Can_Message_ID;
-	pack_canFrame[2] = ptr_canStruct->Can_Length;
+	   if (TRUE == canUseOldRecvMessage_flag)
+	   {
+		   clearString(message, BUFFER_SIZE);
 
-	for ( uint8_t count_can_data = 0 ; count_can_data < MAX_BYTE_CAN_DATA ; count_can_data++ )
-	{
-		pack_canFrame[ptr_pack_canFrame] = ptr_canStruct->Can_Data[count_can_data];
-		ptr_pack_canFrame++;
-	}
+		   strncat_P(message, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_RECV])) ), BUFFER_SIZE - 1);
+		   snprintf_P(message, BUFFER_SIZE - 1, PSTR("%s %x %x %x"),message, ptr_canStruct->mob, ptr_canStruct->id, ptr_canStruct->length );
+		   for ( uint8_t dataIndex = 0 ; dataIndex < ptr_canStruct->length && dataIndex < CAN_MAX_DATA_ELEMENTS ; dataIndex++ )
+		   {
+			   snprintf_P(message, BUFFER_SIZE - 1, PSTR("%s %x"),message, ptr_canStruct->data[dataIndex] );
+		   }
 
-	/* grabs the received data in a string */
+		   UART0_Send_Message_String_p(message,0);
 
-	for ( uint8_t i = 0 ; i < MAX_CAN_DATA ; i++ )
-	{
-		snprintf_P(temp_canString, MAX_LENGTH_CAN_DATA - 1, PSTR("%x"), pack_canFrame[i]);
-		strncat(store_canData, temp_canString, MAX_LENGTH_CAN_DATA - 1);
-		strncat_P(store_canData, PSTR(" "), MAX_LENGTH_CAN_DATA - 1);
-	}
+		   clearString(message, BUFFER_SIZE);
+	   }
+	   if (TRUE == canUseNewRecvMessage_flag)
+	   {
+		   clearString(message, BUFFER_SIZE);
 
-	strncat_P(canString, PSTR("RECV"), MAX_LENGTH_CAN_DATA - 1);
-	strncat_P(canString, PSTR(" "), MAX_LENGTH_CAN_DATA - 1);
-	strncat(canString, store_canData, MAX_LENGTH_CAN_DATA - 1);
-	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s"), canString);
-	UART0_Send_Message_String_p(NULL,0);
-	clearString(canString, MAX_LENGTH_CAN_DATA); /*clear the variable CanString */
-	clearString(temp_canString, MAX_LENGTH_CAN_DATA); /*clear the variable temp_canString*/
-	clearString(store_canData, MAX_LENGTH_CAN_DATA); /*clear the variable store_canData*/
-	/*all parameter initialisieren*/
-	Reset_Parameter_CANReceive();
-}//END of Convert_pack_canFrame_to_UartFormat function
+		   strncat_P(message, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_RECV])) ), BUFFER_SIZE - 1);
+		   strncat_P(message, PSTR(" "), BUFFER_SIZE - 1);
+		   strncat_P(message, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_CANR])) ), BUFFER_SIZE - 1);
+		   snprintf_P(message, BUFFER_SIZE - 1, PSTR("%s %x %x"),message, ptr_canStruct->id, ptr_canStruct->length );
+		   for ( uint8_t dataIndex = 0 ; dataIndex < ptr_canStruct->length && dataIndex < CAN_MAX_DATA_ELEMENTS ; dataIndex++ )
+		   {
+			   snprintf_P(message, BUFFER_SIZE - 1, PSTR("%s %x"),message, ptr_canStruct->data[dataIndex] );
+		   }
+
+		   UART0_Send_Message_String_p(message,0);
+
+		   clearString(message, BUFFER_SIZE);
+	   }
+
+   /*all parameter initialisieren*/
+	canResetParametersCANReceive();
+}//END of canConvertCanFrameToUartFormat function
 
 /*
  *this function deletes some variable
  *the  function has no input and output variable
  */
 
-void Reset_Parameter_CANSend_Message( void )
+void canResetParametersCANSend( void )
 {
-
-	/* all parameter initialisieren */
+	/* rest all parameters */
 	clearString(decrypt_uartString, BUFFER_SIZE);
 	clearString(uart_message_string, BUFFER_SIZE);
 	clearUartStruct(ptr_uartStruct);
-	clearCanStruct(ptr_canStruct);
+	canClearCanStruct(ptr_canStruct);
 
-}//END of Reset_Parameter_CANSend_Message
+}//END of canResetParametersCANSend
 
 
 /*
@@ -385,13 +438,12 @@ void Reset_Parameter_CANSend_Message( void )
  *the  function has no input and output parameters
  */
 
-void Reset_Parameter_CANReceive( void )
+void canResetParametersCANReceive( void )
 {
-
 	/* initialize all parameters of structure  */
-	clearCanStruct(ptr_canStruct);
+	canClearCanStruct(ptr_canStruct);
 	clearUartStruct(ptr_uartStruct);
-}//END of Reset_Parameter_CANReceive function
+}//END of canResetParametersCANReceive function
 
 
 /*
@@ -399,20 +451,20 @@ void Reset_Parameter_CANReceive( void )
  *the  function has no input and output parameters
  */
 
-void clearCanStruct( struct canStruct *ptr_canStruct)
+void canClearCanStruct( struct canStruct *ptr_canStruct)
 { /*resets the canStruct structure to "0" */
    if ( NULL != ptr_canStruct )
    {
-      ptr_canStruct->Can_Length = 0;
-      ptr_canStruct->Can_Mask = 0;
-      ptr_canStruct->Can_Message_ID = 0;
-      ptr_canStruct->Can_Mob = 0;
+      ptr_canStruct->length = 0;
+      ptr_canStruct->mask = 0;
+      ptr_canStruct->id = 0;
+      ptr_canStruct->mob = 0;
       for ( uint8_t clearIndex = 0 ; clearIndex < CAN_MAX_DATA_ELEMENTS ; clearIndex++ )
       {
-         ptr_canStruct->Can_Data[clearIndex] = 0;
+         ptr_canStruct->data[clearIndex] = 0;
       }
    }
-}//END of clearCanStruct
+}//END of canClearCanStruct
 
 /* setCanBitTimingTQUnits
  *
@@ -781,19 +833,22 @@ int setCanBaudRate( const uint32_t rate, const uint32_t freq )
  * -1 -> the CAN initialization is unsuccessful
  */
 
-int8_t CAN_Init( int32_t Baudrate )
+int8_t canInit( int32_t Baudrate )
 {
 	uint8_t intstate2 = SREG;/*save global interrupt flag*/
 	/*disable interrupt*/
 	cli();
 
+	/*resets the CAN controller*/
 	CANGCON |= ( 1 << SWRES );
 	CANGCON &= ~( 1 << SWRES );
 
-	/*enable general interrupt interrupt*/
-	CANGIE = ( 1 << ENIT ) | ( 1 << ENBOFF ) | ( 1 << ENRX ) | ( 1 << ENTX ) | ( 1 << ENERR ) | ( 1 << ENBX ) | ( 1 << ENERG ) | ( 0 << ENOVRT );
+	/* CAN General Interrupt Enable Register - CANGIE
+	 *    enable interupts*/
+	CANGIE = ( 1 << ENIT )  | ( 1 << ENBOFF ) | ( 1 << ENRX )  | ( 1 << ENTX ) |
+			 ( 1 << ENERR ) | ( 1 << ENBX )   | ( 1 << ENERG ) | ( 0 << ENOVRT );
 
-	/* enable Interrupt of MOBs register*/
+	/* CAN Enable Interrupt of MOBs register*/
 	CANIE2 = 0xFF;
 	CANIE1 = 0x7F;
 
@@ -811,17 +866,22 @@ int8_t CAN_Init( int32_t Baudrate )
 		}
 	}
 
+	canUseOldRecvMessage_flag = CAN_USE_OLD_RECV_MESSAGE_FLAG;
+	canUseNewRecvMessage_flag = CAN_USE_NEW_RECV_MESSAGE_FLAG;
+
 	enableCan();
 	SREG = intstate2; /*restore global interrupt flag*/
 	return 1;
 
-}// END of CAN_Init function
+}// END of canInit function
 
 void enableCan()
 {
     /* set ENA/STB enable mode  */
     CANGCON |= ( 1 << ENASTB );
+
     /*enable reception mode here so that information for CAN come automatically*/
+#warning following manual: CONMOBx = 0 => Disable and x|= 0 doesn't change!
     CANCDMOB |= ( 0 << CONMOB0 ) | ( 0 << CONMOB1 );
 }
 
@@ -832,9 +892,9 @@ void enableCan()
 
 void clearCanRegisters( void )
 {
-    for ( uint8_t mob = 0 ; mob < 15 ; mob++ )
+    for ( uint8_t canMob = 0 ; canMob < 15 ; canMob++ )
     {
-       CANPAGE = ( mob << MOBNB0 ); /* clear all  mailbox*/
+       CANPAGE = ( canMob << MOBNB0 ); /* clear all  mailbox*/
        CANSTMOB = 0x00; /*clear  MOB status register*/
        CANCDMOB = 0x00; /*clear MOB control register*/
        CANGSTA = 0x00; /*clear CAN general status register*/
@@ -887,61 +947,178 @@ int8_t Get_FreeMob( void )
  *the function has no input and output parameters
  */
 
-void Get_BusState( void )
+void canGetGeneralStatusError( void )
 {
-
-	if ( CANGSTA & ( 1 << BOFF ) )
+	if ( canCurrentGeneralStatus & ( 1 << BOFF ) )
 	{
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Can_Bus_is_off, FALSE, NULL);
-        //    CAN_Init(0); /* CAN reinit */
-    }
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Can_Bus_is_off, FALSE, PSTR("TEC: %3i REC: %3i"),
+											 canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter);
+		//    canInit(0); /* CAN reinit */
+	}
 
-	if ( CANGSTA & ( 1 << ERRP ) )
+	if ( canCurrentGeneralStatus & ( 1 << ERRP ) )
 	{
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Can_Bus_is_passive, FALSE, NULL);
-        //    CAN_Init(0); /* CAN reinit*/
-  }
-}//END of Get_BusState function
+		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Can_Bus_is_passive, FALSE, PSTR("TEC: %3i REC: %3i"),
+				                             canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter);
+		//    canInit(0); /* CAN reinit*/
+	}
+}//END of canGetGeneralStatusError function
+
+
+uint8_t canIsGeneralStatusError( void )
+{
+	/* testing the following
+	 * errors of CANGSTA:
+	 * BOFF, ERRP */
+	canCurrentGeneralStatus = CANGSTA;
+	canCurrentReceiveErrorCounter = CANREC;
+	canCurrentTransmitErrorCounter = CANTEC;
+	return 0xFF && (canCurrentGeneralStatus & ( 1 << BOFF | 1 << ERRP ));
+
+}//END of canIsMObErrorAndAcknowledge
+
 
 /*
- *this function gives the various CAN errors
+ *this function prints the various CAN errors
  *the function has no input and output parameters
  */
-uint8_t Get_CanError( void )
+void canGetMObError( void )
 {
-	uint8_t rtn_val = 0;
-	if ( CANSTMOB & ( 1 << BERR ) ) {
-		CANSTMOB &= ~( 1 << BERR );
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Bit_Error, FALSE, NULL);
-		rtn_val = 1;
+	static const uint16_t errorNumbers[5] = { CAN_ERROR_MOb_Acknowledgement_Error,
+				                              CAN_ERROR_MOb_Form_Error,
+				                              CAN_ERROR_MOb_CRC_Error,
+			                                  CAN_ERROR_MOb_Stuff_Error,
+			                                  CAN_ERROR_MOb_Bit_Error};
+
+	for (uint8_t  bit = 4; bit >= 0; bit--)
+	{
+		if ( canCurrentMObStatus & ( 1 << bit ) )
+		{
+			//	• Bit 0 – AERR: Acknowledgment Error
+			//		No detection of the dominant bit in the acknowledge slot.
+			//	• Bit 1 – FERR: Form Error
+			//		The form error results from one or more violations of the fixed form in the following bit fields:
+			//		• CRC delimiter.
+			//		• Acknowledgment delimiter.
+			//		• EOF
+			//	• Bit 2 – CERR: CRC Error
+			//		The receiver performs a CRC check on every de-stuffed received message from the start of
+			//		frame up to the data field. If this checking does not match with the de-stuffed CRC field, a CRC
+			//		error is set.
+			//	• Bit 3 – SERR: Stuff Error
+			//		Detection of more than five consecutive bits with the same polarity. This flag can generate an
+			//		interrupt.
+			//	• Bit 4 – BERR: Bit Error (Only in Transmission)
+			//		The bit value monitored is different from the bit value sent.
+			//		Exceptions: the monitored recessive bit sent as a dominant bit during the arbitration field and the
+			//		acknowledge slot detecting a dominant bit during the sending of an error frame.
+
+			can_errorCode = CommunicationError_p(ERRC, errorNumbers[bit], FALSE, PSTR("MOb#: %i CANSTMOB: 0x%x"),
+					                             canMob, canCurrentMObStatus);
+		}
 	}
 
-	if ( CANSTMOB & ( 1 << SERR ) )
+}//END of canGetMObError
+
+uint8_t canIsMObErrorAndAcknowledge( void )
+{
+	/* testing (and resetting) the following
+	 * errors of CANSTMOB:
+	 * BERR, SERR, CERR, FERR, AERR*/
+
+	static uint8_t errorBits = ( 1 << BERR | 1 << SERR | 1 << CERR | 1 << FERR | 1 << AERR );
+    uint8_t bit=0;
+	canCurrentMObStatus = CANSTMOB;
+
+	// To acknowledge a mob interrupt, the corresponding bits of CANSTMOB register (RXOK,
+	// TXOK,...) must be cleared by the software application. This operation needs a read-modify-write
+	// software routine.
+    //
+	// from manual: chapter 19.8.2, p250
+
+	for (bit = 0; bit < sizeof(errorBits); bit++)
 	{
-		CANSTMOB &= ~( 1 << SERR );
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Stuff_Error, FALSE, NULL);
-		rtn_val = 1;
+		CANSTMOB = CANSTMOB & ~(errorBits & (1 << bit));
 	}
 
-	if ( CANSTMOB & ( 1 << CERR ) )
+	return (canCurrentMObStatus & errorBits);
+
+}//END of canIsMObErrorAndAcknowledge
+
+uint8_t canErrorHandling( void )
+{
+#warning TODO: detailed error handling needed
+
+	  canGetGeneralStatusError();
+	  canGetMObError();
+	  return 0;
+}
+
+uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
+{
+	uint8_t error = FALSE;
+
+	//#error missing break statement for number of arguments
+	/* type check */
+	for ( uint8_t parameterIndex = 0 ; parameterIndex < MAX_PARAMETER ; parameterIndex++ )
 	{
-		CANSTMOB &= ~( 1 << CERR );
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_CRC_Error, FALSE, NULL);
-		rtn_val = 1;
+		switch (parameterIndex)
+		{
+		case 1:
+			if ( ( 0x7FFFFFF ) < ptr_uartStruct->Uart_Message_ID )
+			{
+				uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_ID_is_too_long, FALSE, NULL);
+				error = TRUE;
+				break;
+			}
+			break;
+		case 2:
+			if ( ( 0x7FFFFFF ) < ptr_uartStruct->Uart_Mask )
+			{
+				uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_mask_is_too_long, FALSE, NULL);
+				error = TRUE;
+				break;
+			}
+			break;
+		case 3:
+
+			if ( ( 1 ) < ptr_uartStruct->Uart_Rtr )
+			{
+				uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_rtr_is_too_long, FALSE, NULL);
+				error = TRUE;
+				break;
+			}
+			break;
+		case 4:
+
+			if ( ( 8 ) < ptr_uartStruct->Uart_Length )
+			{
+				uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_length_is_too_long, FALSE, NULL);
+				error = TRUE;
+				break;
+			}
+			break;
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+			for ( uint8_t i = 0 ; i < 8 ; i++ )
+			{
+				if ( ( 0XFF ) < ptr_uartStruct->Uart_Data[i] )
+				{
+					uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_data_0_is_too_long + i, 0, NULL);
+					error = TRUE;
+					break;
+				}
+			}
+			break;
+		}
+
 	}
 
-	if ( CANSTMOB & ( 1 << FERR ) )
-	{
-		CANSTMOB &= ~( 1 << FERR );
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Form_Error, FALSE, NULL);
-		rtn_val = 1;
-	}
-
-	if ( CANSTMOB & ( 1 << AERR ) )
-	{
-		CANSTMOB &= ~( 1 << AERR );
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Acknowledgement_Error, FALSE, NULL);
-		rtn_val = 1;
-	}
-	return rtn_val;
-}//END of Get_CanError
+	return error;
+}
