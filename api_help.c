@@ -128,22 +128,19 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s       command      : %s CAN-Message-ID ID-Range 0 <Number of data bytes> Data0 ... Data7]"), message, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s       response now : %s CAN-Message-ID \"command will be carried out\""), message, currentReceiveHeader );
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s       response     : <nothing> "), message );
             UART0_Send_Message_String_p(NULL,0);
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s       response TODO: <nothing> "), message );
-            UART0_Send_Message_String_p(NULL,0);
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s       TODO: is this obsolete, debug level?"), message );
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s        [DEBG >=%i]  : %s CAN-Message-ID \"%s\""), message, debugLevelVerboseDebug, currentReceiveHeader, READY );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s    case RTR 1"), message );
             UART0_Send_Message_String_p(NULL,0);
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s       command      : %s CAN-Message-ID ID-Range 0 <Number of data bytes> Data0 ... Data7]"), message, currentCommandKeyword );
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s       command      : %s CAN-Message-ID ID-Range 1 <Number of requested data bytes>]"), message, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s       response  now: %s CAN_Mob CAN-Message-ID CAN-Length [Data0 ... Data7] "), message, currentResponseKeyword );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s       response TODO: %s CAN-Message-ID CAN-Length [Data0 ... Data7] "), message, currentReceiveHeader );
             UART0_Send_Message_String_p(NULL,0);
-            //                        Receive_Message(ptr_uartStruct); /* call function with name Receive_message */
-            //                     }
+            //                        canSendMessage(ptr_uartStruct); /* call function with name canSendMessage */
             break;
         case commandKeyNumber_SUBS:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s subscribe to CAN message ID "), message );
@@ -313,7 +310,7 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             //         getOneWireBusMask(ptr_uartStruct);
             break;
-        case commandKeyNumber_ADSP: /*AVR's adcs set active pins/bus mask*/
+        case commandKeyNumber_CANT: /*AVR's adcs set active pins/bus mask*/
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s AVR's ADCs set/get pin/bus mask"), message );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s <bus mask>"), message, currentCommandKeyword );
@@ -689,8 +686,8 @@ strncat_P(     desc[commandKeyNumber_OWSP],PSTR("one-wire set/get active pins/bu
 strncat_P(arguments[commandKeyNumber_OWSP],PSTR("<bus mask>"),ARG_LENGTH -1);
 strncat_P(     desc[commandKeyNumber_OWRP],PSTR("one-wire get pins' bus mask"),DESC_LENGTH -1);
 strncat_P(arguments[commandKeyNumber_OWRP],PSTR(""),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_ADSP],PSTR("AVR's adcs set active pins/bus mask"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_ADSP],PSTR("<bus mask>"),ARG_LENGTH -1);
+strncat_P(     desc[commandKeyNumber_CANT],PSTR("AVR's adcs set active pins/bus mask"),DESC_LENGTH -1);
+strncat_P(arguments[commandKeyNumber_CANT],PSTR("<bus mask>"),ARG_LENGTH -1);
 strncat_P(     desc[commandKeyNumber_RLSL],PSTR("relay set low  level"),DESC_LENGTH -1);
 strncat_P(arguments[commandKeyNumber_RLSL],PSTR("<bus> [val]"),ARG_LENGTH -1);
 strncat_P(     desc[commandKeyNumber_RLSH],PSTR("relay set high level"),DESC_LENGTH -1);
