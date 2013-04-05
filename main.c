@@ -106,20 +106,35 @@ volatile unsigned char timer0Ready;/*variable for Timer0  Interrupt*/
 volatile unsigned char timer1Ready;/*variable for Timer1  Interrupt*/
 volatile unsigned char timer0AReady;/*variable for Timer0 Output Compare A  Interrupt*/
 volatile unsigned char timer0ASchedulerReady;/*variable for Timer0 Output Compare A  Interrupt*/
+
 volatile unsigned char canReady;/*variable for can interrupt*/
+volatile unsigned char canCurrentGeneralStatus;/*variable for can interrupt*/
+volatile unsigned char canCurrentMObStatus;/*variable for can interrupt*/
+volatile unsigned char canCurrentTransmitErrorCounter;/*variable for can error handling*/
+volatile unsigned char canCurrentReceiveErrorCounter;/*variable for can error handling*/
+
+char canStoreString[MAX_LENGTH_CAN_DATA];
+
 volatile unsigned char uartReady;/*variable for Uart interrupt*/
-char schedulerString[5] = "OWTP";/*only for scheduler*/
+
 char keepAliveString[15] = "PING";/*only for keep_alive function*/
+
 char uartString[BUFFER_SIZE]; /* variable for storage received a complete string via UART */
 char decrypt_uartString[BUFFER_SIZE];
-char temp_canString[MAX_LENGTH_CAN_DATA];
-char store_canData[MAX_LENGTH_CAN_DATA];
-char canString[MAX_LENGTH_CAN_DATA];
-char ring_buffer[MAX_INPUT][MAX_LENGTH_CAN_DATA]; /*buffer to store CAN data*/
+
+
+/* unused
+ *
+ * char ring_buffer[MAX_INPUT][MAX_LENGTH_CAN_DATA];
+ *
+ *//*buffer to store CAN data*/
+
 char setParameter[MAX_PARAMETER][MAX_LENGTH_PARAMETER];
+
 char uart_message_string[BUFFER_SIZE];
 char message[BUFFER_SIZE];
 char resultString[BUFFER_SIZE];
+
 unsigned char nextCharPos; /*pointer of the variable uartString  */
 uint8_t can_errorCode = 0; /* error code for CAN-communication */
 uint8_t twi_errorCode = 0; /* error code for I2C/TWI-communication */
@@ -127,8 +142,8 @@ uint8_t uart_errorCode = 0; /* error code for UART-communication */
 uint8_t mailbox_errorCode = 0; /* error code for Message Object Block */
 uint8_t general_errorCode = 0; /*  general error code */
 uint8_t ptr_subscribe = 0;/* pointer of variable subscribe_ID and subscribe_mask */
-uint8_t mob; /*variable  for Message Object Block in the interrupt routine*/
-int8_t can_init = 0; /* variable to call CAN_Init function*/
+uint8_t canMob; /*variable  for Message Object Block in the interrupt routine*/
+int8_t can_init = 0; /* variable to call canInit function*/
 int8_t twim_init = 0; /* variable to call TWIM_Init function*/
 int8_t owi_init = 0; /* variable to call OWI_Init function*/
 int8_t timer0_init = 0; /* variable to call Timer0_Init function*/
@@ -200,6 +215,7 @@ int main( void )
    ptr_buffer_out = NULL; /*initialize pointer for read in  buffer_ring*/
    res0 = 0, res1 = 0, res2 = 0, res3 = 0;
    res4 = 0, res5 = 0, res6 = 0, res7 = 0;
+   canCurrentMObStatus = 0;
 
    relayThresholdCurrentState = relayThresholdState_IDLE;
 
@@ -266,17 +282,29 @@ int main( void )
       // CANbus interface has received a message
        printDebug_p(debugLevelPeriodicDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN %s"), ( 1 == canReady ) ? "--yes" : "");
 
-      if ( 1 == canReady ) /* of the ISR data has been fully received */
-      {
-         cli();
-         // disable interrupts
+       if ( 1 == canReady ) /* of the ISR data has been fully received */
+       {
+          cli();
+          // disable interrupts
 
-         Convert_pack_canFrame_to_UartFormat(ptr_canStruct);
-         canReady = 0; /* restore flag */
+          canConvertCanFrameToUartFormat(ptr_canStruct);
+          canReady = 0; /* restore flag */
 
-         sei();
-         // (re)enable interrupts
-      }
+          sei();
+          // (re)enable interrupts
+       }
+       if ( 2 == canReady ) /* can error detected */
+       {
+          // disable interrupts
+          cli();
+
+          canErrorHandling();
+
+          canReady = 0; /* restore flag */
+
+          // (re)enable interrupts
+          sei();
+       }
 
       // timer 0 set by ISR
        printDebug_p(debugLevelPeriodicDebug, debugSystemTIMER0, __LINE__, PSTR(__FILE__), PSTR("timer 0%s"), ( 1 == timer0Ready ) ? "--yes" : "");
@@ -284,7 +312,7 @@ int main( void )
       if ( 1 == timer0Ready )
       {
          cli();
-/*         Get_BusState(); */
+/*         canGetGeneralStatusError(); */
          timer0Ready = 0;
          sei();
       }
@@ -312,7 +340,7 @@ int main( void )
       if ( 1 == timer0AReady )
       {
          cli();
-/*         Get_CanError(); */
+/*         canGetMObError(); */
          timer0AReady = 0; /* restore flag */
          sei();
       }
