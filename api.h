@@ -8,13 +8,12 @@
 #include "api_global.h"
 
 #include "api_debug.h"
-#include "can.h"
 #include <stdint.h>
 #include <stdarg.h>
 
 #define UART_MAX_DATA_ELEMENTS 8
 /* Structure for CPU commands */
-struct uartStruct
+typedef struct uartStruct
 {
       uint32_t Uart_Message_ID;
       uint32_t Uart_Mask;
@@ -23,11 +22,12 @@ struct uartStruct
       uint16_t Uart_Data[UART_MAX_DATA_ELEMENTS];
       int8_t commandKeywordIndex;
       int8_t number_of_arguments;
-};
+} uartMessage;
+
+#include "can.h"
 
 extern struct uartStruct uartFrame;
 extern struct uartStruct *ptr_uartStruct;
-
 
 /* Implemented functions
  * and
@@ -42,7 +42,7 @@ int8_t Check_Parameter_CanFormat( struct uartStruct *ptr_uartStruct ); /* this f
 
 void Choose_Function( struct uartStruct *ptr_uartStruct );/* in terms of the command name is the competent function */
 
-void Convert_pack_canFrame_to_UartFormat( struct canStruct *ptr_canStruct );/* this function collects the various CAN data in a string */
+void canConvertCanFrameToUartFormat( struct canStruct *ptr_canStruct );/* this function collects the various CAN data in a string */
 
 void Convert_UartData_to_UartStruct( char string[MAX_PARAMETER][MAX_LENGTH_PARAMETER] ); /*converting the decomposed CPU format in CAN-format */
 //void Convert_UartFormat_to_CanFormat( char *string[MAX_LENGTH_PARAMETER]);
@@ -51,13 +51,13 @@ void keep_alive( struct uartStruct *PtrFrame ); /*this function checks the funct
 
 int8_t Decrypt_Uart_String( void ); /*CPU-cutting format in various parameters */
 
-void Receive_Message( struct uartStruct *PtrFrame ); /* function for the SEND command name and RTR set, initialization of the registers with elements of the structure uartStruct*/
+void canSendRemoteTransmissionRequestMessage( struct uartStruct *PtrFrame ); /* function for the SEND command name and RTR set, initialization of the registers with elements of the structure uartStruct*/
 
 void Initialization( void ); /*this function initialize all init functions again and actives the interrupt*/
 
 void InitIOPorts( void );/*this function initializes all input /output of the microcontroller*/
 
-void Send_Message( struct uartStruct *PtrFrame );/*function for the SEND command name and RTR is not set, initialization of the registers with elements of the structure uartStruct*/
+void canSendMessage( struct uartStruct *PtrFrame );/*function for the SEND command name and RTR is not set, initialization of the registers with elements of the structure uartStruct*/
 
 void Subscribe_Message( struct uartStruct *PtrFrame ); /* function for the command name SUBS, initialization of the registers with elements of the structure uartStruct */
 
@@ -197,11 +197,11 @@ enum ce_index
    CAN_ERROR_Can_Bus_is_off = 0,
    CAN_ERROR_Can_Bus_is_passive,
    CAN_ERROR_Can_Bus_is_on,
-   CAN_ERROR_Bit_Error,
-   CAN_ERROR_Stuff_Error,
-   CAN_ERROR_CRC_Error,
-   CAN_ERROR_Form_Error,
-   CAN_ERROR_Acknowledgement_Error,
+   CAN_ERROR_MOb_Bit_Error,
+   CAN_ERROR_MOb_Stuff_Error,
+   CAN_ERROR_MOb_CRC_Error,
+   CAN_ERROR_MOb_Form_Error,
+   CAN_ERROR_MOb_Acknowledgement_Error,
    CAN_ERROR_CAN_was_not_successfully_initialized,
    CAN_ERROR_timeout_for_CAN_communication,
    CAN_ERROR_MAXIMUM_INDEX
@@ -250,6 +250,7 @@ extern const char* responseKeywords[] PROGMEM;
 enum responseKeyNumber
 {
       responseKeyNumber_RECV = 0,
+      responseKeyNumber_CANR = 0,
       responseKeyNumber_MAXIMUM_INDEX
 };
 
@@ -273,7 +274,7 @@ enum cmdKeyNumber
                commandKeyNumber_PING,
                commandKeyNumber_OWTP,
                commandKeyNumber_OWSP,
-               commandKeyNumber_ADSP,
+               commandKeyNumber_CANT,
                commandKeyNumber_RLSL,
                commandKeyNumber_RLSH,
                commandKeyNumber_RLSI,
