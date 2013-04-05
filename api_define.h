@@ -30,16 +30,13 @@
 #define BUFFER_SIZE 140
 
 /*maximum value for 11 bit identifier for CAN standard 2.0A*/
-#define MAX_ELF_BIT  2047
+#define MAX_ELEVEN_BIT  2047
 
 /*maximum input in the ring buffer*/
 #define MAX_INPUT  30
 
 /*start Pointer to receive  CAN Data via CAN-Bus*/
 #define MAX_BYTE_CAN_DATA  8
-
-/*start Pointer to receive  CAN Data via CAN-Bus*/
-#define START_POINTER_TO_RECEIVE_CAN_DATEN  3
 
 /*maximum arguments of received CAN Data*/
 #define MAX_CAN_DATA  11
@@ -66,8 +63,8 @@
 #define NOMOB   0xFF
 
 /*timeout for serial and CAN communication*/
-#define TIMEOUT_A 5000 /*Timeout for UART-communication*/
-#define TIMEOUT_C 5000 /*Timeout for CAN-communication*/
+#define TIMEOUT_UART 5000 /*Timeout for UART-communication*/
+#define CAN_TIMEOUT_US 5000 /*Timeout for CAN-communication*/
 
 /*Timeout error*/
 #define TIME_S__ERROR "timeout for serial communication"
