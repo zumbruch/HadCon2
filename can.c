@@ -157,15 +157,20 @@ void canSendMessage( struct uartStruct *ptr_uartStruct )
 	uint8_t  rtr    = ptr_uartStruct->Uart_Rtr;
 	uint8_t  length = ptr_uartStruct->Uart_Length;
 
+	printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+			PSTR("preparation of send message: id %x mask %x RTR %x length %x"), id, mask, rtr, length);
+
 	if ( 0 == rtr )
 	{
 		/* set channel number to 1 */
 		CANPAGE = ( 1 << MOBNB0 );
+		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("selecting mob 0 (no RTR)"));
 	}
 	else /*RTR*/
 	{
 		/* set channel number to 0 */
 		CANPAGE = ( 0 << MOBNB0 );
+		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("selecting mob 1 (RTR)"));
 	}
 
 	CANSTMOB = 0x00; /* cancel pending operation */
@@ -222,6 +227,8 @@ void canSendMessage( struct uartStruct *ptr_uartStruct )
 	CANSTMOB = 0x00;
 	CANCDMOB |= ( 1 << CONMOB0 ); /*enable transmission mode*/
 
+	printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("waiting for send message finished"));
+
 	/*call the function verify that the sending (and receiving) of data is complete*/
 	if ( 0 == rtr )
 	{
@@ -251,6 +258,7 @@ void canWaitForCanSendMessageFinished( void )
 	{
 	    /* timeout */
 		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_timeout_for_CAN_communication, FALSE, PSTR("(%i us)"), CAN_TIMEOUT_US);
+		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("send w/o RTR: timeout"));
 		can_timeout1 = CAN_TIMEOUT_US;
 	}
 	else
@@ -284,6 +292,7 @@ void canWaitForCanSendRemoteTransmissionRequestMessageFinished( void )
 	if ( ( 0 == can_timeout2 ) && ( CANSTMOB & ( 1 << TXOK ) ) )
 	{
 		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_timeout_for_CAN_communication, FALSE, PSTR("(%i us)"), CAN_TIMEOUT_US);
+		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("send w/ RTR: timeout"));
 		can_timeout2 = CAN_TIMEOUT_US;
 	}
 	else
@@ -977,22 +986,37 @@ uint8_t canIsMObErrorAndAcknowledge( void )
     //
 	// from manual: chapter 19.8.2, p250
 
+#error acknowledge seems not to work for BERR
+
 	for (bit = 0; bit < sizeof(errorBits); bit++)
 	{
-		CANSTMOB = CANSTMOB & ~(errorBits & (1 << bit));
+		CANSTMOB = CANSTMOB & ( 0xFF & ~(errorBits & (1 << bit)));
 	}
 
 	return (canCurrentMObStatus & errorBits);
 
 }//END of canIsMObErrorAndAcknowledge
 
-uint8_t canErrorHandling( void )
+uint8_t canErrorHandling( uint8_t error )
 {
 #warning TODO: detailed error handling needed
 
-	  canGetGeneralStatusError();
-	  canGetMObError();
-	  return 0;
+	switch (error)
+	{
+	case 2: /* mob */
+		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN error handling: mob status"), canReady);
+		canGetMObError();
+		break;
+	case 3: /* general */
+		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN error handling: general status"), canReady);
+		canGetGeneralStatusError();
+		break;
+	default:
+		can_errorCode = CommunicationError(ERRC, -1, TRUE, PSTR("(unknown internal CAN status error %i)"), error);
+		break;
+	}
+
+	return 0;
 }
 
 uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
