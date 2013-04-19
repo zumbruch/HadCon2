@@ -55,6 +55,7 @@ void help(struct uartStruct *ptr_uartStruct)
      *               ...
      * response: RECV HELP *** CMND "bla"
      */
+
 #define LENGTH 50
     int32_t index = -1;
     int32_t indexCopy = -1;
@@ -119,6 +120,7 @@ void help(struct uartStruct *ptr_uartStruct)
         }
         switch (index)
         {
+        case commandKeyNumber_CANT:
         case commandKeyNumber_SEND:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s send CAN messages "), message );
             UART0_Send_Message_String_p(NULL,0);
@@ -310,34 +312,20 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             //         getOneWireBusMask(ptr_uartStruct);
             break;
-        case commandKeyNumber_CANT: /*AVR's adcs set active pins/bus mask*/
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s AVR's ADCs set/get pin/bus mask"), message );
+        case commandKeyNumber_CANP:
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s CAN preferences"), message );
             UART0_Send_Message_String_p(NULL,0);
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s <bus mask>"), message, currentCommandKeyword );
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [keyword [value[s]]]"), message, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
-            break;
-        case commandKeyNumber_RLSL: /*relay set low  level*/
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s relay set low  level"), message );
-            UART0_Send_Message_String_p(NULL,0);
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s <bus> [val]"), message, currentCommandKeyword );
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: %s %s keyword value[s] "), message, currentReceiveHeader, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
             break;
-        case commandKeyNumber_RLSH: /*relay set high level*/
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s relay set high  level"), message );
+        case commandKeyNumber_CAN:
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s CAN interface"), message );
             UART0_Send_Message_String_p(NULL,0);
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s <bus> [val]"), message, currentCommandKeyword );
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [keyword [value[s]]]"), message, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
-            break;
-        case commandKeyNumber_RLSI: /*relay set ADC pin(s) to monitor "in" */
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s relay set input pin"), message );
-            UART0_Send_Message_String_p(NULL,0);
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s <bus> [pins]"), message, currentCommandKeyword );
-            UART0_Send_Message_String_p(NULL,0);
-            break;
-        case commandKeyNumber_RLSO: /*relay set output pin(s) to switch "out" */
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s relay set output pin"), message );
-            UART0_Send_Message_String_p(NULL,0);
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s <bus> [pins]"), message, currentCommandKeyword );
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: %s %s keyword value[s] "), message, currentReceiveHeader, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
             break;
         case commandKeyNumber_DEBG: /*set/get debug level*/
@@ -381,7 +369,7 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s get response: %s level "), message, currentReceiveHeader );
             UART0_Send_Message_String_p(NULL,0);
-            //         readModifyDebugLevel(ptr_uartStruct);
+            //         apiDebugReadModifyDebugLevel(ptr_uartStruct);
             break;
         case commandKeyNumber_DBGM: /*set/get only debug system mask*/
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s set/get debug mask"), message );
@@ -392,7 +380,7 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s get response: %s mask"), message, currentReceiveHeader );
             UART0_Send_Message_String_p(NULL,0);
-            //         readModifyDebugMask(ptr_uartStruct);
+            //         apiDebugReadModifyDebugMask(ptr_uartStruct);
             break;
         case commandKeyNumber_PARA: /*set/get debug level*/
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s check for parasiticly connected devices"), message );
@@ -413,7 +401,7 @@ void help(struct uartStruct *ptr_uartStruct)
 //            UART0_Send_Message_String(NULL,0);
 //            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s get response: %s ???"), message, currentReceiveHeader );
 //            UART0_Send_Message_String(NULL,0);
-//            //         readModifyDebugLevelAndMask(ptr_uartStruct);
+//            //         apiDebugReadModifyDebugLevelAndMask(ptr_uartStruct);
 //            break;
         case commandKeyNumber_JTAG: /*toggle/set JTAG availability*/
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s switch of %s and enable 4 more ADC channels"), message, currentCommandKeyword );
@@ -688,14 +676,14 @@ strncat_P(     desc[commandKeyNumber_OWRP],PSTR("one-wire get pins' bus mask"),D
 strncat_P(arguments[commandKeyNumber_OWRP],PSTR(""),ARG_LENGTH -1);
 strncat_P(     desc[commandKeyNumber_CANT],PSTR("AVR's adcs set active pins/bus mask"),DESC_LENGTH -1);
 strncat_P(arguments[commandKeyNumber_CANT],PSTR("<bus mask>"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_RLSL],PSTR("relay set low  level"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_RLSL],PSTR("<bus> [val]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_RLSH],PSTR("relay set high level"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_RLSH],PSTR("<bus> [val]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_RLSI],PSTR("relay set ADC pin(s) to monitor "in" "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_RLSI],PSTR("<bus> [pins]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_RLSO],PSTR("relay set/get output pin mask "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_RLSO],PSTR("<bus> [pins]"),ARG_LENGTH -1);
+strncat_P(     desc[commandKeyNumber_CANS],PSTR("relay set low  level"),DESC_LENGTH -1);
+strncat_P(arguments[commandKeyNumber_CANS],PSTR("<bus> [val]"),ARG_LENGTH -1);
+strncat_P(     desc[commandKeyNumber_CANU],PSTR("relay set high level"),DESC_LENGTH -1);
+strncat_P(arguments[commandKeyNumber_CANU],PSTR("<bus> [val]"),ARG_LENGTH -1);
+strncat_P(     desc[commandKeyNumber_CANP],PSTR("relay set ADC pin(s) to monitor "in" "),DESC_LENGTH -1);
+strncat_P(arguments[commandKeyNumber_CANP],PSTR("<bus> [pins]"),ARG_LENGTH -1);
+strncat_P(     desc[commandKeyNumber_CAN],PSTR("relay set/get output pin mask "),DESC_LENGTH -1);
+strncat_P(arguments[commandKeyNumber_CAN],PSTR("<bus> [pins]"),ARG_LENGTH -1);
 strncat_P(     desc[commandKeyNumber_DEBG],PSTR("set/get debug level and mask"),DESC_LENGTH -1);
 strncat_P(arguments[commandKeyNumber_DEBG],PSTR("[level [mask]]"),ARG_LENGTH -1);
 strncat_P(     desc[commandKeyNumber_DBGL],PSTR("set/get debug level"),DESC_LENGTH -1);
