@@ -51,7 +51,6 @@
 #include "api_version.h"
 #include "twi_master.h"
 
-
 #warning TODO: combine responseKeyword and other responses error into one set of responses
 
 static const char responseKeyword00[] PROGMEM = "RECV";
@@ -70,601 +69,312 @@ const char* responseKeywords[] PROGMEM = {
  * of the API*/
 
 // index: 00
-static const char commandKeyword00[]          PROGMEM = "SEND";
-static const char commandShortDescription00[] PROGMEM = "CAN-ID ID-Range [RTR <nBytes> D0 .. D7]";
-static const char commandImplementation00[]   PROGMEM = "send can message";
+static const             char commandKeyword00[]              PROGMEM = "SEND";
+static const             char commandShortDescription00[]     PROGMEM = "CAN-ID ID-Range [RTR <nBytes> D0 .. D7]";
+static const             char commandImplementation00[]       PROGMEM = "send can message";
 
 // index: 01
-static const char commandKeyword01[]          PROGMEM = "SUBS";
-static const char commandShortDescription01[] PROGMEM = "CAN-ID ID-Range";
-static const char commandImplementation01[]   PROGMEM = "unsubscribe can id/mask";
+static const             char commandKeyword01[]              PROGMEM = "SUBS";
+static const             char commandShortDescription01[]     PROGMEM = "CAN-ID ID-Range";
+static const             char commandImplementation01[]       PROGMEM = "unsubscribe can id/mask";
 
 // index: 02
-static const char commandKeyword02[]          PROGMEM = "USUB";
-static const char commandShortDescription02[] PROGMEM = "CAN-ID ID-Range";
-static const char commandImplementation02[]   PROGMEM = "unsubscribe can id/mask";
+static const             char commandKeyword02[]              PROGMEM = "USUB";
+static const             char commandShortDescription02[]     PROGMEM = "CAN-ID ID-Range";
+static const             char commandImplementation02[]       PROGMEM = "unsubscribe can id/mask";
 
 // index: 03
-static const char commandKeyword03[]          PROGMEM = "STAT";
-static const char commandShortDescription03[] PROGMEM = "[ID]";
-static const char commandImplementation03[]   PROGMEM = "--- not implemented";
+static const             char commandKeyword03[]              PROGMEM = "STAT";
+static const             char commandShortDescription03[]     PROGMEM = "[ID]";
+static const             char commandImplementation03[]       PROGMEM = "--- not implemented";
 
 // index: 04
-static const char commandKeyword04[]          PROGMEM = "RGWR";
-static const char commandShortDescription04[] PROGMEM = "<Register> <Value>";
-static const char commandImplementation04[]   PROGMEM = "write register";
+static const             char commandKeyword04[]              PROGMEM = "RGWR";
+static const             char commandShortDescription04[]     PROGMEM = "<Register> <Value>";
+static const             char commandImplementation04[]       PROGMEM = "write register";
 
 // index: 05
-static const char commandKeyword05[]          PROGMEM = "RGRE";
-static const char commandShortDescription05[] PROGMEM = "<Register>";
-static const char commandImplementation05[]   PROGMEM = "read register";
+static const             char commandKeyword05[]              PROGMEM = "RGRE";
+static const             char commandShortDescription05[]     PROGMEM = "<Register>";
+static const             char commandImplementation05[]       PROGMEM = "read register";
 
 // index: 06
-static const char commandKeyword06[]          PROGMEM = "RADC";
-static const char commandShortDescription06[] PROGMEM = "[<ADC Channel>]";
-static const char commandImplementation06[]   PROGMEM = "AVR ADCs";
+static const             char commandKeyword06[]              PROGMEM = "RADC";
+static const             char commandShortDescription06[]     PROGMEM = "[<ADC Channel>]";
+static const             char commandImplementation06[]       PROGMEM = "AVR ADCs";
 
 // index: 07
-static const char commandKeyword07[]          PROGMEM = "OWAD";
-static const char commandShortDescription07[] PROGMEM = "[ID [flag_conv [flag_init]]]";
-static const char commandImplementation07[]   PROGMEM = "1-wire ADC";
+static const             char commandKeyword07[]              PROGMEM = "OWAD";
+static const             char commandShortDescription07[]     PROGMEM = "[ID [flag_conv [flag_init]]]";
+static const             char commandImplementation07[]       PROGMEM = "1-wire ADC";
 
 // index: 08
-static const char commandKeyword08[]          PROGMEM = "OWDS";
-static const char commandShortDescription08[] PROGMEM = "[ID]";
-static const char commandImplementation08[]   PROGMEM = "1-wire double switch";
+static const             char commandKeyword08[]              PROGMEM = "OWDS";
+static const             char commandShortDescription08[]     PROGMEM = "[ID]";
+static const             char commandImplementation08[]       PROGMEM = "1-wire double switch";
 
 // index: 09
-static const char commandKeyword09[]          PROGMEM = "OWON";
-static const char commandShortDescription09[] PROGMEM = "[ID]";
-static const char commandImplementation09[]   PROGMEM = "--- [ID] not implemented";
+static const             char commandKeyword09[]              PROGMEM = "OWON"; /*obsolete*/
+static const             char commandShortDescription09[]     PROGMEM = "";
+static const             char commandImplementation09[]       PROGMEM = "obsolete";
 
 // index: 10
-static const char commandKeyword10[]          PROGMEM = "OWLS";
-static const char commandShortDescription10[] PROGMEM = "[<Family Code>]";
-static const char commandImplementation10[]   PROGMEM = "1-wire list devices";
+static const             char commandKeyword10[]              PROGMEM = "OWLS";
+static const             char commandShortDescription10[]     PROGMEM = "[<Family Code>]";
+static const             char commandImplementation10[]       PROGMEM = "1-wire list devices";
 
 // index: 11
-static const char commandKeyword11[]          PROGMEM = "OWSS";
-static const char commandShortDescription11[] PROGMEM = "[ID]";
-static const char commandImplementation11[]   PROGMEM = "--- [ID] not implemented";
+static const             char commandKeyword11[]              PROGMEM = "OWSS";
+static const             char commandShortDescription11[]     PROGMEM = "[ID]";
+static const             char commandImplementation11[]       PROGMEM = "--- [ID] not implemented";
 
 // index: 12
-static const char commandKeyword12[]          PROGMEM = "RSET";
-static const char commandShortDescription12[] PROGMEM = "";
-static const char commandImplementation12[]   PROGMEM = "";
+static const             char commandKeyword12[]              PROGMEM = "RSET";
+static const             char commandShortDescription12[]     PROGMEM = "";
+static const             char commandImplementation12[]       PROGMEM = "";
 
 // index: 13
-static const char commandKeyword13[]          PROGMEM = "PING";
-static const char commandShortDescription13[] PROGMEM = "";
-static const char commandImplementation13[]   PROGMEM = "";
+static const             char commandKeyword13[]              PROGMEM = "PING";
+static const             char commandShortDescription13[]     PROGMEM = "";
+static const             char commandImplementation13[]       PROGMEM = "";
 
 // index: 14
-static const char commandKeyword14[]          PROGMEM = "OWTP";
-static const char commandShortDescription14[] PROGMEM = "[ID [flag_conv [flag_init]] | <command_keyword> [arguments]]";
-static const char commandImplementation14[]   PROGMEM = "1-wire temperature";
+static const             char commandKeyword14[]              PROGMEM = "OWTP";
+static const             char commandShortDescription14[]     PROGMEM = "[ID [flag_conv [flag_init]] | <command_keyword> [arguments]]";
+static const             char commandImplementation14[]       PROGMEM = "1-wire temperature";
 
 // index: 15
-static const char commandKeyword15[]          PROGMEM = "OWSP"; /*one-wire set active pins/bus mask*/
-static const char commandShortDescription15[] PROGMEM = "<bus mask>"; /*one-wire set/get active pins/bus mask*/
-static const char commandImplementation15[]   PROGMEM = ""; /*one-wire set/get active pins/bus mask*/
+static const             char commandKeyword15[]              PROGMEM = "OWSP"; /*one-wire set active pins/bus mask*/
+static const             char commandShortDescription15[]     PROGMEM = "<bus mask>"; /*one-wire set/get active pins/bus mask*/
+static const             char commandImplementation15[]       PROGMEM = ""; /*one-wire set/get active pins/bus mask*/
 
 // index: 16
-static const char commandKeyword16[]          PROGMEM = "CANT"; /*CAN transmit*/
-static const char commandShortDescription16[] PROGMEM = "CAN-ID ID-Range [RTR <nBytes> D0 .. D7]";
-static const char commandImplementation16[]   PROGMEM = "CAN send message";
+static const             char commandKeyword16[]              PROGMEM = "CANT"; /*CAN transmit*/
+static const             char commandShortDescription16[]     PROGMEM = "CAN-ID ID-Range [RTR <nBytes> D0 .. D7]";
+static const             char commandImplementation16[]       PROGMEM = "CAN send message";
 
 
 // index: 17
-#warning obsolete RL functions, included in RLTH
-static const char commandKeyword17[]          PROGMEM = "RLSL"; /*relay set low  level*/
-static const char commandShortDescription17[] PROGMEM = "<bus> [val]"; /*relay set low  level*/
-static const char commandImplementation17[]   PROGMEM = "--- not implemented"; /*relay set low  level*/
+static const             char commandKeyword17[]              PROGMEM = "CANS"; /* CAN subscribe */
+static const             char commandShortDescription17[]     PROGMEM = "CAN-ID ID-Range";
+static const             char commandImplementation17[]       PROGMEM = "CAN subscribe";
 
 // index: 18
-#warning obsolete RL functions, included in RLTH
-static const char commandKeyword18[]          PROGMEM = "RLSH"; /*relay set high level*/
-static const char commandShortDescription18[] PROGMEM = "<bus> [val]"; /*relay set high level*/
-static const char commandImplementation18[]   PROGMEM = "--- not implemented"; /*relay set high level*/
+static const             char commandKeyword18[]              PROGMEM = "CANU"; /* CAN unsubscribe */
+static const             char commandShortDescription18[]     PROGMEM = "CAN-ID ID-Range";
+static const             char commandImplementation18[]       PROGMEM = "CAN unsubscribe";
 
 // index: 19
 #warning obsolete RL functions, included in RLTH
-static const char commandKeyword19[]          PROGMEM = "RLSI"; /*relay set ADC pin(s) to monitor "in" */
-static const char commandShortDescription19[] PROGMEM = "<bus> [pins]"; /*relay set ADC pin(s) to monitor "in" */
-static const char commandImplementation19[]   PROGMEM = "--- not implemented"; /*relay set ADC pin(s) to monitor "in" */
+static const             char commandKeyword19[]              PROGMEM = "CANP"; /* CAN properties */
+static const             char commandShortDescription19[]     PROGMEM = "[<keyword> [value[s]]]";
+static const             char commandImplementation19[]       PROGMEM = "CAN properties --- not implemented";
 
 // index: 20
 #warning obsolete RL functions, included in RLTH
-static const char commandKeyword20[]          PROGMEM = "RLSO"; /*relay set output pin(s) to switch "out" */
-static const char commandShortDescription20[] PROGMEM = "<bus> [pins]"; /*relay set output pin(s) to switch "out" */
-static const char commandImplementation20[]   PROGMEM = "--- not implemented"; /*relay set output pin(s) to switch "out" */
+static const             char commandKeyword20[]              PROGMEM = "CAN";
+static const             char commandShortDescription20[]     PROGMEM = "<bus> [pins]";
+static const             char commandImplementation20[]       PROGMEM = "--- not implemented";
 
 // index: 21
-static const char commandKeyword21[]          PROGMEM = "DBGL"; /*set debug level*/
-static const char commandShortDescription21[] PROGMEM = "[level]";
-static const char commandImplementation21[]   PROGMEM = "set debug level";
+static const             char commandKeyword21[]              PROGMEM = "DBGL"; /*set debug level*/
+static const             char commandShortDescription21[]     PROGMEM = "[level]";
+static const             char commandImplementation21[]       PROGMEM = "set debug level";
 
 // index: 22
-static const char commandKeyword22[]          PROGMEM = "DBGM"; /*set debug system mask*/
-static const char commandShortDescription22[] PROGMEM = "[mask]";
-static const char commandImplementation22[]   PROGMEM = "set debug system mask";
+static const             char commandKeyword22[]              PROGMEM = "DBGM"; /*set debug system mask*/
+static const             char commandShortDescription22[]     PROGMEM = "[mask]";
+static const             char commandImplementation22[]       PROGMEM = "set debug system mask";
 
 // index: 23
-static const char commandKeyword23[]          PROGMEM = "JTAG"; /*get/set JTAG availability*/
-static const char commandShortDescription23[] PROGMEM = "[0|1]";
-static const char commandImplementation23[]   PROGMEM = "get/set JTAG availability";
+static const             char commandKeyword23[]              PROGMEM = "JTAG"; /*get/set JTAG availability*/
+static const             char commandShortDescription23[]     PROGMEM = "[0|1]";
+static const             char commandImplementation23[]       PROGMEM = "get/set JTAG availability";
 
 // index: 24
-static const char commandKeyword24[]          PROGMEM = "HELP"; /*output some help*/
-static const char commandShortDescription24[] PROGMEM = "[CMND]";
-static const char commandImplementation24[]   PROGMEM = "help";
+static const             char commandKeyword24[]              PROGMEM = "HELP"; /*output some help*/
+static const             char commandShortDescription24[]     PROGMEM = "[CMND]";
+static const             char commandImplementation24[]       PROGMEM = "help";
 
 // index: 25
-static const char commandKeyword25[]          PROGMEM = "OWTR"; /*trigger one-wire device(s) for action, if possible*/
-static const char commandShortDescription25[] PROGMEM = "[ID] ..."; /*trigger one-wire device(s) for action, if possible*/
-static const char commandImplementation25[]   PROGMEM = "--- not implemented"; /*trigger one-wire device(s) for action, if possible*/
+static const             char commandKeyword25[]              PROGMEM = "OWTR"; /*trigger one-wire device(s) for action, if possible*/
+static const             char commandShortDescription25[]     PROGMEM = "[ID] ..."; /*trigger one-wire device(s) for action, if possible*/
+static const             char commandImplementation25[]       PROGMEM = "--- not implemented"; /*trigger one-wire device(s) for action, if possible*/
 
 // index: 26
-static const char commandKeyword26[]          PROGMEM = "OWRP"; /*one-wire read active pins/bus mask*/
-static const char commandShortDescription26[] PROGMEM = ""; /*one-wire read active pins/bus mask*/
-static const char commandImplementation26[]   PROGMEM = ""; /*one-wire read active pins/bus mask*/
+static const             char commandKeyword26[]              PROGMEM = "OWRP"; /*one-wire read active pins/bus mask*/
+static const             char commandShortDescription26[]     PROGMEM = ""; /*one-wire read active pins/bus mask*/
+static const             char commandImplementation26[]       PROGMEM = ""; /*one-wire read active pins/bus mask*/
 
 // index: 27
 #warning obsolete functions, included in RLTH/RADC
-static const char commandKeyword27[]          PROGMEM = "ADRP"; /*AVR's adcs read active pins/bus mask*/
-static const char commandShortDescription27[] PROGMEM = ""; /*AVR's adcs read active pins/bus mask*/
-static const char commandImplementation27[]   PROGMEM = "--- not implemented"; /*AVR's adcs read active pins/bus mask*/
+static const             char commandKeyword27[]              PROGMEM = "ADRP"; /*AVR's adcs read active pins/bus mask*/
+static const             char commandShortDescription27[]     PROGMEM = ""; /*AVR's adcs read active pins/bus mask*/
+static const             char commandImplementation27[]       PROGMEM = "--- not implemented"; /*AVR's adcs read active pins/bus mask*/
 
 // index: 28
-static const char commandKeyword28[]          PROGMEM = "DEBG"; /*set/get debug level and mask*/
-static const char commandShortDescription28[] PROGMEM = "[level [mask]]"; /*set/get debug level and mask*/
-static const char commandImplementation28[]   PROGMEM = ""; /*set/get debug level and mask*/
+static const             char commandKeyword28[]              PROGMEM = "DEBG"; /*set/get debug level and mask*/
+static const             char commandShortDescription28[]     PROGMEM = "[level [mask]]"; /*set/get debug level and mask*/
+static const             char commandImplementation28[]       PROGMEM = ""; /*set/get debug level and mask*/
 
 // index: 29
-static const char commandKeyword29[]          PROGMEM = "PARA"; /*check parasitic power supply mode*/
-static const char commandShortDescription29[] PROGMEM = "parasitic device test [???]"; /*not yet figured out*/
-static const char commandImplementation29[]   PROGMEM = "";
+static const             char commandKeyword29[]              PROGMEM = "PARA"; /*check parasitic power supply mode*/
+static const             char commandShortDescription29[]     PROGMEM = "parasitic device test [???]"; /*not yet figured out*/
+static const             char commandImplementation29[]       PROGMEM = "";
 
 // index: 30
-static const char commandKeyword30[]          PROGMEM = "SHOW"; /*show (internal) settings*/
-static const char commandShortDescription30[] PROGMEM = "[key_word]";
-static const char commandImplementation30[]   PROGMEM = "show (internal) settings";
+static const             char commandKeyword30[]              PROGMEM = "SHOW"; /*show (internal) settings*/
+static const             char commandShortDescription30[]     PROGMEM = "[key_word]";
+static const             char commandImplementation30[]       PROGMEM = "show (internal) settings";
 
 // index: 31
 #warning to put into one command OW?? with sub commands
-static const char commandKeyword31[]          PROGMEM = "OWMR"; /*one wire basics: match rom*/
-static const char commandShortDescription31[] PROGMEM = "ID <pin_mask>"; /*one wire basics: match rom*/
-static const char commandImplementation31[]   PROGMEM = "--- not implemented"; /*one wire basics: match rom*/
+static const             char commandKeyword31[]              PROGMEM = "OWMR"; /*one wire basics: match rom*/
+static const             char commandShortDescription31[]     PROGMEM = "ID <pin_mask>";
+static const             char commandImplementation31[]       PROGMEM = "--- not implemented";
 
 // index: 32
 #warning to put into one command OW?? with sub commands
-static const char commandKeyword32[]          PROGMEM = "OWPC"; /*one wire basics: presence check*/
-static const char commandShortDescription32[] PROGMEM = "[<pin_mask>]"; /*one wire basics: presence check*/
-static const char commandImplementation32[]   PROGMEM = "--- not implemented"; /*one wire basics: presence check*/
+static const             char commandKeyword32[]              PROGMEM = "OWPC"; /*one wire basics: presence check*/
+static const             char commandShortDescription32[]     PROGMEM = "[<pin_mask>]"; /*one wire basics: presence check*/
+static const             char commandImplementation32[]       PROGMEM = "--- not implemented"; /*one wire basics: presence check*/
 
 // index: 33
 #warning to put into one command OW?? with sub commands
-static const char commandKeyword33[]          PROGMEM = "OWRb"; /*one wire basics: receive bit, wait for it*/
-static const char commandShortDescription33[] PROGMEM = "<pin_mask> <delay> <timeout: N (times delay)> "; /*one wire basics: receive bit, wait for it*/
-static const char commandImplementation33[]   PROGMEM = "--- not implemented"; /*one wire basics: receive bit, wait for it*/
+static const             char commandKeyword33[]              PROGMEM = "OWRb"; /*one wire basics: receive bit, wait for it*/
+static const             char commandShortDescription33[]     PROGMEM = "<pin_mask> <delay> <timeout: N (times delay)> "; /*one wire basics: receive bit, wait for it*/
+static const             char commandImplementation33[]       PROGMEM = "--- not implemented"; /*one wire basics: receive bit, wait for it*/
 
 // index: 34
 #warning to put into one command OW?? with sub commands
-static const char commandKeyword34[]          PROGMEM = "OWRB"; /*one wire basics: receive byte*/
-static const char commandShortDescription34[] PROGMEM = "[<pin_mask>]"; /*one wire basics: receive byte*/
-static const char commandImplementation34[]   PROGMEM = "--- not implemented"; /*one wire basics: receive byte*/
+static const             char commandKeyword34[]              PROGMEM = "OWRB"; /*one wire basics: receive byte*/
+static const             char commandShortDescription34[]     PROGMEM = "[<pin_mask>]"; /*one wire basics: receive byte*/
+static const             char commandImplementation34[]       PROGMEM = "--- not implemented"; /*one wire basics: receive byte*/
 
 // index: 35
 #warning to put into one command OW?? with sub commands
-static const char commandKeyword35[]          PROGMEM = "OWSC"; /*one wire basics: send command*/
-static const char commandShortDescription35[] PROGMEM = "<command_key_word> [<pin_mask> [arguments ...]] "; /*one wire basics: send command*/
-static const char commandImplementation35[]   PROGMEM = "--- not implemented"; /*one wire basics: send command*/
+static const             char commandKeyword35[]              PROGMEM = "OWSC"; /*one wire basics: send command*/
+static const             char commandShortDescription35[]     PROGMEM = "<command_key_word> [<pin_mask> [arguments ...]] "; /*one wire basics: send command*/
+static const             char commandImplementation35[]       PROGMEM = "--- not implemented"; /*one wire basics: send command*/
 
 // index: 36
 #warning to put into one command OW?? with sub commands
-static const char commandKeyword36[]          PROGMEM = "OWSB"; /*one wire basics: send byte*/
-static const char commandShortDescription36[] PROGMEM = "<byte> [<pin_mask>]"; /*one wire basics: send byte*/
-static const char commandImplementation36[]   PROGMEM = "--- not implemented"; /*one wire basics: send byte*/
+static const             char commandKeyword36[]              PROGMEM = "OWSB"; /*one wire basics: send byte*/
+static const             char commandShortDescription36[]     PROGMEM = "<byte> [<pin_mask>]"; /*one wire basics: send byte*/
+static const             char commandImplementation36[]       PROGMEM = "--- not implemented"; /*one wire basics: send byte*/
 
 // index: 37
 #warning to put into one command OW?? with sub commands
-static const char commandKeyword37[]          PROGMEM = "OWSA"; /*one wire API settings: set/get 1-wire specific API settings*/
-static const char commandShortDescription37[] PROGMEM = "<command_key_word> [arguments] "; /*one wire API settings: set/get 1-wire specific API settings*/
-static const char commandImplementation37[]   PROGMEM = "--- not implemented"; /*one wire API settings: set/get 1-wire specific API settings*/
+static const             char commandKeyword37[]              PROGMEM = "OWSA"; /*one wire API settings: set/get 1-wire specific API settings*/
+static const             char commandShortDescription37[]     PROGMEM = "<command_key_word> [arguments] ";
+static const             char commandImplementation37[]       PROGMEM = "one wire API settings";
 
 // index: 38
-static const char commandKeyword38[]          PROGMEM = "WDOG"; /*set/get watch dog status*/
-static const char commandShortDescription38[] PROGMEM = "[???]";
-static const char commandImplementation38[]   PROGMEM = "--- not implemented"; /*wdog*/
+static const             char commandKeyword38[]              PROGMEM = "WDOG"; /*set/get watch dog status*/
+static const             char commandShortDescription38[]     PROGMEM = "[???]";
+static const             char commandImplementation38[]       PROGMEM = "--- not implemented"; /*wdog*/
 
 // index: 39
-static const char commandKeyword39[]          PROGMEM = "EXIT"; /*exit*/
-static const char commandShortDescription39[] PROGMEM = ""; /* exit */
-static const char commandImplementation39[]   PROGMEM = "--- not implemented"; /*exit*/
+static const             char commandKeyword39[]              PROGMEM = "EXIT"; /*exit*/
+static const             char commandShortDescription39[]     PROGMEM = ""; /* exit */
+static const             char commandImplementation39[]       PROGMEM = "--- not implemented"; /*exit*/
 
 // index: 40
-static const char commandKeyword40[]          PROGMEM = "RLTH"; /* relay threshold */
-static const char commandShortDescription40[] PROGMEM = "[command_key_word] <value>";
-static const char commandImplementation40[]   PROGMEM = "relay threshold";
+static const             char commandKeyword40[]              PROGMEM = "RLTH"; /* relay threshold */
+static const             char commandShortDescription40[]     PROGMEM = "[command_key_word] <value>";
+static const             char commandImplementation40[]       PROGMEM = "relay threshold";
 
 // index: 41
-static const char commandKeyword41[]          PROGMEM = "CMD1"; /* command (dummy name) */
-static const char commandShortDescription41[] PROGMEM = "[???]";
-static const char commandImplementation41[]   PROGMEM = "--- not implemented";
+static const             char commandKeyword41[]              PROGMEM = "CMD1"; /* command (dummy name) */
+static const             char commandShortDescription41[]     PROGMEM = "[???]";
+static const             char commandImplementation41[]       PROGMEM = "--- not implemented";
 
 // index: 42
-static const char commandKeyword42[]          PROGMEM = "CMD2"; /* command (dummy name) */
-static const char commandShortDescription42[] PROGMEM = "[???]";
-static const char commandImplementation42[]   PROGMEM = "--- not implemented";
+static const             char commandKeyword42[]              PROGMEM = "CMD2"; /* command (dummy name) */
+static const             char commandShortDescription42[]     PROGMEM = "[???]";
+static const             char commandImplementation42[]       PROGMEM = "--- not implemented";
 
 // index: 43
-static const char commandKeyword43[]          PROGMEM = "CMD3"; /* command (dummy name) */
-static const char commandShortDescription43[] PROGMEM = "[???]";
-static const char commandImplementation43[]   PROGMEM = "--- not implemented";
+static const             char commandKeyword43[]              PROGMEM = "CMD3"; /* command (dummy name) */
+static const             char commandShortDescription43[]     PROGMEM = "[???]";
+static const             char commandImplementation43[]       PROGMEM = "--- not implemented";
 
 // index: 44
-static const char commandKeyword44[]          PROGMEM = "CMD4"; /* command (dummy name) */
-static const char commandShortDescription44[] PROGMEM = "[???]";
-static const char commandImplementation44[]   PROGMEM = "--- not implemented";
+static const             char commandKeyword44[]              PROGMEM = "CMD4"; /* command (dummy name) */
+static const             char commandShortDescription44[]     PROGMEM = "[???]";
+static const             char commandImplementation44[]       PROGMEM = "--- not implemented";
 
 // index: 45
-static const char commandKeyword45[]          PROGMEM = "GNWR"; /* send <address> <data> for waveform generator */
-static const char commandShortDescription45[] PROGMEM = "<address> <data>";
-static const char commandImplementation45[]   PROGMEM = "waveform generator write data";
+static const             char commandKeyword45[]              PROGMEM = "GNWR"; /* send <address> <data> for waveform generator */
+static const             char commandShortDescription45[]     PROGMEM = "<address> <data>";
+static const             char commandImplementation45[]       PROGMEM = "waveform generator write data";
 
 // index: 46
-static const char commandKeyword46[]          PROGMEM = "GNRE";
-static const char commandShortDescription46[] PROGMEM = "<address>";
-static const char commandImplementation46[]   PROGMEM = "waveform generator read data";
+static const             char commandKeyword46[]              PROGMEM = "GNRE";
+static const             char commandShortDescription46[]     PROGMEM = "<address>";
+static const             char commandImplementation46[]       PROGMEM = "waveform generator read data";
 
 // index: 47
-static const char commandKeyword47[]          PROGMEM = "OW8S"; /* set/read state of one wire octal switches */
-static const char commandShortDescription47[] PROGMEM = "[ID [value]]";
-static const char commandImplementation47[]   PROGMEM = "--- 1-wire octal switches";
+static const             char commandKeyword47[]              PROGMEM = "OW8S"; /* set/read state of one wire octal switches */
+static const             char commandShortDescription47[]     PROGMEM = "[ID [value]]";
+static const             char commandImplementation47[]       PROGMEM = "--- 1-wire octal switches";
 
 // index: 48
-static const char commandKeyword48[]          PROGMEM = "TWIS";
-static const char commandShortDescription48[] PROGMEM = "<0|1> <I2C address> <data length> <data byte1 ... byte8>"; /* I2C access */
-static const char commandImplementation48[]   PROGMEM = "--- I2C access";
+static const             char commandKeyword48[]              PROGMEM = "TWIS";
+static const             char commandShortDescription48[]     PROGMEM = "<0|1> <I2C address> <data length> <data byte1 ... byte8>"; /* I2C access */
+static const             char commandImplementation48[]       PROGMEM = "--- I2C access";
 
 // index: 49
-static const char commandKeyword49[]          PROGMEM = "VERS";
-static const char commandShortDescription49[] PROGMEM = "";
-static const char commandImplementation49[]   PROGMEM = "code version";
-
-#if 0
-static const char commandKeyword00[] PROGMEM = "SEND";
-static const char commandKeyword01[] PROGMEM = "SUBS";
-static const char commandKeyword02[] PROGMEM = "USUB";
-static const char commandKeyword03[] PROGMEM = "STAT";
-static const char commandKeyword04[] PROGMEM = "RGWR";
-static const char commandKeyword05[] PROGMEM = "RGRE";
-static const char commandKeyword06[] PROGMEM = "RADC";
-static const char commandKeyword07[] PROGMEM = "OWAD";
-static const char commandKeyword08[] PROGMEM = "OWDS";
-static const char commandKeyword09[] PROGMEM = "OWON";
-static const char commandKeyword10[] PROGMEM = "OWLS";
-static const char commandKeyword11[] PROGMEM = "OWSS";
-static const char commandKeyword12[] PROGMEM = "RSET";
-static const char commandKeyword13[] PROGMEM = "PING";
-static const char commandKeyword14[] PROGMEM = "OWTP";
-static const char commandKeyword15[] PROGMEM = "OWSP"; /*one-wire set active pins/bus mask*/
-
-#warning obsolete functions, included in RLTH
-static const char commandKeyword16[] PROGMEM = "CANT"; /*CAN transmit*/
-static const char commandKeyword17[] PROGMEM = "RLSL"; /*relay set low  level*/
-static const char commandKeyword18[] PROGMEM = "RLSH"; /*relay set high level*/
-static const char commandKeyword19[] PROGMEM = "RLSI"; /*relay set ADC pin(s) to monitor "in" */
-static const char commandKeyword20[] PROGMEM = "RLSO"; /*relay set output pin(s) to switch "out" */
-
-static const char commandKeyword21[] PROGMEM = "DBGL"; /*set debug level*/
-static const char commandKeyword22[] PROGMEM = "DBGM"; /*set debug system mask*/
-static const char commandKeyword23[] PROGMEM = "JTAG"; /*toggle/set JTAG availability*/
-static const char commandKeyword24[] PROGMEM = "HELP"; /*output some help*/
-static const char commandKeyword25[] PROGMEM = "OWTR"; /*trigger one-wire device(s) for action, if possible*/
-static const char commandKeyword26[] PROGMEM = "OWRP"; /*one-wire read active pins/bus mask*/
-
-#warning obsolete functions, included in RLTH
-static const char commandKeyword27[] PROGMEM = "ADRP"; /*AVR's adcs read active pins/bus mask*/
-
-static const char commandKeyword28[] PROGMEM = "DEBG"; /*set/get debug level and mask*/
-static const char commandKeyword29[] PROGMEM = "PARA"; /*check parasitic power supply mode*/
-static const char commandKeyword30[] PROGMEM = "SHOW"; /*show (internal) settings*/
-
-#warning to put into one command with sub commands
-static const char commandKeyword31[] PROGMEM = "OWMR"; /*one wire basics: match rom*/
-static const char commandKeyword32[] PROGMEM = "OWPC"; /*one wire basics: presence check*/
-static const char commandKeyword33[] PROGMEM = "OWRb"; /*one wire basics: receive bit, wait for it*/
-static const char commandKeyword34[] PROGMEM = "OWRB"; /*one wire basics: receive byte*/
-static const char commandKeyword35[] PROGMEM = "OWSC"; /*one wire basics: send command*/
-static const char commandKeyword36[] PROGMEM = "OWSB"; /*one wire basics: send byte*/
-static const char commandKeyword37[] PROGMEM = "OWSA"; /*one wire API settings: set/get 1-wire specific API settings*/
-
-static const char commandKeyword38[] PROGMEM = "WDOG"; /*set/get watch dog status*/
-static const char commandKeyword39[] PROGMEM = "EXIT"; /*exit*/
-static const char commandKeyword40[] PROGMEM = "RLTH"; /* relay threshold */
-
-static const char commandKeyword41[] PROGMEM = "CMD1"; /* command (dummy name) */
-static const char commandKeyword42[] PROGMEM = "CMD2"; /* command (dummy name) */
-static const char commandKeyword43[] PROGMEM = "CMD3"; /* command (dummy name) */
-static const char commandKeyword44[] PROGMEM = "CMD4"; /* command (dummy name) */
-static const char commandKeyword45[] PROGMEM = "GNWR"; /* send <address> <data> for waveform generator */
-static const char commandKeyword46[] PROGMEM = "GNRE"; /* command (dummy name) */
-static const char commandKeyword47[] PROGMEM = "OW8S"; /* set/read state of one wire octal switches */
-static const char commandKeyword48[] PROGMEM = "TWIS"; /* command (dummy name) */
-static const char commandKeyword49[] PROGMEM = "VERS"; /* command (dummy name) */
-#endif
+static const             char commandKeyword49[]              PROGMEM = "VERS";
+static const             char commandShortDescription49[]     PROGMEM = "";
+static const             char commandImplementation49[]       PROGMEM = "code version";
 
 /* this is the corresponding command key array, beware of the same order*/
 const char* commandKeywords[] PROGMEM = {
-		commandKeyword00,
-		commandKeyword01,
-		commandKeyword02,
-		commandKeyword03,
-		commandKeyword04,
-		commandKeyword05,
-		commandKeyword06,
-		commandKeyword07,
-		commandKeyword08,
-		commandKeyword09,
-		commandKeyword10,
-		commandKeyword11,
-		commandKeyword12,
-		commandKeyword13,
-		commandKeyword14,
-		commandKeyword15,
-		commandKeyword16,
-		commandKeyword17,
-		commandKeyword18,
-		commandKeyword19,
-		commandKeyword20,
-		commandKeyword21,
-		commandKeyword22,
-		commandKeyword23,
-		commandKeyword24,
-		commandKeyword25,
-		commandKeyword26,
-		commandKeyword27,
-		commandKeyword28,
-		commandKeyword29,
-		commandKeyword30,
-		commandKeyword31,
-		commandKeyword32,
-		commandKeyword33,
-		commandKeyword34,
-		commandKeyword35,
-		commandKeyword36,
-		commandKeyword37,
-		commandKeyword38,
-		commandKeyword39,
-		commandKeyword40,
-		commandKeyword41,
-		commandKeyword42,
-		commandKeyword43,
-		commandKeyword44,
-		commandKeyword45,
-		commandKeyword46,
-		commandKeyword47,
-		commandKeyword48,
-		commandKeyword49
-
-};
+		commandKeyword00, commandKeyword01, commandKeyword02, commandKeyword03, commandKeyword04, commandKeyword05,
+		commandKeyword06, commandKeyword07, commandKeyword08, commandKeyword09, commandKeyword10, commandKeyword11,
+		commandKeyword12, commandKeyword13, commandKeyword14, commandKeyword15, commandKeyword16, commandKeyword17,
+		commandKeyword18, commandKeyword19, commandKeyword20, commandKeyword21, commandKeyword22, commandKeyword23,
+		commandKeyword24, commandKeyword25, commandKeyword26, commandKeyword27, commandKeyword28, commandKeyword29,
+		commandKeyword30, commandKeyword31, commandKeyword32, commandKeyword33, commandKeyword34, commandKeyword35,
+		commandKeyword36, commandKeyword37, commandKeyword38, commandKeyword39, commandKeyword40, commandKeyword41,
+		commandKeyword42, commandKeyword43, commandKeyword44, commandKeyword45, commandKeyword46, commandKeyword47,
+		commandKeyword48, commandKeyword49 };
 
 /* those are the command keywords of the API*/
-#if 0
-static const char commandShortDescription00[] PROGMEM = "CAN-ID ID-Range [RTR <nBytes> D0 .. D7]";
-static const char commandShortDescription01[] PROGMEM = "CAN-ID ID-Range";
-static const char commandShortDescription02[] PROGMEM = "CAN-ID ID-Range";
-static const char commandShortDescription03[] PROGMEM = "[ID]";
-static const char commandShortDescription04[] PROGMEM = "Register Value";
-static const char commandShortDescription05[] PROGMEM = "Register";
-static const char commandShortDescription06[] PROGMEM = "[<ADC Channel>]";
-static const char commandShortDescription07[] PROGMEM = "[ID [flag_conv [flag_init]]]";
-static const char commandShortDescription08[] PROGMEM = "[ID]";
-static const char commandShortDescription09[] PROGMEM = "[ID]";
-static const char commandShortDescription10[] PROGMEM = "[<Family Code>]";
-static const char commandShortDescription11[] PROGMEM = "[ID]";
-static const char commandShortDescription12[] PROGMEM = "";
-static const char commandShortDescription13[] PROGMEM = "";
-static const char commandShortDescription14[] PROGMEM = "[ID [flag_conv [flag_init]] | <command_keyword> [arguments]]";
-static const char commandShortDescription15[] PROGMEM = "<bus mask>"; /*one-wire set/get active pins/bus mask*/
-static const char commandShortDescription16[] PROGMEM = "CAN-ID ID-Range [RTR <nBytes> D0 .. D7]";
-static const char commandShortDescription17[] PROGMEM = "<bus> [val]"; /*relay set low  level*/
-static const char commandShortDescription18[] PROGMEM = "<bus> [val]"; /*relay set high level*/
-static const char commandShortDescription19[] PROGMEM = "<bus> [pins]"; /*relay set ADC pin(s) to monitor "in" */
-static const char commandShortDescription20[] PROGMEM = "<bus> [pins]"; /*relay set output pin(s) to switch "out" */
-static const char commandShortDescription21[] PROGMEM = "[level]"; /*set debug level*/
-static const char commandShortDescription22[] PROGMEM = "[mask]"; /*set debug system mask*/
-static const char commandShortDescription23[] PROGMEM = ""; /*toggle/set JTAG availability*/
-static const char commandShortDescription24[] PROGMEM = "[CMND]"; /*output some help*/
-static const char commandShortDescription25[] PROGMEM = "[ID] ..."; /*trigger one-wire device(s) for action, if possible*/
-static const char commandShortDescription26[] PROGMEM = ""; /*one-wire read active pins/bus mask*/
-static const char commandShortDescription27[] PROGMEM = ""; /*AVR's adcs read active pins/bus mask*/
-static const char commandShortDescription28[] PROGMEM = "[level [mask]]"; /*set/get debug level and mask*/
-static const char commandShortDescription29[] PROGMEM = "parasitic device test [???]"; /*not yet figured out*/
-static const char commandShortDescription30[] PROGMEM = "[key_word]"; /*show (internal) settings*/
-static const char commandShortDescription31[] PROGMEM = "ID <pin_mask>"; /*one wire basics: match rom*/
-static const char commandShortDescription32[] PROGMEM = "[<pin_mask>]"; /*one wire basics: presence check*/
-static const char commandShortDescription33[] PROGMEM = "<pin_mask> <delay> <timeout: N (times delay)> "; /*one wire basics: receive bit, wait for it*/
-static const char commandShortDescription34[] PROGMEM = "[<pin_mask>]"; /*one wire basics: receive byte*/
-static const char commandShortDescription35[] PROGMEM = "<command_key_word> [<pin_mask> [arguments ...]] "; /*one wire basics: send command*/
-static const char commandShortDescription36[] PROGMEM = "<byte> [<pin_mask>]"; /*one wire basics: send byte*/
-static const char commandShortDescription37[] PROGMEM = "<command_key_word> [arguments] "; /*one wire API settings: set/get 1-wire specific API settings*/
-static const char commandShortDescription38[] PROGMEM = "[???]"; /* watch dog, not yet figured out*/
-static const char commandShortDescription39[] PROGMEM = ""; /* exit */
-static const char commandShortDescription40[] PROGMEM = "[command_key_word] <value>"; /* dummy command */
-static const char commandShortDescription41[] PROGMEM = "[???]"; /* dummy command */
-static const char commandShortDescription42[] PROGMEM = "[???]"; /* dummy command */
-static const char commandShortDescription43[] PROGMEM = "[???]"; /* dummy command */
-static const char commandShortDescription44[] PROGMEM = "[???]"; /* dummy command */
-static const char commandShortDescription45[] PROGMEM = "<address> <data>"; /* dummy command */
-static const char commandShortDescription46[] PROGMEM = "<address>"; /* dummy command */
-static const char commandShortDescription47[] PROGMEM = "[ID [value]]"; /* set/read state of one wire octal switches */
-static const char commandShortDescription48[] PROGMEM = "<0|1> <I2C address> <data length> <data byte1 ... byte8>"; /* I2C access */
-static const char commandShortDescription49[] PROGMEM = ""; /* code version */
-#endif
 
 /* this is the corresponding command key array, beware of the same order*/
-const char* commandShortDescriptions[] PROGMEM= {
-		commandShortDescription00,
-		commandShortDescription01,
-		commandShortDescription02,
-		commandShortDescription03,
-		commandShortDescription04,
-		commandShortDescription05,
-		commandShortDescription06,
-		commandShortDescription07,
-		commandShortDescription08,
-		commandShortDescription09,
-		commandShortDescription10,
-		commandShortDescription11,
-		commandShortDescription12,
-		commandShortDescription13,
-		commandShortDescription14,
-		commandShortDescription15,
-		commandShortDescription16,
-		commandShortDescription17,
-		commandShortDescription18,
-		commandShortDescription19,
-		commandShortDescription20,
-		commandShortDescription21,
-		commandShortDescription22,
-		commandShortDescription23,
-		commandShortDescription24,
-		commandShortDescription25,
-		commandShortDescription26,
-		commandShortDescription27,
-		commandShortDescription28,
-		commandShortDescription29,
-		commandShortDescription30,
-		commandShortDescription31,
-		commandShortDescription32,
-		commandShortDescription33,
-		commandShortDescription34,
-		commandShortDescription35,
-		commandShortDescription36,
-		commandShortDescription37,
-		commandShortDescription38,
-		commandShortDescription39,
-		commandShortDescription40,
-		commandShortDescription41,
-		commandShortDescription42,
-		commandShortDescription43,
-		commandShortDescription44,
-		commandShortDescription45,
-		commandShortDescription46,
-		commandShortDescription47,
-		commandShortDescription48,
-		commandShortDescription49
+const char* commandShortDescriptions[] PROGMEM = {
+		commandShortDescription00, commandShortDescription01, commandShortDescription02, commandShortDescription03,
+		commandShortDescription04, commandShortDescription05, commandShortDescription06, commandShortDescription07,
+		commandShortDescription08, commandShortDescription09, commandShortDescription10, commandShortDescription11,
+		commandShortDescription12, commandShortDescription13, commandShortDescription14, commandShortDescription15,
+		commandShortDescription16, commandShortDescription17, commandShortDescription18, commandShortDescription19,
+		commandShortDescription20, commandShortDescription21, commandShortDescription22, commandShortDescription23,
+		commandShortDescription24, commandShortDescription25, commandShortDescription26, commandShortDescription27,
+		commandShortDescription28, commandShortDescription29, commandShortDescription30, commandShortDescription31,
+		commandShortDescription32, commandShortDescription33, commandShortDescription34, commandShortDescription35,
+		commandShortDescription36, commandShortDescription37, commandShortDescription38, commandShortDescription39,
+		commandShortDescription40, commandShortDescription41, commandShortDescription42, commandShortDescription43,
+		commandShortDescription44, commandShortDescription45, commandShortDescription46, commandShortDescription47,
+		commandShortDescription48, commandShortDescription49
 };
-
-#if 0
-/* those are the command keywords of the API*/
-static const char commandImplementation00[] PROGMEM = "";
-static const char commandImplementation01[] PROGMEM = "";
-static const char commandImplementation02[] PROGMEM = "";
-static const char commandImplementation03[] PROGMEM = "--- not implemented";
-static const char commandImplementation04[] PROGMEM = "";
-static const char commandImplementation05[] PROGMEM = "";
-static const char commandImplementation06[] PROGMEM = "";
-static const char commandImplementation07[] PROGMEM = "";
-static const char commandImplementation08[] PROGMEM = "--- [ID] not implemented";
-static const char commandImplementation09[] PROGMEM = "--- [ID] not implemented";
-static const char commandImplementation10[] PROGMEM = "";
-static const char commandImplementation11[] PROGMEM = "--- [ID] not implemented";
-static const char commandImplementation12[] PROGMEM = "";
-static const char commandImplementation13[] PROGMEM = "";
-static const char commandImplementation14[] PROGMEM = "";
-static const char commandImplementation15[] PROGMEM = ""; /*one-wire set/get active pins/bus mask*/
-static const char commandImplementation16[] PROGMEM = "";
-static const char commandImplementation17[] PROGMEM = "--- not implemented"; /*relay set low  level*/
-static const char commandImplementation18[] PROGMEM = "--- not implemented"; /*relay set high level*/
-static const char commandImplementation19[] PROGMEM = "--- not implemented"; /*relay set ADC pin(s) to monitor "in" */
-static const char commandImplementation20[] PROGMEM = "--- not implemented"; /*relay set output pin(s) to switch "out" */
-static const char commandImplementation21[] PROGMEM = ""; /*set debug level*/
-static const char commandImplementation22[] PROGMEM = ""; /*set debug system mask*/
-static const char commandImplementation23[] PROGMEM = "--- not implemented"; /*toggle/set JTAG availability*/
-static const char commandImplementation24[] PROGMEM = ""; /*output some help*/
-static const char commandImplementation25[] PROGMEM = "--- not implemented"; /*trigger one-wire device(s) for action, if possible*/
-static const char commandImplementation26[] PROGMEM = ""; /*one-wire read active pins/bus mask*/
-static const char commandImplementation27[] PROGMEM = "--- not implemented"; /*AVR's adcs read active pins/bus mask*/
-static const char commandImplementation28[] PROGMEM = ""; /*set/get debug level and mask*/
-static const char commandImplementation29[] PROGMEM = "";
-static const char commandImplementation30[] PROGMEM = "";
-static const char commandImplementation31[] PROGMEM = "--- not implemented"; /*one wire basics: match rom*/
-static const char commandImplementation32[] PROGMEM = "--- not implemented"; /*one wire basics: presence check*/
-static const char commandImplementation33[] PROGMEM = "--- not implemented"; /*one wire basics: receive bit, wait for it*/
-static const char commandImplementation34[] PROGMEM = "--- not implemented"; /*one wire basics: receive byte*/
-static const char commandImplementation35[] PROGMEM = "--- not implemented"; /*one wire basics: send command*/
-static const char commandImplementation36[] PROGMEM = "--- not implemented"; /*one wire basics: send byte*/
-static const char commandImplementation37[] PROGMEM = "--- not implemented"; /*one wire API settings: set/get 1-wire specific API settings*/
-static const char commandImplementation38[] PROGMEM = "--- not implemented"; /*wdog*/
-static const char commandImplementation39[] PROGMEM = "--- not implemented"; /*exit*/
-static const char commandImplementation40[] PROGMEM = ""; /*dummy command*/
-static const char commandImplementation41[] PROGMEM = "--- not implemented"; /*dummy command*/
-static const char commandImplementation42[] PROGMEM = "--- not implemented"; /*dummy command*/
-static const char commandImplementation43[] PROGMEM = "--- not implemented"; /*dummy command*/
-static const char commandImplementation44[] PROGMEM = "--- not implemented"; /*dummy command*/
-static const char commandImplementation45[] PROGMEM = "Waveform Generator send data"; /*dummy command*/
-static const char commandImplementation46[] PROGMEM = "Waveform Generator read data"; /*dummy command*/
-static const char commandImplementation47[] PROGMEM = ""; /* set/read state of one wire octal switches */
-static const char commandImplementation48[] PROGMEM = ""; /*I2C access*/
-static const char commandImplementation49[] PROGMEM = ""; /*code version*/
-#endif
 
 /* this is the corresponding command key array, beware of the same order*/
 const char* commandImplementations[] PROGMEM= {
-		commandImplementation00,
-		commandImplementation01,
-		commandImplementation02,
-		commandImplementation03,
-		commandImplementation04,
-		commandImplementation05,
-		commandImplementation06,
-		commandImplementation07,
-		commandImplementation08,
-		commandImplementation09,
-		commandImplementation10,
-		commandImplementation11,
-		commandImplementation12,
-		commandImplementation13,
-		commandImplementation14,
-		commandImplementation15,
-		commandImplementation16,
-		commandImplementation17,
-		commandImplementation18,
-		commandImplementation19,
-		commandImplementation20,
-		commandImplementation21,
-		commandImplementation22,
-		commandImplementation23,
-		commandImplementation24,
-		commandImplementation25,
-		commandImplementation26,
-		commandImplementation27,
-		commandImplementation28,
-		commandImplementation29,
-		commandImplementation30,
-		commandImplementation31,
-		commandImplementation32,
-		commandImplementation33,
-		commandImplementation34,
-		commandImplementation35,
-		commandImplementation36,
-		commandImplementation37,
-		commandImplementation38,
-		commandImplementation39,
-		commandImplementation40,
-		commandImplementation41,
-		commandImplementation42,
-		commandImplementation43,
-		commandImplementation44,
-		commandImplementation45,
-		commandImplementation46,
-		commandImplementation47,
-		commandImplementation48,
-		commandImplementation49
-};
+		commandImplementation00, commandImplementation01, commandImplementation02, commandImplementation03,
+		commandImplementation04, commandImplementation05, commandImplementation06, commandImplementation07,
+		commandImplementation08, commandImplementation09, commandImplementation10, commandImplementation11,
+		commandImplementation12, commandImplementation13, commandImplementation14, commandImplementation15,
+		commandImplementation16, commandImplementation17, commandImplementation18, commandImplementation19,
+		commandImplementation20, commandImplementation21, commandImplementation22, commandImplementation23,
+		commandImplementation24, commandImplementation25, commandImplementation26, commandImplementation27,
+		commandImplementation28, commandImplementation29, commandImplementation30, commandImplementation31,
+		commandImplementation32, commandImplementation33, commandImplementation34, commandImplementation35,
+		commandImplementation36, commandImplementation37, commandImplementation38, commandImplementation39,
+		commandImplementation40, commandImplementation41, commandImplementation42, commandImplementation43,
+		commandImplementation44, commandImplementation45, commandImplementation46, commandImplementation47,
+		commandImplementation48, commandImplementation49 };
 
 /* pointer of array for defined serial error number*/
 static const char se00[] PROGMEM = "no valid command name";
@@ -702,17 +412,13 @@ static const char se31[] PROGMEM = "argument(s) exceed(s) allowed boundary";
 static const char se32[] PROGMEM = "too many arguments";
 
 const char *serial_error[] PROGMEM = {
-		se00, se01, se02, se03, se04,
-		se05, se06, se07, se08, se09,
-		se10, se11, se12, se13, se14,
-		se15, se16, se17, se18, se19,
-		se20, se21, se22, se23, se24,
-		se25, se26, se27, se28, se29,
-		se30, se31, se32 };
+		se00, se01, se02, se03, se04, se05, se06, se07, se08, se09, se10, se11, se12, se13, se14, se15, se16, se17, se18,
+		se19, se20, se21, se22, se23, se24, se25, se26, se27, se28, se29, se30, se31, se32 };
 
 
 /* array for defined serial error number*/
-const uint8_t serial_error_number[] = { 11, 12, 13, 14, 15, 16, 17, 18, 19, 110,
+const uint8_t serial_error_number[] = {
+		11, 12, 13, 14, 15, 16, 17, 18, 19, 110,
 		111, 112, 113, 114, 115, 116, 117, 118, 119, 120,
 		121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
 		131};
@@ -818,8 +524,15 @@ const char *errorTypes[] PROGMEM = {
 int8_t UART0_Init( void )
 {
 	uint8_t intstate1 = SREG;/*save global interrupt flag*/
-	cli();
 	/*disable interrupt*/
+	cli();
+
+	//clear strings
+	clearString(uart_message_string, BUFFER_SIZE);
+	clearString(decrypt_uartString, BUFFER_SIZE);
+	clearString(uartString, BUFFER_SIZE);
+	clearString(message, BUFFER_SIZE);
+
 	while ( 0 << TXC0 )
 	{
 #warning timeout needed
@@ -827,12 +540,16 @@ int8_t UART0_Init( void )
 	/* set baud rate*/
 	UBRR0H = (uint8_t) ( BAUD >> 8 );
 	UBRR0L = (uint8_t) ( BAUD );
+
 	/* set frame format: i will set it now as 8 bits, no parity 1 stop bit, asynchronous*/
 	UCSR0C = ( 0 << UMSEL0 ) | ( 0 << UPM0 ) | ( 0 << USBS0 ) | ( 3 << UCSZ0 );
+
 	/*set double speed*/
 	UCSR0A = ( 1 << U2X0 );
+
 	/*enable receiver and transmitter; enable RX and Data register empty interrupt*/
 	UCSR0B = ( 1 << TXEN0 ) | ( 1 << RXEN0 ) | ( 1 << RXCIE0 );
+
 	SREG = intstate1; /*restore global interrupt flag*/
 	return 1;
 }//END of  UART0_Init
@@ -894,7 +611,7 @@ void Process_Uart_Event(void)
 	/* split uart string into its elements */
 
 	int8_t number_of_elements = -1;
-	number_of_elements = Decrypt_Uart_String();
+	number_of_elements = uartSplitUartString();
 
  	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("number of string elements found: %i"), number_of_elements);
 
@@ -913,39 +630,48 @@ void Process_Uart_Event(void)
 		{
 			Check_Error(ptr_uartStruct);
 		}
-		else
+		else /* ptr_uartStruct->commandKeywordIndex >= 0 */
 		{
 			switch(ptr_uartStruct->commandKeywordIndex)
 			{
-			case commandKeyNumber_HELP: /*use its own parameter handling*/
-			case commandKeyNumber_SHOW: /*use its own parameter handling*/
-			case commandKeyNumber_OWSA: /*use its own parameter handling*/
-			case commandKeyNumber_OWSC: /*use its own parameter handling*/
-			case commandKeyNumber_RLTH: /*use its own parameter handling*/
-			case commandKeyNumber_TWIS: /*use its own parameter handling*/
-			case commandKeyNumber_DEBG: /*use its own parameter handling*/
-			   Choose_Function(ptr_uartStruct);
+			/*use its own parameter parsing*/
+			case commandKeyNumber_HELP:
+			case commandKeyNumber_SHOW:
+			case commandKeyNumber_OWSA:
+			case commandKeyNumber_RLTH:
+			case commandKeyNumber_TWIS:
+			case commandKeyNumber_DEBG:
+				Choose_Function(ptr_uartStruct);
 				break;
-			case commandKeyNumber_OWTP: /*use its own parameter handling, ID access*/
-			case commandKeyNumber_OWAD: /*use its own parameter handling, ID access*/
-			case commandKeyNumber_OWDS: /*use its own parameter handling, ID access*/
-			case commandKeyNumber_OWSS: /*use its own parameter handling, ID access*/
-			case commandKeyNumber_OWON: /*use its own parameter handling, ID access*/
-			case commandKeyNumber_OWMR: /*use its own parameter handling, ID access*/
-			case commandKeyNumber_OW8S: /*use its own parameter handling, ID access*/ // flo
-			   if ( 0 == ConvertUartDataToOwiStruct() )
+				/*use 1-wire parsing*/
+			case commandKeyNumber_OWTP:
+			case commandKeyNumber_OWAD:
+			case commandKeyNumber_OWDS:
+			case commandKeyNumber_OWSS:
+			case commandKeyNumber_OW8S:
+			case commandKeyNumber_OWLS:
+			case commandKeyNumber_OWMR:
+			case commandKeyNumber_OWPC:
+			case commandKeyNumber_OWRb:
+			case commandKeyNumber_OWRB:
+			case commandKeyNumber_OWSC:
+			case commandKeyNumber_OWSB:
+			   if ( 0 == owiConvertUartDataToOwiStruct() )
 			   {
 			      Choose_Function(ptr_uartStruct);
 			   }
 			   break;
-			default:
+			case commandKeyNumber_SEND:
+			case commandKeyNumber_SUBS:
+			case commandKeyNumber_USUB:
+			case commandKeyNumber_CANT:
+			case commandKeyNumber_CANS:
+			case commandKeyNumber_CANU:
+			case commandKeyNumber_CANP:
+			case commandKeyNumber_CAN:
 				/* call the function for the conversion frame format into CAN format*/
-				Convert_UartData_to_UartStruct(setParameter);
-				/*call the function Check_Parameter*/
-				/* TODO: improve this for different command keywords than CAN based,
-				 * i.e. think to do checks maybe later when already having chosen the
-				 * right function*/
-				if ( TRUE == Check_Parameter(ptr_uartStruct) )
+				apiConvertUartDataToCanUartStruct(0);
+				if ( TRUE == canCheckParameterCanFormat(ptr_uartStruct) )
 				{
 					Choose_Function(ptr_uartStruct);
 				}
@@ -953,6 +679,25 @@ void Process_Uart_Event(void)
 				{
 					Check_Error(ptr_uartStruct);
 				}
+			   break;
+			case commandKeyNumber_RGWR:
+			case commandKeyNumber_RGRE:
+			case commandKeyNumber_RADC:
+			case commandKeyNumber_DBGL:
+			case commandKeyNumber_DBGM:
+			case commandKeyNumber_JTAG:
+			case commandKeyNumber_PARA:
+			case commandKeyNumber_GNWR:
+			case commandKeyNumber_GNRE:
+			case commandKeyNumber_VERS:
+			default:
+				/* call the function for the conversion frame format into CAN format*/
+				apiConvertUartDataToCanUartStruct(0);
+				/*call the function Check_Parameter*/
+				/* TODO: improve this for different command keywords than CAN based,
+				 * i.e. think to do checks maybe later when already having chosen the
+				 * right function*/
+				Choose_Function(ptr_uartStruct);
 				break;
 			}
 		}
@@ -975,9 +720,9 @@ void Process_Uart_Event(void)
  *          FALSE else
  */
 
-int8_t Decrypt_Uart_String( void )
+int8_t uartSplitUartString( void )
 {
-	uint8_t index_parameter;
+	uint8_t parameterIndex;
 
 	/* maximum length check of input */
 
@@ -994,17 +739,16 @@ int8_t Decrypt_Uart_String( void )
 
 	/*
 	 * disassemble the decrypt_uartString into stringlets
-	 * separated by delimiters "delim"
+	 * separated by delimiters UART_DELIMITER
 	 * into elements of array setParameter
 	 */
 
-	const char *delims = " ";
 	char *test = NULL;
 	char *result = NULL; /* pointer init */
 
 	/* initial iteration */
-	result = strtok_r(decrypt_uartString, delims, &test); /*search spaces in string */
-	index_parameter = 0; /* pointer of setParameter*/
+	result = strtok_rP(decrypt_uartString, PSTR(UART_DELIMITER), &test); /*search spaces in string */
+	parameterIndex = 0; /* pointer of setParameter*/
 
 	while ( result != NULL )
 	{
@@ -1018,11 +762,11 @@ int8_t Decrypt_Uart_String( void )
 			return 0;
 		}
 
-		strncpy(setParameter[index_parameter], result, MAX_LENGTH_PARAMETER);
-		result = strtok_r(NULL, delims, &test);
-		index_parameter++;
+		strncpy(setParameter[parameterIndex], result, MAX_LENGTH_PARAMETER);
+		result = strtok_rP(NULL, PSTR(UART_DELIMITER), &test);
+		parameterIndex++;
 
-		if ( MAX_PARAMETER < index_parameter )
+		if ( MAX_PARAMETER < parameterIndex )
 		{
 			uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_too_many_arguments, FALSE, NULL);
 	        clearString(decrypt_uartString, BUFFER_SIZE);
@@ -1031,39 +775,182 @@ int8_t Decrypt_Uart_String( void )
 		}
 	}
 
- 	printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, PSTR(__FILE__), PSTR("found %i arguments "), index_parameter-1);
+ 	printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, PSTR(__FILE__), PSTR("found %i arguments "), parameterIndex-1);
 
 
     clearString(decrypt_uartString, BUFFER_SIZE);
      /* "reset": decrypt_uartString[0] = '\0'; */
 
-	return index_parameter;
+	return parameterIndex;
 
-}//END of Decrypt_Uart_String function
+}//END of uartSplitUartString function
 
 
 /*
  *this function assigns the various parameters of the string to the structure and reviewed the range of *individual  parameters.
- *the  function has a two dimensional array from string via serial interface as input and returns no parameter
+ *the  function uses the
+ *	global two dimensional array char setParameter[MAX_PARAMETER][MAX_LENGTH_PARAMETER] (as input)
+ *		and the offset to start from
+ *	and returns no parameter
  */
 
-void Convert_UartData_to_UartStruct( char string[MAX_PARAMETER][MAX_LENGTH_PARAMETER] )
+void apiConvertUartDataToCanUartStruct( uint8_t offset )
 {
 	/* convert char in hexadecimal*/
 
+#warning TODO: strtoul and its tailptr correctly applied
+#warning TODO: is setParameter still useful
+
+	// http://www.gnu.org/software/libc/manual/html_node/Parsing-of-Integers.html
+	//
+	// The strtol (``string-to-long'') function converts the initial
+	// part of string to a signed integer, which is returned as a
+	// value of type long int.
+	//
+	//This function attempts to decompose string as follows:
+	//
+	//	- A (possibly empty) sequence of whitespace
+	//	 characters. Which characters are whitespace is
+	//	 determined by the isspace function . These are
+	//	 discarded.
+	//
+	//	- An optional plus or minus sign (+ or -).
+	//
+	//	- A nonempty sequence of digits in the radix
+	//	 specified by base.
+	//
+	//If base is zero, decimal radix is assumed unless the
+	// series of digits begins with 0 (specifying octal radix), or
+	// 0x or 0X (specifying hexadecimal radix); in other words,
+	// the same syntax used for integer constants in C.
+	//
+	//Otherwise base must have a value between 2 and 36. If
+	// base is 16, the digits may optionally be preceded by 0x
+	// or 0X. If base has no legal value the value returned is 0l
+	// and the global variable errno is set to EINVAL.
+	//
+	//	- Any remaining characters in the string. If tailptr is
+	//	 not a null pointer, strtol stores a pointer to this tail in
+	//	 *tailptr.
+	//
+	//If the string is empty, contains only whitespace, or does
+	// not contain an initial substring that has the expected
+	// syntax for an integer in the specified base, no
+	// conversion is performed. In this case, strtol returns a
+	// value of zero and the value stored in *tailptr is the value
+	// of string.
+	//
+	//In a locale other than the standard "C" locale, this
+	// function may recognize additional implementation-
+	// dependent syntax.
+	//
+	//If the string has valid syntax for an integer but the value
+	// is not representable because of overflow, strtol returns
+	// either LONG_MAX or LONG_MIN , as appropriate for the
+	// sign of the value. It also sets errno to ERANGE to
+	// indicate there was overflow.
+	//
+	//You should not check for errors by examining the return
+	// value of strtol, because the string might be a valid
+	// representation of 0l, LONG_MAX, or LONG_MIN. Instead,
+	// check whether tailptr points to what you expect after
+	// the number (e.g. '\0' if the string should end after the
+	// number). You also need to clear errno before the call
+	// and check it afterward, in case there was overflow.
+	//
+	//Here is a function which parses a string as a sequence of integers and returns the sum of them
+	//    int
+	//    sum_ints_from_string (char *string)
+	//    {
+	//      int sum = 0;
+	//
+	//      while (1) {
+	//        char *tail;
+	//        int next;
+	//
+	//        /* Skip whitespace by hand, to detect the end.  */
+	//        while (isspace (*string)) string++;
+	//        if (*string == 0)
+	//          break;
+	//
+	//        /* There is more nonwhitespace,  */
+	//        /* so it ought to be another number.  */
+	//        errno = 0;
+	//        /* Parse it.  */
+	//        next = strtol (string, &tail, 0);
+	//        /* Add it in, if not overflow.  */
+	//        if (errno)
+	//          printf ("Overflow\n");
+	//        else
+	//          sum += next;
+	//        /* Advance past it.  */
+	//        string = tail;
+	//      }
+	//
+	//      return sum;
+	//    }
+
 	//   ptr_uartStruct->Name = setParameter[0];
-	ptr_uartStruct->Uart_Message_ID = (uint32_t) strtoul(setParameter [1], &ptr_setParameter[1], 16);
-	ptr_uartStruct->Uart_Mask       = (uint32_t) strtoul(setParameter [2], &ptr_setParameter[2], 16);
-	ptr_uartStruct->Uart_Rtr        = (uint8_t)  strtoul(setParameter [3], &ptr_setParameter[3], 16);
-	ptr_uartStruct->Uart_Length     = (uint8_t)  strtoul(setParameter [4], &ptr_setParameter[4], 16);
-	ptr_uartStruct->Uart_Data[0]    = (uint16_t) strtoul(setParameter [5], &ptr_setParameter[5], 16);
-	ptr_uartStruct->Uart_Data[1]    = (uint16_t) strtoul(setParameter [6], &ptr_setParameter[6], 16);
-	ptr_uartStruct->Uart_Data[2]    = (uint16_t) strtoul(setParameter [7], &ptr_setParameter[7], 16);
-	ptr_uartStruct->Uart_Data[3]    = (uint16_t) strtoul(setParameter [8], &ptr_setParameter[8], 16);
-	ptr_uartStruct->Uart_Data[4]    = (uint16_t) strtoul(setParameter [9], &ptr_setParameter[9], 16);
-	ptr_uartStruct->Uart_Data[5]    = (uint16_t) strtoul(setParameter[10], &ptr_setParameter[10], 16);
-	ptr_uartStruct->Uart_Data[6]    = (uint16_t) strtoul(setParameter[11], &ptr_setParameter[11], 16);
-	ptr_uartStruct->Uart_Data[7]    = (uint16_t) strtoul(setParameter[12], &ptr_setParameter[12], 16);
+	if (1 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Message_ID = (uint32_t) strtoul(setParameter [1 + offset], &ptr_setParameter[ 1 + offset], 16);
+	if (2 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Mask       = (uint32_t) strtoul(setParameter [2 + offset], &ptr_setParameter[ 2 + offset], 16);
+	if (3 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Rtr        = (uint8_t)  strtoul(setParameter [3 + offset], &ptr_setParameter[ 3 + offset], 16);
+	if (4 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Data[0]    = (uint16_t) strtoul(setParameter [5 + offset], &ptr_setParameter[ 4 + offset], 16);
+	if (5 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Length     = (uint8_t)  strtoul(setParameter [4 + offset], &ptr_setParameter[ 5 + offset], 16);
+	if (6 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Data[1]    = (uint16_t) strtoul(setParameter [6 + offset], &ptr_setParameter[ 6 + offset], 16);
+	if (7 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Data[2]    = (uint16_t) strtoul(setParameter [7 + offset], &ptr_setParameter[ 7 + offset], 16);
+	if (8 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Data[3]    = (uint16_t) strtoul(setParameter [8 + offset], &ptr_setParameter[ 8 + offset], 16);
+	if (9 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Data[4]    = (uint16_t) strtoul(setParameter [9 + offset], &ptr_setParameter[ 9 + offset], 16);
+	if (10 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Data[5]    = (uint16_t) strtoul(setParameter[10 + offset], &ptr_setParameter[10 + offset], 16);
+	if (11 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Data[6]    = (uint16_t) strtoul(setParameter[11 + offset], &ptr_setParameter[11 + offset], 16);
+	if (12 + offset >= MAX_PARAMETER)
+	{
+		return;
+	}
+	ptr_uartStruct->Uart_Data[7]    = (uint16_t) strtoul(setParameter[12 + offset], &ptr_setParameter[12 + offset], 16);
 
 } // END of function Convert_UartFormat_to_CanFormat
 
@@ -1087,9 +974,6 @@ int Parse_Keyword(char string[])
  	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("Parse_Keyword %s"), string);
 	for ( keywordNumber = 0; keywordNumber < commandKeyNumber_MAXIMUM_NUMBER ; keywordNumber++ )
 	{
-       /*exclude list*/
-       if ( commandKeyNumber_OWON == keywordNumber) { continue; }
-
 		if ( 0 == strncmp_P(&string[0], (const char*) (pgm_read_word( &(commandKeywords[keywordNumber]))), MAX_LENGTH_PARAMETER) )
 		{
  			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches "), string);
@@ -1114,39 +998,9 @@ int8_t Check_Parameter( struct uartStruct *ptr_uartStruct )
 {
 	/*check correct keyword*/
 	/*check range of parameter*/
-	return ( 0 <= ptr_uartStruct->commandKeywordIndex && TRUE == Check_Parameter_CanFormat(ptr_uartStruct) ) ? TRUE : FALSE;
+	return ( 0 <= ptr_uartStruct->commandKeywordIndex && TRUE == canCheckParameterCanFormat(ptr_uartStruct) ) ? TRUE : FALSE;
 }
 
-/* this function checks whether all the received parameters are valid
- * the function has a pointer of the serial structure as input and returns no parameter
- * returns TRUE if all checks are passed
- * returns FALSE else
- */
-
-int8_t Check_Parameter_CanFormat( struct uartStruct *ptr_uartStruct)
-{
-   /*check range of parameter*/
-
-   for (uint8_t index = 1; index < MAX_PARAMETER; index ++)
-   {
-      if ( 0 != *ptr_setParameter[index] ) return FALSE;
-   }
-
-   if ( 0x7FFFFFF  < ptr_uartStruct->Uart_Message_ID ) return FALSE;
-   if ( 0x7FFFFFF  < ptr_uartStruct->Uart_Mask       ) return FALSE;
-   if ( 1          < ptr_uartStruct->Uart_Rtr        ) return FALSE;
-   if ( 8          < ptr_uartStruct->Uart_Length     ) return FALSE;
-   if ( 0XFF       < ptr_uartStruct->Uart_Data[0]    ) return FALSE;
-   if ( 0XFF       < ptr_uartStruct->Uart_Data[1]    ) return FALSE;
-   if ( 0XFF       < ptr_uartStruct->Uart_Data[2]    ) return FALSE;
-   if ( 0XFF       < ptr_uartStruct->Uart_Data[3]    ) return FALSE;
-   if ( 0XFF       < ptr_uartStruct->Uart_Data[4]    ) return FALSE;
-   if ( 0XFF       < ptr_uartStruct->Uart_Data[5]    ) return FALSE;
-   if ( 0XFF       < ptr_uartStruct->Uart_Data[6]    ) return FALSE;
-   if ( 0XFF       < ptr_uartStruct->Uart_Data[7]    ) return FALSE;
-   return TRUE;
-
-}
 
 /* this function clears the container setParameter
  * the function has no input
@@ -1184,7 +1038,7 @@ void Reset_UartStruct( struct uartStruct *ptr_uartStruct )
 }
 
 /* this function checks error for the received parameter
- * the function has a pointer of the serial structur as input and returns no parameter
+ * the function has a pointer of the serial structure as input and returns no parameter
  */
 
 int8_t Check_Error( struct uartStruct *ptr_uartStruct )
@@ -1219,9 +1073,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
     	  case commandKeyNumber_SEND: /*CAN*/
     	  case commandKeyNumber_SUBS: /*CAN*/
     	  case commandKeyNumber_USUB: /*CAN*/
-    	  {
     		  error = canCheckInputParameterError(ptr_uartStruct);
-    	  }
     	  break;
     	  case commandKeyNumber_TWIS: /*I2C*/
     	  {
@@ -1258,47 +1110,32 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 	switch (ptr_uartStruct->commandKeywordIndex)
 	{
 	case commandKeyNumber_SEND:
+	case commandKeyNumber_CANT:
+		/* command : SEND CAN-Message-ID ID-Range [RTR=0 <Number of data bytes = 0> Data0 ... Data7] */
+		/* no RTR */
+		/* command      : SEND CAN-Message-ID ID-Range 0 <Number of data bytes> Data0 ... Data7]
+		 * response now : RECV SEND CAN-Message-ID "command will be carried out"*/
+		/* RTR */
+		/* command      : SEND CAN-Message-ID ID-Range 1 <Number of requested data bytes>]
+		 * response  now: RECV CAN_Mob CAN-Message-ID CAN-Length [Data0 ... Data7] */
+		/* response TODO: RECV SEND CAN-Message-ID CAN-Length [Data0 ... Data7] */
+		canSendMessage(ptr_uartStruct); /* call function with name canSendMessage */
+		break;
 	case commandKeyNumber_SUBS:
+	case commandKeyNumber_CANS:
+		/* command : SUBS CAN-Message-ID ID-Range
+		 * response: */
+		Subscribe_Message(ptr_uartStruct);
+		break;
 	case commandKeyNumber_USUB:
-	{
-		Convert_UartData_to_UartStruct(setParameter);
-		if (TRUE == Check_Parameter_CanFormat(ptr_uartStruct))
-		{
-			switch ( ptr_uartStruct->commandKeywordIndex )
-			{
-			case commandKeyNumber_SEND:
-				/* command : SEND CAN-Message-ID ID-Range [RTR=0 <Number of data bytes = 0> Data0 ... Data7] */
-					/* no RTR */
-					/* command      : SEND CAN-Message-ID ID-Range 0 <Number of data bytes> Data0 ... Data7]
-					 * response now : RECV SEND CAN-Message-ID "command will be carried out"*/
-					/* RTR */
-					/* command      : SEND CAN-Message-ID ID-Range 1 <Number of requested data bytes>]
-					 * response  now: RECV CAN_Mob CAN-Message-ID CAN-Length [Data0 ... Data7] */
-					/* response TODO: RECV SEND CAN-Message-ID CAN-Length [Data0 ... Data7] */
-					canSendMessage(ptr_uartStruct); /* call function with name canSendMessage */
-				break;
-			case commandKeyNumber_SUBS:
-				/* command : SUBS CAN-Message-ID ID-Range
-				 * response: */
-				Subscribe_Message(ptr_uartStruct); /* call function with name Subscribe_Message */
-				break;
-			case commandKeyNumber_USUB:
-				/* command : USUB CAN-Message-ID ID-Range
-				 * response: */
-				Unsubscribe_Message(ptr_uartStruct); /* call function with name Unsubscribe_Message */
-				break;
-			}
-		}
-		else { Check_Error(ptr_uartStruct);}
-	}
-	break;
-	case commandKeyNumber_STAT:
-		/* command  : STAT [ID]*/
-		/* response : RECV STAT ID1 description1 status1\r
-		 *            ...
-		 *            RECV STAT IDX descriptionX statusX\n */
-		/* originally ment to read the pressure in the bus*/
-		//atmelControlLoopReadStatus(ptr_uartStruct);
+	case commandKeyNumber_CANU:
+		/* command : USUB CAN-Message-ID ID-Range
+		 * response: */
+		Unsubscribe_Message(ptr_uartStruct);
+		break;
+	case commandKeyNumber_CANP:
+	case commandKeyNumber_CAN:
+		/*not yet implemented*/
 		break;
 	case commandKeyNumber_OWTP:
 		/* command : OWTP [ID / keyword [keyword arguments]]
@@ -1333,9 +1170,6 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		owiReadADCs(ptr_uartStruct);
 		/* similar to OWTP*/
 		break;
-//	case commandKeyNumber_OWON:
-//		dualSwitches_ON(ptr_uartStruct);
-//		break;
 	case commandKeyNumber_OWDS: /*set/get one wire dual switches*/
 		owiDualSwitches(ptr_uartStruct);
 		break;
@@ -1353,7 +1187,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 	   owiShowDevicesID(ptr_uartStruct);
 		break;
 	case commandKeyNumber_PING:
-		keep_alive(ptr_uartStruct); /* call function with name  readRegister */
+		keep_alive(ptr_uartStruct);
 		break;
 	case commandKeyNumber_OWSP: /*one-wire set active pins/bus mask*/
 		/* command : OWSP FC
@@ -1365,21 +1199,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		 * response: RECV OWRP value */
 		getOneWireBusMask(ptr_uartStruct);
 		break;
-	case commandKeyNumber_CANT: /*AVR's adcs set active pins/bus mask*/
-		break;
-	case commandKeyNumber_RLSL: /*relay set low  level*/
-		break;
-	case commandKeyNumber_RLSH: /*relay set high level*/
-		break;
-	case commandKeyNumber_RLSI: /*relay set ADC pin(s) to monitor "in" */
-		break;
-	case commandKeyNumber_RLSO: /*relay set output pin(s) to switch "out" */
-		break;
 	case commandKeyNumber_PARA: /*parasitic devices*/
 	   owiFindParasitePoweredDevices(TRUE);
 		break;
-//    case commandKeyNumber_WDOG: /*watch dog*/
-//        break;
 	case commandKeyNumber_SHOW: /*show (internal) settings*/
 		show(ptr_uartStruct);
 		break;
@@ -1388,29 +1210,26 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		 * set response: ...
 		 * get response: RECV DEBG level mask*/
 		apiDebug(ptr_uartStruct);
-		/*readModifyDebugLevelAndMask(ptr_uartStruct);*/
 		break;
 	case commandKeyNumber_DBGL: /*set/get debug level*/
 		/* command : DBGL [level]
 		 * set response: ...
 		 * get response: RECV DBGL level */
 		apiDebug(ptr_uartStruct);
-		/*readModifyDebugLevel(ptr_uartStruct);*/
 		break;
 	case commandKeyNumber_DBGM: /*set/get only debug system mask*/
 		/* command : DBGM [mask]
 		 * set response: ...
 		 * get response: RECV DBGM mask*/
 		apiDebug(ptr_uartStruct);
-		/*readModifyDebugMask(ptr_uartStruct);*/
 		break;
 	case commandKeyNumber_JTAG: /*toggle/set JTAG availability*/
 	   modifyJTAG(ptr_uartStruct);
 		break;
-	case commandKeyNumber_OWTR: /*trigger one-wire device(s) for action, if possible*/
-		break;
 	case commandKeyNumber_HELP: /*output some help*/
 		help(ptr_uartStruct);
+		break;
+	case commandKeyNumber_OWTR: /*trigger one-wire device(s) for action, if possible*/
 		break;
     case commandKeyNumber_OWMR: /*one wire basics: match rom*/
        break;
@@ -1445,24 +1264,17 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
        PINA |= 0x01;
        break;
     case commandKeyNumber_CMD4: /* command (dummy name) */
-       break;
+    	break;
     case commandKeyNumber_GNWR: /* generator write */
-      /* command      : RGWR Register Value */
-      /* response now : RECV the value %x has been written in Register */
-      /* response TODO: RECV RGWR Register Value (OldValue) */
-      /* waveformGeneratorWriteRegister(ptr_uartStruct); call function with name writeRegister  */
-      waveformGeneratorWriteRegister(ptr_uartStruct); /* call function with name waveformGeneratorWriteRegister  */
+      waveformGeneratorWriteRegister(ptr_uartStruct);
        break;
     case commandKeyNumber_GNRE: /* generator read */
-      /* command      : GNRE Register*/
-      /* response now : RECV the value %x has been written in Register */
-      /* response TODO: RECV GNWR Register Value */
-      waveformGeneratorReadRegister(ptr_uartStruct); /* call function with name  waveformGeneratorReadRegister */
+      waveformGeneratorReadRegister(ptr_uartStruct);
       break;
     case commandKeyNumber_OW8S: /* 1-wire 8-fold switch */
     	owiOctalSwitches(ptr_uartStruct);
     	break;
-    case commandKeyNumber_TWIS: /* i2c interface (twi) */
+    case commandKeyNumber_TWIS: /* I2C interface (twi) */
     	twiMaster(ptr_uartStruct);
        break;
     case commandKeyNumber_VERS: /* version */
@@ -1562,7 +1374,7 @@ ISR(CANIT_vect)
 		{ // check if MOb has an error
 			canReady = 2;
 
-#warning TODO: on error, reset?
+#warning TODO: CAN on error, reset?
 			CANCDMOB = ( 1 << CONMOB0 ); /* reset receive mode*/
 		}
 		else if ( CANSTMOB & ( 1 << TXOK ) )
@@ -1589,12 +1401,12 @@ ISR(CANIT_vect)
 			CANCDMOB = ( 1 << CONMOB1 ); /* reset receive mode*/
 			canReady = 1; /* mark, that we got an CAN_interrupt, to be handled by main */
 		}
-		#warning add detailed Interrupt handling
+		#warning CAN add detailed Interrupt handling
 		CANPAGE = save_canpage; /* restore CANPAGE*/
 	}
 	else
 	{
-#warning add detailed Interrupt handling
+#warning CAN add detailed Interrupt handling
 		// --- general interrupt was generated
 		if ( 0 != canIsGeneralStatusError() )
 		{
@@ -1610,7 +1422,7 @@ ISR(CANIT_vect)
  *(single character) this function will send  8 bits from the at90can128
  */
 
-#warning add timeout ? Add check for USART0 init ?
+#warning UART add timeout ? Add check for USART0 init ?
 
 void UART0_Transmit( uint8_t data )
 {
@@ -1624,7 +1436,7 @@ void UART0_Transmit( uint8_t data )
 	UDR0 = data;
 }
 
-#warning TODO: change UART activities into interrupt based one, q.v. https://www.mikrocontroller.net/articles/Interrupt
+#warning TODO: UART change UART activities into interrupt based one, q.v. https://www.mikrocontroller.net/articles/Interrupt
 /*
  *this function sends a string to serial communication
  * the input parameter is a defined global variable tmp_str
@@ -1650,36 +1462,44 @@ int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize )
 	 *
 	 * */
 
-	/* if tmp_str is NULL, take as default uart_message_string and its size BUFFER_SIZE */
-	if (NULL == tmp_str)
+	if (FALSE != uart0_init)
 	{
-		if (NULL != uart_message_string)
+
+		/* if tmp_str is NULL, take as default uart_message_string and its size BUFFER_SIZE */
+		if (NULL == tmp_str)
 		{
-			tmp_str = uart_message_string;
+			if (NULL != uart_message_string)
+			{
+				tmp_str = uart_message_string;
+				maxSize = BUFFER_SIZE;
+			}
+			else
+			{
+				return -1;
+			}
+		}
+
+		/* if maxSize is set to 0, take default value BUFFER_SIZE */
+		if ( 0 == maxSize)
+		{
 			maxSize = BUFFER_SIZE;
 		}
-		else
+
+		static uint16_t index;
+
+		for ( index = 0; STRING_END != tmp_str[index] && index < maxSize ; index++ )
 		{
-			return -1;
+			UART0_Transmit_p(tmp_str[index]);
 		}
+		UART0_Transmit_p('\n');
+		clearString(tmp_str, maxSize); /*clear tmp_str variable*/
+		return index;
 	}
-
-	/* if maxSize is set to 0, take default value BUFFER_SIZE */
-	if ( 0 == maxSize)
+	else
 	{
-		maxSize = BUFFER_SIZE;
+		#warning TODO UART0: think of a method to react on a non initialized uart0
+		return 0;
 	}
-
-	static uint16_t index;
-
-	for ( index = 0; STRING_END != tmp_str[index] && index < maxSize ; index++ )
-	{
-		UART0_Transmit_p(tmp_str[index]);
-	}
-	UART0_Transmit_p('\n');
-	clearString(tmp_str, maxSize); /*clear tmp_str variable*/
-
-	return index;
 }//END of UART0_Send_Message_String function
 
 
@@ -1907,13 +1727,7 @@ void Initialization( void )
    /* disable interrupts*/
    cli();
 
-   //clear strings
-   clearString(uart_message_string, BUFFER_SIZE);
-   clearString(decrypt_uartString, BUFFER_SIZE);
-   clearString(uartString, BUFFER_SIZE);
-   clearString(message, BUFFER_SIZE);
-
-   UART0_Init();
+   uart0_init = UART0_Init();
 
    InitIOPorts();
 
@@ -1926,17 +1740,11 @@ void Initialization( void )
 	   twi_errorCode = CommunicationError_p(ERRT, TWI_ERROR_Error_in_initiating_TWI_interface, FALSE, NULL);
    }
 
-#if (HADCON_VERSION == 1)
-   owi_init = TRUE;
-#elif (HADCON_VERSION == 2)
    owi_init = OWI_Init(0x3f);
-#else
-   owi_init = TRUE;
-#endif
 
    if( FALSE == owi_init)
    {
-#warning create realistic error message
+#warning OWI INIT create realistic error message
    }
 
    can_init = canInit(CAN_DEFAULT_BAUD_RATE); /* initialize can-controller with a baudrate 250kps */
@@ -2002,7 +1810,7 @@ void InitIOPorts( void )
    /* DDRX = 0xff =>  output ,  PORTX = 0x00 => disabled pullups*/
    DDRA  = 0xFF; //(1 << DDA0)| (1 << DDA1)| (1 << DDA2)| (1 << DDA3)| (1 << DDA4)| (1 << DDA5)| (1 << DDA6)| (1 << DDA7);
    PORTA = 0x00; //(0 << PA0) | (0 << PA1) | (0 << PA2) | (0 << PA3) | (0 << PA4) | (0 << PA5) | (0 << PA6) | (0 << PA7);
-#warning probably n1 << Deded by MDC Relay RLTH
+#warning probably n1 << needed by MDC Relay RLTH
 //   PORTA |= 0x08; (MDC Relay)
 
    /* use port B as input with activated pullups*/
