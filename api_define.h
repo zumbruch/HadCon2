@@ -22,6 +22,7 @@
 /*  Formula for calculating UBBR0:
  *  UBBR0= ((F_CPU/(16*baud))<<U2X0)-1
  */
+#define UART_DELIMITER " "
 
 /*currently selected baud rate for the serial communication: baud rate = 115200 */
 #define BAUD       10
