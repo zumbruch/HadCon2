@@ -45,13 +45,13 @@
 #define MAX_LENGTH_CAN_DATA  41
 
 /*maximum length of command with CAN standard 2.0A*/
-#define MAX_LENGTH_COMMAND  48
+#define MAX_LENGTH_COMMAND  BUFFER_SIZE
 
 /*maximum length of various error*/
 #define MAX_LENGTH_ERROR  50
 
 /*maximum number of parameters in string received via UART */
-#define MAX_PARAMETER          13
+#define MAX_PARAMETER          14
 
 /* maximum length of their respective parameters of the strings via UART */
 #define MAX_LENGTH_PARAMETER   25
