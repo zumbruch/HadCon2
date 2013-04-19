@@ -19,11 +19,12 @@ extern char uartString[BUFFER_SIZE]; /* variable for storage received a complete
 extern char resultString[BUFFER_SIZE];
 extern char keepAliveString[15];
 
-extern int8_t can_init; /* variable to call canInit function*/
-extern int8_t twim_init; /* variable to call TWIM_Init function*/
-extern int8_t owi_init; /* variable to call TWIM_Init function*/
-extern int8_t timer0_init; /* variable to call Timer0_Init function*/
-extern int8_t timer0A_init;/* variable to call Timer0A_Init function*/
+extern int8_t uart0_init; /* return variable of canInit function*/
+extern int8_t can_init; /* return variable of canInit function*/
+extern int8_t twim_init; /* return variable of TWIM_Init function*/
+extern int8_t owi_init; /* return variable of TWIM_Init function*/
+extern int8_t timer0_init; /* return variable of Timer0_Init function*/
+extern int8_t timer0A_init;/* return variable of Timer0A_Init function*/
 
 extern uint8_t can_errorCode; /* error code for CAN-communication */
 extern uint8_t twi_errorCode; /* error code for I2C/TWI-communication */
