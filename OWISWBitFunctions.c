@@ -76,6 +76,7 @@ void OWI_ResetPulse(unsigned char pins)
 uint8_t OWI_Init(unsigned char pins)
 {
 	uint8_t status = FALSE;
+
 #if (HADCON_VERSION == 1)
     OWI_RELEASE_BUS(pins);
     // The first rising edge can be interpreted by a slave as the end of a
@@ -91,38 +92,58 @@ uint8_t OWI_Init(unsigned char pins)
     _delay_us(100);
 
     status = TRUE;
-	return status;
+
 #elif (HADCON_VERSION == 2)
+
 	uint8_t chan = TWI_MPX_CHAN5; // 5
 	uint8_t address = TWI_OWI_DEVICE_0_ADDRESS; // 0
-	uint8_t configuration_nibble = (0<<TWI_OWI_CONFIG_BIT_1WS)|(0<<TWI_OWI_CONFIG_BIT_SPU)|(1<<TWI_OWI_CONFIG_BIT_APU);
+	uint8_t configuration_nibble = (0 << TWI_OWI_CONFIG_BIT_1WS) | (0 << TWI_OWI_CONFIG_BIT_SPU) | (1 << TWI_OWI_CONFIG_BIT_APU);
 
-	for(uint8_t i = 0; i < OWI_MAX_NUM_PIN_BUS ; i++) {
-		if(!(i%2) && i!=0) {
+	if (TRUE == twim_init) // TWI communication is a mandatory prerequisite for 1-wire
+	{
+		for (uint8_t owiPinIndex = 0; owiPinIndex < OWI_MAX_NUM_PIN_BUS; owiPinIndex++)
+		{
+			if (!(owiPinIndex % 2) && (0 != owiPinIndex ))
+			{
 				chan++;
-		}
+			}
 
-		if(i & 0x01) {
-			address = TWI_OWI_DEVICE_1_ADDRESS;
-		}
-		else {
-			address = TWI_OWI_DEVICE_0_ADDRESS;
-		}
+			if (owiPinIndex & 0x01)
+			{
+				address = TWI_OWI_DEVICE_1_ADDRESS;
+			}
+			else
+			{
+				address = TWI_OWI_DEVICE_0_ADDRESS;
+			}
 
-		if( pins & (0x01 << i)) {
-			Twim_Mpx_Switch_Channel(chan);
-			Twim_Owi_Reset_Device(address);
-			status = Twim_Owi_Set_Configuration(address, configuration_nibble);
-			if(FALSE == status) {
-				general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("Error while OWI_init()"));
+			if (pins & (0x01 << owiPinIndex))
+			{
+				Twim_Mpx_Switch_Channel(chan);
+				Twim_Owi_Reset_Device(address);
+				status = Twim_Owi_Set_Configuration(address, configuration_nibble);
+				if (FALSE == status)
+				{
+					general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI_Init()"));
+				}
 			}
 		}
 	}
-	return status;
+	else
+	{
+		general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI_Init(): missing I2C support"));
+		status = FALSE;
+	}
 #else
-	status = FALSE;
-	return status;
+#ifndef HADCON_VERSION
+    int8_t hadconVersion = -1;
+#else
+    int8_t hadconVersion = HADCON_VERSION;
 #endif
+    status = FALSE;
+	general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI_Init() doesn't support HADCON_VERSION %i"), hadconVersion);
+#endif
+	return status;
 }
 
 
