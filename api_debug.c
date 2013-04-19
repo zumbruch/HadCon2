@@ -134,13 +134,13 @@ int8_t apiDebug(struct uartStruct *ptr_uartStruct)
 	    	switch(ptr_uartStruct->commandKeywordIndex)
 	    	{
 				case commandKeyNumber_DEBG:
-					readModifyDebugLevelAndMask(ptr_uartStruct);
+					apiDebugReadModifyDebugLevelAndMask(ptr_uartStruct);
 					break;
 				case commandKeyNumber_DBGL:
-					readModifyDebugLevel(ptr_uartStruct);
+					apiDebugReadModifyDebugLevel(ptr_uartStruct);
 					break;
 				case commandKeyNumber_DBGM:
-					readModifyDebugMask(ptr_uartStruct);
+					apiDebugReadModifyDebugMask(ptr_uartStruct);
 					break;
 				default:
 					CommunicationError_p(ERRU, dynamicMessage_ErrorIndex, FALSE, PSTR("apiDebug:invalid command"));
@@ -153,13 +153,13 @@ int8_t apiDebug(struct uartStruct *ptr_uartStruct)
 		    	switch(ptr_uartStruct->commandKeywordIndex)
 		    	{
 					case commandKeyNumber_DEBG:
-						readModifyDebugLevelAndMask(ptr_uartStruct);
+						apiDebugReadModifyDebugLevelAndMask(ptr_uartStruct);
 						break;
 					case commandKeyNumber_DBGL:
-						readModifyDebugLevel(ptr_uartStruct);
+						apiDebugReadModifyDebugLevel(ptr_uartStruct);
 						break;
 					case commandKeyNumber_DBGM:
-						readModifyDebugMask(ptr_uartStruct);
+						apiDebugReadModifyDebugMask(ptr_uartStruct);
 						break;
 					default:
 						CommunicationError_p(ERRU, dynamicMessage_ErrorIndex, FALSE, PSTR("apiDebug:invalid command"));
@@ -312,8 +312,7 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 	return 0;
 }
 
-
-void readModifyDebugLevelAndMask(struct uartStruct *ptr_uartStruct)
+void apiDebugReadModifyDebugLevelAndMask(struct uartStruct *ptr_uartStruct)
 {
 	/* command : DEBG [level [mask]]
 	 * set response: ...
@@ -330,12 +329,12 @@ void readModifyDebugLevelAndMask(struct uartStruct *ptr_uartStruct)
 		UART0_Send_Message_String_p(NULL,0);
 		break;
 	case 1: /*write debug*/
-		readModifyDebugLevel(ptr_uartStruct);
+		apiDebugReadModifyDebugLevel(ptr_uartStruct);
 		break;
 	case 2: /*write debug and mask*/
         status = getNumericValueFromParameter(2, &value);
         if ( 0 != status ) { return; }
-		readModifyDebugLevel(ptr_uartStruct);
+		apiDebugReadModifyDebugLevel(ptr_uartStruct);
         status = apiDebugSetDebugMask(value);
 		if ( 0 != status ) { return; }
 		break;
@@ -351,13 +350,13 @@ void readModifyDebugLevelAndMask(struct uartStruct *ptr_uartStruct)
 	default:
 		status = ptr_uartStruct->number_of_arguments;
 		ptr_uartStruct->number_of_arguments = 0;
-		readModifyDebugLevelAndMask(ptr_uartStruct);
+		apiDebugReadModifyDebugLevelAndMask(ptr_uartStruct);
 		ptr_uartStruct->number_of_arguments = status;
 		break;
 	}
 }
 
-void readModifyDebugLevel(struct uartStruct *ptr_uartStruct)
+void apiDebugReadModifyDebugLevel(struct uartStruct *ptr_uartStruct)
 {
 	/* command : DBGL [level [mask]]
 	 * set response: ...
@@ -385,7 +384,7 @@ void readModifyDebugLevel(struct uartStruct *ptr_uartStruct)
 			break;
 		default:
 			(ptr_uartStruct->number_of_arguments)--;
-			readModifyDebugLevel(ptr_uartStruct);
+			apiDebugReadModifyDebugLevel(ptr_uartStruct);
 			break;
 	}
     /*recursive call to show change*/
@@ -396,13 +395,13 @@ void readModifyDebugLevel(struct uartStruct *ptr_uartStruct)
 	default:
 		status = ptr_uartStruct->number_of_arguments;
 		ptr_uartStruct->number_of_arguments = 0;
-		readModifyDebugLevel(ptr_uartStruct);
+		apiDebugReadModifyDebugLevel(ptr_uartStruct);
 		ptr_uartStruct->number_of_arguments = status;
 		break;
 	}
 }
 
-void readModifyDebugMask(struct uartStruct *ptr_uartStruct)
+void apiDebugReadModifyDebugMask(struct uartStruct *ptr_uartStruct)
 {
 	/* command : DBGM [level [mask]]
 	 * set response: ...
@@ -428,7 +427,7 @@ void readModifyDebugMask(struct uartStruct *ptr_uartStruct)
 			break;
 		default:
 			(ptr_uartStruct->number_of_arguments)--;
-			readModifyDebugMask(ptr_uartStruct);
+			apiDebugReadModifyDebugMask(ptr_uartStruct);
 			break;
 	}
 
@@ -440,7 +439,7 @@ void readModifyDebugMask(struct uartStruct *ptr_uartStruct)
 	default:
 		status = ptr_uartStruct->number_of_arguments;
 		ptr_uartStruct->number_of_arguments = 0;
-		readModifyDebugMask(ptr_uartStruct);
+		apiDebugReadModifyDebugMask(ptr_uartStruct);
 		ptr_uartStruct->number_of_arguments = status;
 		break;
 	}

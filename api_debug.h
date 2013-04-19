@@ -70,8 +70,8 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 int8_t apiDebugSetDebugLevel(uint32_t value);
 int8_t apiDebugSetDebugMask(uint32_t value);
 
-void readModifyDebugLevelAndMask( struct uartStruct *ptr_uartStruct ); /* set/get debugLevel/debugMask*/
-void readModifyDebugLevel( struct uartStruct *ptr_uartStruct ); /* set/get debugLevel*/
-void readModifyDebugMask( struct uartStruct *ptr_uartStruct ); /* set/get debugMask*/
+void apiDebugReadModifyDebugLevelAndMask( struct uartStruct *ptr_uartStruct ); /* set/get debugLevel/debugMask*/
+void apiDebugReadModifyDebugLevel( struct uartStruct *ptr_uartStruct ); /* set/get debugLevel*/
+void apiDebugReadModifyDebugMask( struct uartStruct *ptr_uartStruct ); /* set/get debugMask*/
 
 #endif /* API_DEBUG_H_ */
