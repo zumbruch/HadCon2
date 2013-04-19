@@ -4,12 +4,13 @@
 #ifndef API__H
 #define API__H
 
+#include <stdint.h>
+#include <stdarg.h>
+
 #include "api_define.h"
 #include "api_global.h"
 
 #include "api_debug.h"
-#include <stdint.h>
-#include <stdarg.h>
 
 #define UART_MAX_DATA_ELEMENTS 8
 /* Structure for CPU commands */
@@ -36,20 +37,17 @@ void Process_Uart_Event( void );
 extern void (*Process_Uart_Event_p)( void );
 
 int8_t Check_Error( struct uartStruct *ptr_uartStruct ); /*this function checks error for the received parameter */
-
 int8_t Check_Parameter( struct uartStruct *ptr_uartStruct );/* this function checks whether all the received parameters are valid*/
-int8_t Check_Parameter_CanFormat( struct uartStruct *ptr_uartStruct ); /* this function checks whether all the received parameters are valid*/
 
 void Choose_Function( struct uartStruct *ptr_uartStruct );/* in terms of the command name is the competent function */
 
 void canConvertCanFrameToUartFormat( struct canStruct *ptr_canStruct );/* this function collects the various CAN data in a string */
 
-void Convert_UartData_to_UartStruct( char string[MAX_PARAMETER][MAX_LENGTH_PARAMETER] ); /*converting the decomposed CPU format in CAN-format */
-//void Convert_UartFormat_to_CanFormat( char *string[MAX_LENGTH_PARAMETER]);
+void apiConvertUartDataToCanUartStruct( uint8_t offset ); /*converting the decomposed CPU format in CAN-format */
 
 void keep_alive( struct uartStruct *PtrFrame ); /*this function checks the functionality of the software*/
 
-int8_t Decrypt_Uart_String( void ); /*CPU-cutting format in various parameters */
+int8_t uartSplitUartString( void ); /*CPU-cutting format in various parameters */
 
 void canSendRemoteTransmissionRequestMessage( struct uartStruct *PtrFrame ); /* function for the SEND command name and RTR set, initialization of the registers with elements of the structure uartStruct*/
 
@@ -61,13 +59,13 @@ void canSendMessage( struct uartStruct *PtrFrame );/*function for the SEND comma
 
 void Subscribe_Message( struct uartStruct *PtrFrame ); /* function for the command name SUBS, initialization of the registers with elements of the structure uartStruct */
 
-int8_t Timer0_Init( void ); /*initializieren  bit Timer0 */
+int8_t Timer0_Init( void ); /*initialize  bit Timer0 */
 
-int8_t Timer0A_Init( void ); /* initializieren 8 bit Timermit output compareA*/
+int8_t Timer0A_Init( void ); /* initialize 8 bit Timer with output compareA*/
 
 void Unsubscribe_Message( struct uartStruct *PtrFrame ); /* function for the command name USUB, initialization of the registers with elements of the structure uartStruct */
 
-int8_t UART0_Init( void ); /* initializieren serial communication */
+int8_t UART0_Init( void ); /* initialize serial communication */
 
 void UART0_Transmit( unsigned char c );/* function send  data direction to cpu */
 extern void (*UART0_Transmit_p)( uint8_t );
@@ -275,10 +273,10 @@ enum cmdKeyNumber
                commandKeyNumber_OWTP,
                commandKeyNumber_OWSP,
                commandKeyNumber_CANT,
-               commandKeyNumber_RLSL,
-               commandKeyNumber_RLSH,
-               commandKeyNumber_RLSI,
-               commandKeyNumber_RLSO,
+               commandKeyNumber_CANS,
+               commandKeyNumber_CANU,
+               commandKeyNumber_CANP,
+               commandKeyNumber_CAN,
                commandKeyNumber_DBGL,
                commandKeyNumber_DBGM,
                commandKeyNumber_JTAG,
