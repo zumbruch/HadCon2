@@ -143,11 +143,14 @@ uint8_t mailbox_errorCode = 0; /* error code for Message Object Block */
 uint8_t general_errorCode = 0; /*  general error code */
 uint8_t ptr_subscribe = 0;/* pointer of variable subscribe_ID and subscribe_mask */
 uint8_t canMob; /*variable  for Message Object Block in the interrupt routine*/
-int8_t can_init = 0; /* variable to call canInit function*/
-int8_t twim_init = 0; /* variable to call TWIM_Init function*/
-int8_t owi_init = 0; /* variable to call OWI_Init function*/
-int8_t timer0_init = 0; /* variable to call Timer0_Init function*/
-int8_t timer0A_init = 0;/* variable to call Timer0A_Init function*/
+
+int8_t uart0_init = 0; /* return variable of UART0_Init function*/
+int8_t can_init = 0; /* return variable of  canInit function*/
+int8_t twim_init = 0; /* return variable of TWIM_Init function*/
+int8_t owi_init = 0; /* return variable of OWI_Init function*/
+int8_t timer0_init = 0; /* return variable of Timer0_Init function*/
+int8_t timer0A_init = 0;/* return variable of Timer0A_Init function*/
+
 uint8_t *ptr_buffer_in = NULL; /*pointer to write CAN data in buffer_ring*/
 uint8_t *ptr_buffer_out = NULL; /*pointer to read CAN data in buffer_ring*/
 uint8_t flag_pingActive = 0; /*automatic ping action disabled*/
@@ -269,7 +272,7 @@ int main( void )
          /* clear uartString, avoiding memset*/
          clearString(uartString, BUFFER_SIZE);
 
-          printDebug_p(debugLevelEventDebug, debugSystemUART, __LINE__, PSTR(__FILE__), PSTR("UART string received:%s"), decrypt_uartString);
+         printDebug_p(debugLevelEventDebug, debugSystemUART, __LINE__, PSTR(__FILE__), PSTR("UART string received:%s"), decrypt_uartString);
 
          Process_Uart_Event();
 
