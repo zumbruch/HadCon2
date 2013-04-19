@@ -28,7 +28,7 @@ extern struct owiStruct *ptr_owiStruct;
 extern char owi_id_string[OWI_ID_LENGTH];
 
 uint8_t owiInitOwiStruct(struct owiStruct *ptr_owiStruct);
-uint8_t ConvertUartDataToOwiStruct(void);
+uint8_t owiConvertUartDataToOwiStruct(void);
 void owiDualSwitches( struct uartStruct *ptr_uartStruct );
 int16_t owiFindIdAndGetIndex(uint8_t id[]);
 

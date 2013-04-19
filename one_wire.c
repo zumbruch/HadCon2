@@ -777,7 +777,7 @@ uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex)
 #warning TODO: check if this function can be used for any OW command
 
 /*
- * uint8_t ConvertUartDataToOwiStruct(void)
+ * uint8_t owiConvertUartDataToOwiStruct(void)
  *
  * this function assigns the data of the structure uartData to the owi_struct used for many 1-wire commands
  *
@@ -836,7 +836,7 @@ uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex)
  *          - set init_flag if value differs from 0
  *
  */
-uint8_t ConvertUartDataToOwiStruct(void)
+uint8_t owiConvertUartDataToOwiStruct(void)
 {
 #warning THERE IS TOO MUCH INTELLIGENCE IN THIS FUNCTION (reduce it to filling or split it up into ID ,,,,)
    //unsigned int myid =0;
