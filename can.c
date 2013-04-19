@@ -4,6 +4,7 @@
  * modified (heavily rather rebuild): Peter Zumbruch
  * modified: Florian Feldbauer
  * modified: Peter Zumbruch, July 2011
+ * modified: Peter Zumbruch, April 2013
  */
 #include <stdint.h>
 #include <stdio.h>
@@ -47,82 +48,7 @@ uint32_t subscribe_ID[MAX_LENGTH_SUBSCRIBE];
 uint32_t subscribe_mask[MAX_LENGTH_SUBSCRIBE];
 
 /*
- * setCanIDandMask
- * 		sets for the current MOb, set via CANPAGE,
- * 		the
- * 			ID
- * 			MASK
- * 		    flags:
- * 		    	enable RTR mask bit comparison
- * 		    	enable ID Extension mask bit comparison
- * 		Depending on the size (> 2**11) of id and mask either V2.0 part A or part B format is chosen
- */
-void setCanIDandMask(uint32_t id, uint32_t mask, uint8_t enableRTRMaskBitComparison_flag, uint8_t enableIDExtensionMaskBitComparison_flag)
-{
-    // set identifier to send
-    if ( ( MAX_ELEVEN_BIT >= id ) || ( MAX_ELEVEN_BIT >= mask ) )
-    {
-    	// V2.0 part A
-    	CANIDT4 &= 0x5;
-        CANIDT3  = 0x0;
-    	CANIDT2  = 0xff & ( id << 5 );
-        CANIDT1  = 0xff & ( id >> 3 );
-    }
-    else
-    {
-    	// V2.0 part B
-    	CANIDT4 &= 0xff & (( id <<  3 ) | 0x7)  ;
-        CANIDT3  = 0xff & (  id >>  5 );
-    	CANIDT2  = 0xff & (  id >> 13 );
-        CANIDT1  = 0xff & (  id >> 21 );
-    }
-
-    // mask comparison bits
-    /* RTR mask bit comparison*/
-    if ( enableRTRMaskBitComparison_flag )
-    {
-    	// compare RTR
-    	CANIDM4 |= ( 1 << RTRMSK );
-    }
-    else
-    {
-    	// always true
-    	CANIDM4 &= ~( 1 << RTRMSK );
-    }
-
-    // ID Extension (IDE) mask bit comparison
-    if ( enableIDExtensionMaskBitComparison_flag )
-    {
-    	// compare IDE
-    	CANIDM4 |= ( 1 << IDEMSK );
-    }
-    else
-    {
-    	// always true
-    	CANIDM4 &= ~( 1 << IDEMSK );
-    }
-
-    // set identifier Mask
-    if ( ( MAX_ELEVEN_BIT >= id ) || ( MAX_ELEVEN_BIT >= mask ) )
-    {
-    	// V2.0 part A
-        CANIDM4 &= 0x5;
-        CANIDM3  = 0x0;
-        CANIDM2  = 0xff & (( mask & 0x7 ) << 5);
-        CANIDM1  = 0xff & (  mask >> 3  );
-    }
-    else
-    {
-    	// V2.0 part B
-        CANIDM4 &= 0xff & (( mask <<  3 ) | 0x5 );
-        CANIDM3  = 0xff & (  mask >>  5 );
-        CANIDM2  = 0xff & (  mask >> 13 );
-        CANIDM1  = 0xff & (  mask >> 21 );
-    }
-}
-
-/*
- * this function will read certain messages on the bus
+ * Subscribe_Message creates/sets a listener to an ID/mask for a free MOb
  * the function has a pointer of the serial structure as input and returns no parameter
  */
 
@@ -130,7 +56,7 @@ void Subscribe_Message( struct uartStruct *ptr_uartStruct )
 {
    int8_t findMob;
    uint8_t equality = 1;
-
+#warning TODO: CAN report success ?
    for ( uint8_t count_subscribe = 2 ; count_subscribe <= 14 ; count_subscribe++ )
    {
       if ( ( ptr_uartStruct->Uart_Message_ID ) == ( subscribe_ID[count_subscribe] ) && ( ptr_uartStruct->Uart_Mask ) == ( subscribe_mask[count_subscribe] ) )
@@ -163,24 +89,25 @@ void Subscribe_Message( struct uartStruct *ptr_uartStruct )
          CANCDMOB = 0x00;
          CANHPMOB = 0x00; /* enable direct canMob indexing */
 
-         setCanIDandMask(ptr_uartStruct->Uart_Message_ID, ptr_uartStruct->Uart_Mask, TRUE, FALSE);
+         canSetMObCanIDandMask(ptr_uartStruct->Uart_Message_ID, ptr_uartStruct->Uart_Mask, TRUE, FALSE);
 
          CANCDMOB = ( 1 << CONMOB1 ); /* enable reception mode */
-         unsigned mask = 1 << findMob;
+
+         uint16_t mask = 1 << findMob;
          CANIE2 |= mask;
          CANIE1 |= ( mask >> 8 );
       }
    }
 }//END of Subscribe_Message function
 
-
 /*
- * this function does not read certain messages on the bus
- *the function has a pointer of the serial structure as input and returns no parameter
+ * Unsubscribe_Message removes a listener for an ID/mask
+ * the function has a pointer of the serial structure as input and returns no parameter
  */
 
 void Unsubscribe_Message( struct uartStruct *ptr_uartStruct )
 {
+#warning TODO: CAN report success ?
    uint8_t inequality = 1;
 
    for ( uint8_t count_mob = 2 ; count_mob <= 14 ; count_mob++ )
@@ -194,7 +121,7 @@ void Unsubscribe_Message( struct uartStruct *ptr_uartStruct )
          CANCDMOB = 0x00; /* very important,that disable MOB*/
          CANHPMOB = 0x00;
 
-         setCanIDandMask(0x0, 0x0, FALSE, FALSE);
+         canSetMObCanIDandMask(0x0, 0x0, FALSE, FALSE);
 
          unsigned mask = 1 << count_mob;
          CANIE2 &= ~mask;
@@ -258,13 +185,13 @@ void canSendMessage( struct uartStruct *ptr_uartStruct )
 		CANCDMOB &= ~( 1 << IDE );
 		if (0 == rtr )
 		{
-			setCanIDandMask(id, mask, FALSE, FALSE);
+			canSetMObCanIDandMask(id, mask, FALSE, FALSE);
 		}
 		else /*RTR*/
 		{
 			// set ID to send
 			// set mask to receive only this message */
-			setCanIDandMask(id, 0 != mask ? mask : 0x000007FF, TRUE, TRUE);
+			canSetMObCanIDandMask(id, 0 != mask ? mask : 0x000007FF, TRUE, TRUE);
 		}
 	}
 	else
@@ -273,13 +200,13 @@ void canSendMessage( struct uartStruct *ptr_uartStruct )
 		CANCDMOB |= ( 1 << IDE );
 		if (0 == rtr )
 		{
-			setCanIDandMask(id, mask, FALSE, FALSE);
+			canSetMObCanIDandMask(id, mask, FALSE, FALSE);
 		}
 		else /*RTR*/
 		{
 			// set ID to send
 			// set mask to receive only this message */
-			setCanIDandMask(id, 0 != mask ? mask : 0x1FFFFFFF, TRUE, TRUE);
+			canSetMObCanIDandMask(id, 0 != mask ? mask : 0x1FFFFFFF, TRUE, TRUE);
 		}
 	}
 
@@ -881,8 +808,23 @@ void enableCan()
     CANGCON |= ( 1 << ENASTB );
 
     /*enable reception mode here so that information for CAN come automatically*/
-#warning following manual: CONMOBx = 0 => Disable and x|= 0 doesn't change!
-    CANCDMOB |= ( 0 << CONMOB0 ) | ( 0 << CONMOB1 );
+
+    //    CAN MOb Control and DLC Register - CANCDMOB
+    //    • Bit 7:6 – CONMOB1:0: Configuration of Message Object
+    //    These bits set the communication to be performed (no initial value after RESET).
+    //    – 00 - disable.
+    //    – 01 - enable transmission.
+    //    – 10 - enable reception.
+    //    – 11 - enable frame buffer reception
+    //    These bits are not cleared once the communication is performed. The user must re-write the
+    //    configuration to enable a new communication.
+    //    • This operation is necessary to be able to reset the BXOK flag.
+    //    • This operation also set the corresponding bit in the CANEN registers.
+
+    /* reset to 00 */
+    CANCDMOB &= ~(( 0x3 << CONMOB0 ));
+    /* set to 10 */
+    CANCDMOB |= ( 1 << CONMOB1 );
 }
 
 /*
@@ -933,7 +875,6 @@ int8_t Get_FreeMob( void )
 		ctrlReg = ( CANCDMOB & ( ( 1 << CONMOB0 ) | ( 1 << CONMOB1 ) ) );
 		if ( ctrlReg == 0 )
 		{
-
 			return freemob;
 		}
 	}
@@ -1081,7 +1022,6 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 			}
 			break;
 		case 3:
-
 			if ( ( 1 ) < ptr_uartStruct->Uart_Rtr )
 			{
 				uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_rtr_is_too_long, FALSE, NULL);
@@ -1090,7 +1030,6 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 			}
 			break;
 		case 4:
-
 			if ( ( 8 ) < ptr_uartStruct->Uart_Length )
 			{
 				uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_length_is_too_long, FALSE, NULL);
@@ -1121,4 +1060,111 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 	}
 
 	return error;
+}
+
+/*
+ * canSetMObCanIDandMask
+ * 		sets for the current MOb, set via CANPAGE,
+ * 		the
+ * 			ID
+ * 			MASK
+ * 		    flags:
+ * 		    	enable RTR mask bit comparison
+ * 		    	enable ID Extension mask bit comparison
+ * 		Depending on the size (> 2**11) of id and mask either V2.0 part A or part B format is chosen
+ */
+
+void canSetMObCanIDandMask(uint32_t id, uint32_t mask, uint8_t enableRTRMaskBitComparison_flag, uint8_t enableIDExtensionMaskBitComparison_flag)
+{
+    // set identifier to send
+    if ( ( MAX_ELEVEN_BIT >= id ) || ( MAX_ELEVEN_BIT >= mask ) )
+    {
+    	// V2.0 part A
+    	CANIDT4 &= 0x5;
+        CANIDT3  = 0x0;
+    	CANIDT2  = 0xff & ( id << 5 );
+        CANIDT1  = 0xff & ( id >> 3 );
+    }
+    else
+    {
+    	// V2.0 part B
+    	CANIDT4 &= 0xff & (( id <<  3 ) | 0x7)  ;
+        CANIDT3  = 0xff & (  id >>  5 );
+    	CANIDT2  = 0xff & (  id >> 13 );
+        CANIDT1  = 0xff & (  id >> 21 );
+    }
+
+    // mask comparison bits
+    /* RTR mask bit comparison*/
+    if ( enableRTRMaskBitComparison_flag )
+    {
+    	// compare RTR
+    	CANIDM4 |= ( 1 << RTRMSK );
+    }
+    else
+    {
+    	// always true
+    	CANIDM4 &= ~( 1 << RTRMSK );
+    }
+
+    // ID Extension (IDE) mask bit comparison
+    if ( enableIDExtensionMaskBitComparison_flag )
+    {
+    	// compare IDE
+    	CANIDM4 |= ( 1 << IDEMSK );
+    }
+    else
+    {
+    	// always true
+    	CANIDM4 &= ~( 1 << IDEMSK );
+    }
+
+    // set identifier Mask
+    if ( ( MAX_ELEVEN_BIT >= id ) || ( MAX_ELEVEN_BIT >= mask ) )
+    {
+    	// V2.0 part A
+        CANIDM4 &= 0x5;
+        CANIDM3  = 0x0;
+        CANIDM2  = 0xff & (( mask & 0x7 ) << 5);
+        CANIDM1  = 0xff & (  mask >> 3  );
+    }
+    else
+    {
+    	// V2.0 part B
+        CANIDM4 &= 0xff & (( mask <<  3 ) | 0x5 );
+        CANIDM3  = 0xff & (  mask >>  5 );
+        CANIDM2  = 0xff & (  mask >> 13 );
+        CANIDM1  = 0xff & (  mask >> 21 );
+    }
+}
+
+/* this function checks whether all the received parameters are valid
+ * the function has a pointer of the serial structure as input and returns no parameter
+ * returns TRUE if all checks are passed
+ * returns FALSE else
+ */
+
+int8_t canCheckParameterCanFormat( struct uartStruct *ptr_uartStruct)
+{
+   /*check range of parameter*/
+
+   for (uint8_t index = 1; index < MAX_PARAMETER; index ++)
+   {
+      if ( 0 != *ptr_setParameter[index] ) return FALSE;
+   }
+
+   if ( 0x7FFFFFF  < ptr_uartStruct->Uart_Message_ID ) return FALSE;
+   if ( 0x7FFFFFF  < ptr_uartStruct->Uart_Mask       ) return FALSE;
+   if ( 1          < ptr_uartStruct->Uart_Rtr        ) return FALSE;
+   if ( 8          < ptr_uartStruct->Uart_Length     ) return FALSE;
+   if ( 0XFF       < ptr_uartStruct->Uart_Data[0]    ) return FALSE;
+   if ( 0XFF       < ptr_uartStruct->Uart_Data[1]    ) return FALSE;
+   if ( 0XFF       < ptr_uartStruct->Uart_Data[2]    ) return FALSE;
+   if ( 0XFF       < ptr_uartStruct->Uart_Data[3]    ) return FALSE;
+   if ( 0XFF       < ptr_uartStruct->Uart_Data[4]    ) return FALSE;
+   if ( 0XFF       < ptr_uartStruct->Uart_Data[5]    ) return FALSE;
+   if ( 0XFF       < ptr_uartStruct->Uart_Data[6]    ) return FALSE;
+   if ( 0XFF       < ptr_uartStruct->Uart_Data[7]    ) return FALSE;
+   return TRUE;
+
 }
