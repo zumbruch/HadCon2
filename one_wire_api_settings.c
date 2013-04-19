@@ -101,14 +101,14 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
 
 int8_t owiApiFlag(struct uartStruct * ptr_uartStruct, uint8_t index)
 {
-   uint8_t *ptr_flag;
+   uint8_t ptr_flag;
    switch (index)
    {
       case owiApiCommandKeyNumber_COMMON_ADC_CONVERSION:
-         ptr_flag = &owiUseCommonAdcConversion_flag;
+         ptr_flag = owiUseCommonAdcConversion_flag;
          break;
       case owiApiCommandKeyNumber_COMMON_TEMPERATURE_CONVERSION:
-         ptr_flag = &owiUseCommonTemperatureConversion_flag;
+         ptr_flag = owiUseCommonTemperatureConversion_flag;
          break;
       default:
          CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("owiApiFlag:invalid argument"));
@@ -119,10 +119,10 @@ int8_t owiApiFlag(struct uartStruct * ptr_uartStruct, uint8_t index)
    createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_OWSA, index, owiApiCommandKeywords);
    if (1 < ptr_uartStruct->number_of_arguments)  /*set value*/
    {
-      *ptr_flag = ( 0 != strtoul(setParameter[2], &ptr_setParameter[2], 16));
+      ptr_flag = ( 0 != strtoul(setParameter[2], &ptr_setParameter[2], 16));
    }
-   snprintf_P(uart_message_string,BUFFER_SIZE -1, PSTR("%s%i"), uart_message_string, *ptr_flag);
-   strncat_P(uart_message_string,((*ptr_flag)?PSTR(" (TRUE)"):PSTR(" (FALSE)")),BUFFER_SIZE -1);
+   snprintf_P(uart_message_string,BUFFER_SIZE -1, PSTR("%s%i"), uart_message_string, ptr_flag);
+   strncat_P(uart_message_string,((ptr_flag)?PSTR(" (TRUE)"):PSTR(" (FALSE)")),BUFFER_SIZE -1);
    UART0_Send_Message_String_p(NULL,0);
 
    return 0;
