@@ -56,7 +56,7 @@ uint8_t canIsMObErrorAndAcknowledge( void );
 
 uint8_t canErrorHandling( void );
 
-void setCanIDandMask(uint32_t id, uint32_t mask, uint8_t enableRTRMaskBitComparison_flag, uint8_t enableIDExtensionMaskBitComparison_flag);
+void canSetMObCanIDandMask(uint32_t id, uint32_t mask, uint8_t enableRTRMaskBitComparison_flag, uint8_t enableIDExtensionMaskBitComparison_flag);
 
 int8_t Get_FreeMob( void ); /* searches free Mob */
 
@@ -82,5 +82,7 @@ uint8_t setCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2BaudRat
 		                       uint8_t propagationTimeSegment, uint8_t phaseSegment1, uint8_t phaseSegment2, uint8_t syncJumpWidth,
 				               uint8_t multipleSamplePointSampling_flag, uint8_t autoCorrectBaudRatePreScalerNull_flag);
 uint8_t canBitTimingTQBasicBoundaryChecks(uint8_t propagationTimeSegment, uint8_t phaseSegment1, uint8_t phaseSegment2, uint8_t syncJumpWidth);
+
+int8_t canCheckParameterCanFormat( struct uartStruct *ptr_uartStruct ); /* this function checks whether all the received parameters are valid*/
 
 #endif
