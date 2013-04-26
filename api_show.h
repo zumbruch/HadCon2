@@ -30,6 +30,8 @@ enum cmdShowKeyNumber
       commandShowKeyNumber_FREE_MEM_NOW ,
       commandShowKeyNumber_MEM ,
       commandShowKeyNumber_ALL_ERRORS ,
+      commandShowKeyNumber_RESET_SOURCE ,
+      commandShowKeyNumber_WATCHDOG_COUNTER,
       commandShowKeyNumber_MAXIMUM_NUMBER
 };
 
@@ -42,5 +44,7 @@ int8_t showUnusedMemNow(struct uartStruct * ptr_uartStruct);
 int8_t showUnusedMemStart(struct uartStruct * ptr_uartStruct);
 /*void help_show(void);*/
 void showErrors(struct uartStruct * ptr_uartStruct, uint8_t index);
+void showResetSource(uint8_t startup_flag);
+void showWatchdogIncarnationsCounter(uint8_t startup_flag);
 
 #endif /* APISHOW_H_ */
