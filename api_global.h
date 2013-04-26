@@ -97,5 +97,8 @@ extern int8_t countDEVbus;/*number of devices on the current bus (initialized to
 extern uint16_t owiBusMask;
 extern uint16_t adcBusMask;
 
+extern uint8_t mcusr;
+extern unsigned char watchdogIncarnationsCounter __attribute__ ((section (".noinit")));
+
 #endif
 
