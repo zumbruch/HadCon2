@@ -121,5 +121,6 @@
 
 #define min(a,b) ( ((a)<(b))?(a):(b) )
 
+#define RESET_TIME_TO_WAIT_S 10
 #endif
 
