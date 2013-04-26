@@ -1226,30 +1226,39 @@ void owiFindParasitePoweredDevices(unsigned char verbose)
           }
       }
 
+      /* prepare verbose output header */
+		if (FALSE != verbose)
+		{
+			int8_t oldKeyword = ptr_uartStruct->commandKeywordIndex;
+			ptr_uartStruct->commandKeywordIndex = commandKeyNumber_PARA;
+			createReceiveHeader(NULL, NULL, 0);
+			ptr_uartStruct->commandKeywordIndex = oldKeyword;
+
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sparasitic devices "), uart_message_string);
+		}
+
       if ( TRUE == timeout_flag )
       {
          /* some devices are parasitic mode*/
 
          if ( FALSE != verbose)
          {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("RECV PARA parasitic devices SOME on pins 0x%x "),
-                       currentPins);
-            UART0_Send_Message_String_p(NULL,0);
+        	 snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sSOME on pins 0x%x "),
+        			    uart_message_string, currentPins);
+        	 UART0_Send_Message_String_p(NULL,0);
          }
          /*set current pins in parasitic mode mask*/
          owiTemperatureParasiticModeMask |= (currentPins & 0xF);
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic devices SOME on pins 0x%x ") ,currentPins);
+         printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic devices SOME on pins 0x%x ") ,currentPins);
       }
       else
       {
          //owiTemperatureParasiticModeMask |= pins;
          if ( FALSE != verbose)
          {
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1,
-                       PSTR("RECV PARA parasitic devices NONE on pins 0x%x (pulled HIGH within %i ms)"),
-                       currentPins, (maxcount-count)*delay);
-            UART0_Send_Message_String_p(NULL,0);
+        	 snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sNONE on pins 0x%x (pulled HIGH within %i ms)"),
+        			    uart_message_string, currentPins, (maxcount - count) * delay);
+        	 UART0_Send_Message_String_p(NULL,0);
          }
          /*set current pins in parasitic mode mask*/
          owiTemperatureParasiticModeMask &= !(currentPins & 0xF);
