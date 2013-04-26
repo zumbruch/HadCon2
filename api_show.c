@@ -6,11 +6,11 @@
  */
 
 #include <avr/pgmspace.h>
+#include <avr/iocanxx.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include "api_define.h"
 #include "api_global.h"
-
 #include "api_debug.h"#include "mem-check.h"
 #include "api_show.h"
 
@@ -22,6 +22,8 @@ static const char commandShowKeyword01[] PROGMEM = "unused_mem";
 static const char commandShowKeyword02[] PROGMEM = "free_mem";
 static const char commandShowKeyword03[] PROGMEM = "mem";
 static const char commandShowKeyword04[] PROGMEM = "all_errors";
+static const char commandShowKeyword05[] PROGMEM = "reset_source";
+static const char commandShowKeyword06[] PROGMEM = "watchdog_counter";
 
 //const showCommand_t showCommands[] PROGMEM =
 //{
@@ -35,7 +37,9 @@ const char* commandShowKeywords[] PROGMEM = {
 		commandShowKeyword01,
 		commandShowKeyword02,
 		commandShowKeyword03,
-		commandShowKeyword04
+		commandShowKeyword04,
+		commandShowKeyword05,
+		commandShowKeyword06
 };
 
 
@@ -105,6 +109,12 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		      break;
 		   case commandShowKeyNumber_ALL_ERRORS:
 		      showErrors(ptr_uartStruct, index);
+		      break;
+		   case commandShowKeyNumber_RESET_SOURCE:
+		      showResetSource(FALSE);
+		      break;
+		   case commandShowKeyNumber_WATCHDOG_COUNTER:
+		      showWatchdogIncarnationsCounter(FALSE);
 		      break;
 		   default:
  		      printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("call Communication_Error"));
@@ -222,4 +232,80 @@ void showErrors(struct uartStruct * ptr_uartStruct, uint8_t index)
           CommunicationError_p(errType, err ,FALSE ,PSTR("SHOW messages"));
        }
     }
+}
+/*
+ * void showResetSource(uint8_t startup_flag)
+ * 		shows the reset source after an system (re)start
+ * 		the response header varies depending on startup_flag
+ * 		FALSE: RECV SHOW reset_source <message> MCUSR:0x<value>
+ * 		else:  SYST <message> MCUSR:0x<value>
+ */
+void showResetSource(uint8_t startup_flag)
+{
+	// The MCU Status Register provides information on which reset source caused an MCU reset.
+	//	    Bit 0 – PORF:  	Power-On Reset
+	//	    Bit 1 – EXTRF: 	External Reset
+	//	    Bit 2 – BORF:  	Brown-Out Reset
+	//		Bit 3 – WDRF:  	Watchdog Reset
+	//   	Bit 4 – JTRF:  	JTAG Reset Flag
+	//  							This bit is set if a reset is being caused
+	//                              by a logic one in the JTAG Reset Register selected by
+	//                              the JTAG instruction AVR_RESET. This bit is reset by
+	// 								a Power-on Reset, or by writing a logic zero to the flag.
+
+    if ( FALSE == startup_flag ) /*called by SHOW command*/
+    {
+    	createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, commandShowKeyNumber_RESET_SOURCE, commandShowKeywords);
+		strncat_P(uart_message_string, PSTR("- "), BUFFER_SIZE - 1);
+    }
+    else /* called at startup*/
+    {
+    	strncat_P(uart_message_string, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_SYST])) ), BUFFER_SIZE - 1);
+    	strncat_P(uart_message_string, PSTR(" system (re)started by: "), BUFFER_SIZE - 1);
+    }
+
+	if ( mcusr & (1 << JTRF) )
+	{
+		strncat_P(uart_message_string, PSTR("JTAG Reset"), BUFFER_SIZE - 1);
+	}
+	else if ( mcusr & (1 << WDRF) )
+	{
+		strncat_P(uart_message_string, PSTR("Watchdog Reset"), BUFFER_SIZE - 1);
+	}
+	else if ( mcusr & (1 << BORF) )
+	{
+		strncat_P(uart_message_string, PSTR("Brown Out Reset"), BUFFER_SIZE - 1);
+	}
+	else if ( mcusr & (1 << EXTRF) )
+	{
+		strncat_P(uart_message_string, PSTR("External Reset"), BUFFER_SIZE - 1);
+	}
+    else if ( mcusr & (1 << PORF) )
+	{
+		strncat_P(uart_message_string, PSTR("Power On Reset"), BUFFER_SIZE - 1);
+	}
+	else
+	{
+		strncat_P(uart_message_string, PSTR("unknown reason"), BUFFER_SIZE - 1);
+	}
+	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s (MCUSR: 0x%x)"),uart_message_string, mcusr );
+
+	UART0_Send_Message_String_p(NULL,0);
+
+
+}
+
+void showWatchdogIncarnationsCounter(uint8_t startup_flag)
+{
+	if ( FALSE == startup_flag ) /*called by SHOW command*/
+    {
+    	createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, commandShowKeyNumber_WATCHDOG_COUNTER, commandShowKeywords);
+    }
+    else /* called at startup*/
+    {
+    	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("SYST watch dog incarnation no.: "));
+    }
+
+	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i"), uart_message_string, watchdogIncarnationsCounter);
+	UART0_Send_Message_String_p(NULL,0);
 }
