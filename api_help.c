@@ -72,9 +72,6 @@ void help(struct uartStruct *ptr_uartStruct)
         UART0_Send_Message_String_p(NULL,0);
         for (index = 0; index < commandKeyNumber_MAXIMUM_NUMBER; index++)
         {
-            /*exclude list*/
-            if ( commandKeyNumber_OWON == index) { continue; }
-
             /* compose message */
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s "), message);
             strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandKeywords[index]))), BUFFER_SIZE -1 );
@@ -151,7 +148,7 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: "), message );
             UART0_Send_Message_String_p(NULL,0);
-            //                     Subscribe_Message(ptr_uartStruct); /* call function with name Subscribe_Message */
+            //                     canSubscribeMessage(ptr_uartStruct); /* call function with name canSubscribeMessage */
             break;
         case commandKeyNumber_USUB:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s unsubscribe from CAN message ID "), message );
@@ -160,7 +157,7 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: "), message );
             UART0_Send_Message_String_p(NULL,0);
-            //                     Unsubscribe_Message(ptr_uartStruct); /* call function with name Unsubscribe_Message */
+            //                     canUnsubscribeMessage(ptr_uartStruct); /* call function with name canUnsubscribeMessage */
             break;
         case commandKeyNumber_STAT:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s ??? "), message );
@@ -261,16 +258,18 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             break;
         case commandKeyNumber_RSET:
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s reset micro controller using watchdog mechanism"), message );
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s reset micro controller waiting %i s (via watchdog"), message, RESET_TIME_TO_WAIT_S );
             UART0_Send_Message_String_p(NULL,0);
-            //         Initialization(ptr_uartStruct); /* call function with name  readRegister */
+            break;
+        case commandKeyNumber_INIT:
+            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s init micro controller"), message);
+            UART0_Send_Message_String_p(NULL,0);
             break;
         case commandKeyNumber_OWSS:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s one wire single switches"), message );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [ID]"), message, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
-            //         read_status_simpleSwitches(ptr_uartStruct); /* call function with name  readRegister */
             break;
         case commandKeyNumber_OWLS:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s one wire list devices [of type <family code>]"), message );
@@ -658,8 +657,6 @@ strncat_P(     desc[commandKeyNumber_RADC],PSTR("read AVR's ADCs "),DESC_LENGTH 
 strncat_P(arguments[commandKeyNumber_RADC],PSTR("[<ADC Channel>]"),ARG_LENGTH -1);
 strncat_P(     desc[commandKeyNumber_OWAD],PSTR("one-wire adc "),DESC_LENGTH -1);
 strncat_P(arguments[commandKeyNumber_OWAD],PSTR("[ID [flag_conv [flag_init]]]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWON],PSTR("one wire set dual switches on "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWON],PSTR("[ID]"),ARG_LENGTH -1);
 strncat_P(     desc[commandKeyNumber_OWDS],PSTR(" set/get one wire dual switches  "),DESC_LENGTH -1);
 strncat_P(arguments[commandKeyNumber_OWDS],PSTR("[ID]"),ARG_LENGTH -1);
 strncat_P(     desc[commandKeyNumber_RSET],PSTR("reset micro controller"),DESC_LENGTH -1);
