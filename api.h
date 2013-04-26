@@ -33,6 +33,7 @@ extern struct uartStruct *ptr_uartStruct;
 /* Implemented functions
  * and
  * corresponding function pointers*/
+
 void Process_Uart_Event( void );
 extern void (*Process_Uart_Event_p)( void );
 
@@ -41,29 +42,19 @@ int8_t Check_Parameter( struct uartStruct *ptr_uartStruct );/* this function che
 
 void Choose_Function( struct uartStruct *ptr_uartStruct );/* in terms of the command name is the competent function */
 
-void canConvertCanFrameToUartFormat( struct canStruct *ptr_canStruct );/* this function collects the various CAN data in a string */
-
 void apiConvertUartDataToCanUartStruct( uint8_t offset ); /*converting the decomposed CPU format in CAN-format */
 
 void keep_alive( struct uartStruct *PtrFrame ); /*this function checks the functionality of the software*/
 
 int8_t uartSplitUartString( void ); /*CPU-cutting format in various parameters */
 
-void canSendRemoteTransmissionRequestMessage( struct uartStruct *PtrFrame ); /* function for the SEND command name and RTR set, initialization of the registers with elements of the structure uartStruct*/
-
 void Initialization( void ); /*this function initialize all init functions again and actives the interrupt*/
 
 void InitIOPorts( void );/*this function initializes all input /output of the microcontroller*/
 
-void canSendMessage( struct uartStruct *PtrFrame );/*function for the SEND command name and RTR is not set, initialization of the registers with elements of the structure uartStruct*/
-
-void Subscribe_Message( struct uartStruct *PtrFrame ); /* function for the command name SUBS, initialization of the registers with elements of the structure uartStruct */
-
 int8_t Timer0_Init( void ); /*initialize  bit Timer0 */
 
 int8_t Timer0A_Init( void ); /* initialize 8 bit Timer with output compareA*/
-
-void Unsubscribe_Message( struct uartStruct *PtrFrame ); /* function for the command name USUB, initialization of the registers with elements of the structure uartStruct */
 
 int8_t UART0_Init( void ); /* initialize serial communication */
 
@@ -83,18 +74,20 @@ void Reset_UartStruct( struct uartStruct *ptr_uartStruct ); /* resets all values
 
 void clearUartStruct( struct uartStruct *ptr_uartStruct ); /* resets all values of uartStruct*/
 
+uint8_t initUartStruct(struct uartStruct *ptr_myUartStruct);
+
 uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const uint8_t flag_printCommand, const prog_char *alternativeErrorMessage, ... );
 extern uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, const prog_char*, ...);
 
 void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, const prog_char* file, const prog_char *format, ...);
 extern void (*printDebug_p)(uint8_t, uint32_t, uint32_t, const prog_char*, const prog_char*, ...);
 
-uint8_t createReceiveHeader( struct uartStruct *ptr_uartStruct, char message_string[], uint16_t size );
-
 uint16_t clearString( char mystring[], uint16_t length );
 extern uint16_t (*clearString_p)( char[], uint16_t );
 
 void toggle_pin( unsigned char pin_number );
+
+uint8_t createReceiveHeader( struct uartStruct *ptr_uartStruct, char message_string[], uint16_t size );
 
 void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct, int8_t keyNumber, int8_t index,  const prog_char* commandKeyword[]);
 
@@ -103,32 +96,9 @@ uint16_t getNumericLength(const char string[], const uint16_t maxLenght);
 int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value);
 
 void reset(struct uartStruct *ptr_uartStruct);
+void init(struct uartStruct *ptr_uartStruct);
 
-uint8_t initUartStruct(struct uartStruct *ptr_myUartStruct);
-
-/* getting number of variable arguments
- *
- * found at https://groups.google.com/forum/?fromgroups=#!topic/comp.std.c/d-6Mj5Lko_s
- */
-
-#define PP_NARG(...) PP_NARG_(__VA_ARGS__,PP_RSEQ_N())
-#define PP_NARG_(...) PP_ARG_N(__VA_ARGS__)
-#define PP_ARG_N( \
-          _1, _2, _3, _4, _5, _6, _7, _8, _9,_10, \
-         _11,_12,_13,_14,_15,_16,_17,_18,_19,_20, \
-         _21,_22,_23,_24,_25,_26,_27,_28,_29,_30, \
-         _31,_32,_33,_34,_35,_36,_37,_38,_39,_40, \
-         _41,_42,_43,_44,_45,_46,_47,_48,_49,_50, \
-         _51,_52,_53,_54,_55,_56,_57,_58,_59,_60, \
-         _61,_62,_63,N,...) N
-#define PP_RSEQ_N() \
-         63,62,61,60,                   \
-         59,58,57,56,55,54,53,52,51,50, \
-         49,48,47,46,45,44,43,42,41,40, \
-         39,38,37,36,35,34,33,32,31,30, \
-         29,28,27,26,25,24,23,22,21,20, \
-         19,18,17,16,15,14,13,12,11,10, \
-         9,8,7,6,5,4,3,2,1,0
+void startMessage(void);
 
 #ifndef API_CONSTANTS_H_
 
@@ -188,31 +158,31 @@ enum se_index
    SERIAL_ERROR_too_many_arguments,
    SERIAL_ERROR_MAXIMUM_INDEX
 };
-
-extern const char *can_error[] PROGMEM;
-enum ce_index
-{
-   CAN_ERROR_Can_Bus_is_off = 0,
-   CAN_ERROR_Can_Bus_is_passive,
-   CAN_ERROR_Can_Bus_is_on,
-   CAN_ERROR_MOb_Bit_Error,
-   CAN_ERROR_MOb_Stuff_Error,
-   CAN_ERROR_MOb_CRC_Error,
-   CAN_ERROR_MOb_Form_Error,
-   CAN_ERROR_MOb_Acknowledgement_Error,
-   CAN_ERROR_CAN_was_not_successfully_initialized,
-   CAN_ERROR_timeout_for_CAN_communication,
-   CAN_ERROR_MAXIMUM_INDEX
-};
-
-extern const char *mob_error[] PROGMEM;
-enum me_index
-{
-   MOB_ERROR_all_mailboxes_already_in_use = 0,
-   MOB_ERROR_message_ID_not_found,
-   MOB_ERROR_this_message_already_exists,
-   MOB_ERROR_MAXIMUM_INDEX
-};
+//
+//extern const char *can_error[] PROGMEM;
+//enum ce_index
+//{
+//   CAN_ERROR_Can_Bus_is_off = 0,
+//   CAN_ERROR_Can_Bus_is_passive,
+//   CAN_ERROR_Can_Bus_is_on,
+//   CAN_ERROR_MOb_Bit_Error,
+//   CAN_ERROR_MOb_Stuff_Error,
+//   CAN_ERROR_MOb_CRC_Error,
+//   CAN_ERROR_MOb_Form_Error,
+//   CAN_ERROR_MOb_Acknowledgement_Error,
+//   CAN_ERROR_CAN_was_not_successfully_initialized,
+//   CAN_ERROR_CAN_communication_timeout,
+//   CAN_ERROR_MAXIMUM_INDEX
+//};
+//
+//extern const char *mob_error[] PROGMEM;
+//enum me_index
+//{
+//   MOB_ERROR_all_mailboxes_already_in_use = 0,
+//   MOB_ERROR_message_ID_not_found,
+//   MOB_ERROR_this_message_already_exists,
+//   MOB_ERROR_MAXIMUM_INDEX
+//};
 
 extern const char *twi_error[] PROGMEM;
 enum te_index
@@ -248,7 +218,8 @@ extern const char* responseKeywords[] PROGMEM;
 enum responseKeyNumber
 {
       responseKeyNumber_RECV = 0,
-      responseKeyNumber_CANR = 0,
+      responseKeyNumber_CANR,
+      responseKeyNumber_SYST,
       responseKeyNumber_MAXIMUM_INDEX
 };
 
@@ -265,7 +236,7 @@ enum cmdKeyNumber
                commandKeyNumber_RADC,
                commandKeyNumber_OWAD,
                commandKeyNumber_OWDS,
-               commandKeyNumber_OWON,
+               commandKeyNumber_INIT,
                commandKeyNumber_OWLS,
                commandKeyNumber_OWSS,
                commandKeyNumber_RSET,
@@ -327,7 +298,6 @@ enum ERRs
 
 extern const char *debugLevelNames[] PROGMEM;
 extern const char *debugSystemNames[] PROGMEM;
-
 
 #endif
 #endif
