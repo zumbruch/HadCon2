@@ -47,17 +47,17 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
     case 0:
         for (index = 0; index < owiApiCommandKeyNumber_MAXIMUM_NUMBER; index++)
         {
-             printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all begin %i"), index);
+            printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all begin %i"), index);
             ptr_uartStruct->number_of_arguments = 1;
 
             clearString(setParameter[1], MAX_LENGTH_PARAMETER);
             snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (const prog_char*) (pgm_read_word( &(owiApiCommandKeywords[index]))));
 
-             printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("recursive call of %s with parameter \"%s\" (%p)"), __func__, &setParameter[1][0], &setParameter[1][0]);
+            printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("recursive call of %s with parameter \"%s\" (%p)"), __func__, &setParameter[1][0], &setParameter[1][0]);
 
             owiApi(ptr_uartStruct);
 
-             printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all end %i"), index);
+            printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all end %i"), index);
 
             ptr_uartStruct->number_of_arguments = 0;
         }
@@ -101,14 +101,27 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
 
 int8_t owiApiFlag(struct uartStruct * ptr_uartStruct, uint8_t index)
 {
-   uint8_t ptr_flag;
+   uint8_t flag = 0;
+   if (1 < ptr_uartStruct->number_of_arguments)  /*set value*/
+   {
+      flag = ( 0 != strtoul(setParameter[2], &ptr_setParameter[2], 16));
+   }
+
    switch (index)
    {
       case owiApiCommandKeyNumber_COMMON_ADC_CONVERSION:
-         ptr_flag = owiUseCommonAdcConversion_flag;
+    	  if (1 < ptr_uartStruct->number_of_arguments)  /*set value*/
+    	  {
+    		  owiUseCommonAdcConversion_flag = flag;
+    	  }
+    	  flag = owiUseCommonAdcConversion_flag;
          break;
       case owiApiCommandKeyNumber_COMMON_TEMPERATURE_CONVERSION:
-         ptr_flag = owiUseCommonTemperatureConversion_flag;
+    	  if (1 < ptr_uartStruct->number_of_arguments)  /*set value*/
+    	  {
+    		  owiUseCommonTemperatureConversion_flag = flag;
+    	  }
+         flag = owiUseCommonTemperatureConversion_flag;
          break;
       default:
          CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("owiApiFlag:invalid argument"));
@@ -117,12 +130,8 @@ int8_t owiApiFlag(struct uartStruct * ptr_uartStruct, uint8_t index)
    }
 
    createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_OWSA, index, owiApiCommandKeywords);
-   if (1 < ptr_uartStruct->number_of_arguments)  /*set value*/
-   {
-      ptr_flag = ( 0 != strtoul(setParameter[2], &ptr_setParameter[2], 16));
-   }
-   snprintf_P(uart_message_string,BUFFER_SIZE -1, PSTR("%s%i"), uart_message_string, ptr_flag);
-   strncat_P(uart_message_string,((ptr_flag)?PSTR(" (TRUE)"):PSTR(" (FALSE)")),BUFFER_SIZE -1);
+   snprintf_P(uart_message_string,BUFFER_SIZE -1, PSTR("%s%i"), uart_message_string, flag);
+   strncat_P(uart_message_string,((flag)?PSTR(" (TRUE)"):PSTR(" (FALSE)")),BUFFER_SIZE -1);
    UART0_Send_Message_String_p(NULL,0);
 
    return 0;
