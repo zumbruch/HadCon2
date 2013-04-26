@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <util/delay.h>
+#include <util/atomic.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
@@ -55,10 +56,12 @@
 
 static const char responseKeyword00[] PROGMEM = "RECV";
 static const char responseKeyword01[] PROGMEM = "CANR";
+static const char responseKeyword02[] PROGMEM = "SYST";
 
 const char* responseKeywords[] PROGMEM = {
         responseKeyword00,
-        responseKeyword01
+        responseKeyword01,
+        responseKeyword02
 };
 
 
@@ -114,9 +117,9 @@ static const             char commandShortDescription08[]     PROGMEM = "[ID]";
 static const             char commandImplementation08[]       PROGMEM = "1-wire double switch";
 
 // index: 09
-static const             char commandKeyword09[]              PROGMEM = "OWON"; /*obsolete*/
+static const             char commandKeyword09[]              PROGMEM = "INIT"; /*obsolete*/
 static const             char commandShortDescription09[]     PROGMEM = "";
-static const             char commandImplementation09[]       PROGMEM = "obsolete";
+static const             char commandImplementation09[]       PROGMEM = "(re)init of system";
 
 // index: 10
 static const             char commandKeyword10[]              PROGMEM = "OWLS";
@@ -131,7 +134,7 @@ static const             char commandImplementation11[]       PROGMEM = "--- [ID
 // index: 12
 static const             char commandKeyword12[]              PROGMEM = "RSET";
 static const             char commandShortDescription12[]     PROGMEM = "";
-static const             char commandImplementation12[]       PROGMEM = "";
+static const             char commandImplementation12[]       PROGMEM = "reset via watchdog";
 
 // index: 13
 static const             char commandKeyword13[]              PROGMEM = "PING";
@@ -423,33 +426,33 @@ const uint8_t serial_error_number[] = {
 		121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
 		131};
 
-/* pointer of array for defined can error number*/
-
-static const char ce00[] PROGMEM = "Can_Bus is off";
-static const char ce01[] PROGMEM = "Can_Bus is passive";
-static const char ce02[] PROGMEM = "Can_Bus is on";
-static const char ce03[] PROGMEM = "Bit Error";
-static const char ce04[] PROGMEM = "Stuff Error";
-static const char ce05[] PROGMEM = "CRC Error";
-static const char ce06[] PROGMEM = "Form Error";
-static const char ce07[] PROGMEM = "Acknowledgment Error";
-static const char ce08[] PROGMEM = "CAN was not successfully initialized";
-static const char ce09[] PROGMEM = "timeout for CAN communication";
-
-const char *can_error[] PROGMEM = { ce00, ce01, ce02, ce03, ce04, ce05, ce06, ce07, ce08, ce09 };
-
-/* array for defined can error number*/
-const uint8_t can_error_number[] = { 21, 22, 23, 24, 25, 26, 27, 28, 29, 0x2A };
-/* pointer of array for defined mailbox error */
-
-static const char me00[] PROGMEM = "all mailboxes already in use";
-static const char me01[] PROGMEM = "message ID not found";
-static const char me02[] PROGMEM = "this message already exists";
-
-const char *mob_error[] PROGMEM = { me00, me01, me02 };
-
-/* array for defined mailbox error number*/
-const uint8_t mob_error_number[] = { 31, 32, 33 };
+///* pointer of array for defined can error number*/
+//
+//static const char ce00[] PROGMEM = "Can_Bus is off";
+//static const char ce01[] PROGMEM = "Can_Bus is passive";
+//static const char ce02[] PROGMEM = "Can_Bus is on";
+//static const char ce03[] PROGMEM = "Bit Error";
+//static const char ce04[] PROGMEM = "Stuff Error";
+//static const char ce05[] PROGMEM = "CRC Error";
+//static const char ce06[] PROGMEM = "Form Error";
+//static const char ce07[] PROGMEM = "Acknowledgment Error";
+//static const char ce08[] PROGMEM = "CAN was not successfully initialized";
+//static const char ce09[] PROGMEM = "CAN communication timeout";
+//
+//const char *can_error[] PROGMEM = { ce00, ce01, ce02, ce03, ce04, ce05, ce06, ce07, ce08, ce09 };
+//
+///* array for defined can error number*/
+//const uint8_t can_error_number[] = { 21, 22, 23, 24, 25, 26, 27, 28, 29, 0x2A };
+///* pointer of array for defined mailbox error */
+//
+//static const char me00[] PROGMEM = "all mailboxes already in use";
+//static const char me01[] PROGMEM = "message ID not found";
+//static const char me02[] PROGMEM = "this message already exists";
+//
+//const char *mob_error[] PROGMEM = { me00, me01, me02 };
+//
+///* array for defined mailbox error number*/
+//const uint8_t mob_error_number[] = { 31, 32, 33 };
 
 /* pointer of array for defined general error number*/
 
@@ -608,6 +611,14 @@ int8_t Timer0A_Init( void )
 
 void Process_Uart_Event(void)
 {
+	/* copy string into (buffer) uartString*/
+	strncpy(decrypt_uartString, uartString, BUFFER_SIZE - 1);
+    /* clear uartString, avoiding memset*/
+    clearString(uartString, BUFFER_SIZE);
+
+    printDebug_p(debugLevelEventDebug, debugSystemUART, __LINE__, PSTR(__FILE__), PSTR("UART string received:%s"), decrypt_uartString);
+
+
 	/* split uart string into its elements */
 
 	int8_t number_of_elements = -1;
@@ -1120,18 +1131,19 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		 * response  now: RECV CAN_Mob CAN-Message-ID CAN-Length [Data0 ... Data7] */
 		/* response TODO: RECV SEND CAN-Message-ID CAN-Length [Data0 ... Data7] */
 		canSendMessage(ptr_uartStruct); /* call function with name canSendMessage */
+		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("Choose_Function: call finished"));
 		break;
 	case commandKeyNumber_SUBS:
 	case commandKeyNumber_CANS:
 		/* command : SUBS CAN-Message-ID ID-Range
 		 * response: */
-		Subscribe_Message(ptr_uartStruct);
+		canSubscribeMessage(ptr_uartStruct);
 		break;
 	case commandKeyNumber_USUB:
 	case commandKeyNumber_CANU:
 		/* command : USUB CAN-Message-ID ID-Range
 		 * response: */
-		Unsubscribe_Message(ptr_uartStruct);
+		canUnsubscribeMessage(ptr_uartStruct);
 		break;
 	case commandKeyNumber_CANP:
 	case commandKeyNumber_CAN:
@@ -1175,6 +1187,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		break;
 	case commandKeyNumber_RSET:
         reset(ptr_uartStruct);
+		break;
+	case commandKeyNumber_INIT:
+        init(ptr_uartStruct);
 		break;
 	case commandKeyNumber_OWSS:
 		read_status_simpleSwitches(ptr_uartStruct); /* call function with name  readRegister */
@@ -1353,68 +1368,109 @@ ISR (SIG_UART0_RECV)
 	}
 }//END of ISR (SIG_UART0_RECV)
 
-/* interrupt for receive data via CAN communication
- * with defined interrupt vector CANIT_vect */
-
-ISR(CANIT_vect)
-{
-	uint8_t save_canpage = CANPAGE;
-
-	// --- interrupt generated by a MOb
-	// i.e. there is a least one MOb,
-	//      if more than one choose the highest priority CANHPMOB
-	if ( (CANHPMOB & 0xF0) != 0xF0 )
-	{
-        // set current canMob to the 'winner' in CANHPMOB
-		canMob = (CANHPMOB & 0xf0) >> HPMOB0;
-		// set CANPAGE to current canMob
-		CANPAGE = ((canMob << MOBNB0 ) & 0xf0);
-
-		if (0 != canIsMObErrorAndAcknowledge())
-		{ // check if MOb has an error
-			canReady = 2;
-
-#warning TODO: CAN on error, reset?
-			CANCDMOB = ( 1 << CONMOB0 ); /* reset receive mode*/
-		}
-		else if ( CANSTMOB & ( 1 << TXOK ) )
-		{
-			// MOb finished transmission
-			CANSTMOB &= ~( 1 << TXOK );  /* disable transmission mode*/
-			CANCDMOB = ( 1 << CONMOB0 ); /* reset receive mode*/
-		}
-		else if ( CANSTMOB & ( 1 << RXOK ) )
-		{
-			// MOb received message
-			ptr_canStruct->length = CANCDMOB & 0xF ;
-			for ( uint8_t i = 0 ; i < ptr_canStruct->length ; i++ )
-			{
-				/* get data of selected MOb */
-				ptr_canStruct->data[i] = CANMSG;
-			}
-			/*get identifier */
-			ptr_canStruct->id = 0;
-			ptr_canStruct->id = CANIDT2 >> 5;
-			ptr_canStruct->id |= CANIDT1 << 3;
-			ptr_canStruct->mob = canMob; /*get mailbox */
-			CANSTMOB &= ~( 1 << RXOK ); /* acknowledge/clear interrupt */
-			CANCDMOB = ( 1 << CONMOB1 ); /* reset receive mode*/
-			canReady = 1; /* mark, that we got an CAN_interrupt, to be handled by main */
-		}
-		#warning CAN add detailed Interrupt handling
-		CANPAGE = save_canpage; /* restore CANPAGE*/
-	}
-	else
-	{
-#warning CAN add detailed Interrupt handling
-		// --- general interrupt was generated
-		if ( 0 != canIsGeneralStatusError() )
-		{
-			canReady = 2;
-		}
-		CANGIT |= 0;
-	}
-}//END of ISR(CANIT_vect)
+///* interrupt for receive data via CAN communication
+// * with defined interrupt vector CANIT_vect */
+//
+//ISR(CANIT_vect)
+//{
+//	uint8_t save_canpage = CANPAGE;
+//
+//    static uint16_t ctr = 0;
+//    ctr++;
+//    printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("ISR (%i): CANIT_vect occurred, canReady: %i ---  BEGIN of ISR SREG=%x"), ctr, canReady,SREG);
+//
+//    // --- interrupt generated by a MOb
+//	// i.e. there is a least one MOb,
+//	//      if more than one choose the highest priority CANHPMOB
+//	if ( (CANHPMOB & 0xF0) != 0xF0 )
+//	{
+//        // set current canMob to the 'winner' in CANHPMOB
+//		canMob = (CANHPMOB & 0xf0) >> HPMOB0;
+//		// set CANPAGE to current canMob
+//		CANPAGE = ((canMob << MOBNB0 ) & 0xf0);
+//
+//		if (0 != canIsMObErrorAndAcknowledge())
+//		{ // check if MOb has an error
+//			printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
+//					     PSTR("ISR (%i): CANIT_vect occurred, MOb (%i) error occurred, CANSTMOB before/after acknowledge: 0x%x/0x%x,"), ctr, canMob, canCurrentMObStatus, CANSTMOB);
+//
+//			printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
+//					     PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, MOb (%i) error occurred, setting canReady to 2"), ctr, canReady, canMob);
+//
+//			canReady = canState_MOB_ERROR;
+//
+//			printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
+//					     PSTR("ISR (%i): CANIT_vect occurred, canReady: %i"), ctr, canReady);
+//
+//			printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
+//					     PSTR("ISR (%i): CANIT_vect occurred, MOb (%i), CANCDMOB: 0x%x"), ctr, canMob, CANCDMOB);
+//
+//#warning TODO: CAN on error, reset correct behaviour?
+//
+//			/*on error disable communication ?? or restart ?*/
+//			CANCDMOB &= ~( 1 << CONMOB1 | 1 << CONMOB0 ); /* reset receive mode*/
+//
+//			printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
+//					     PSTR("ISR (%i): CANIT_vect occurred, MOb (%i), CANCDMOB: 0x%x"), ctr, canMob, CANCDMOB);
+//		}
+//		else if ( CANSTMOB & ( 1 << TXOK ) )
+//		{
+//			// MOb finished transmission
+//			/* clear transmit OK flag */
+//			CANSTMOB &= ~( 1 << TXOK );
+//			/* disable communication */
+//			CANCDMOB &= ~( 1 << CONMOB1 | 1 << CONMOB0);
+//			printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, TXOK received"), ctr, canReady);
+//		}
+//		else if ( CANSTMOB & ( 1 << RXOK ) )
+//		{
+//			// MOb received message
+//			ptr_canStruct->length = CANCDMOB & 0xF ;
+//			for ( uint8_t i = 0 ; i < ptr_canStruct->length ; i++ )
+//			{
+//				/* get data of selected MOb */
+//				ptr_canStruct->data[i] = CANMSG;
+//			}
+//			/*get identifier */
+//			ptr_canStruct->id = 0;
+//			ptr_canStruct->id = CANIDT2 >> 5;
+//			ptr_canStruct->id |= CANIDT1 << 3;
+//			ptr_canStruct->mob = canMob; /*get mailbox */
+//			CANSTMOB &= ~( 1 << RXOK ); /* acknowledge/clear interrupt */
+//			CANCDMOB = ( 1 << CONMOB1 ); /* reset receive mode*/
+//			canReady = canState_RXOK; /* mark, that we got an CAN_interrupt, to be handled by main */
+//
+//			printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, RXOK"), ctr, canReady);
+//
+//		}
+//		else
+//		{
+//
+//#warning CAN: this case is not covered or not possible?
+//			printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("ISR (%i): CANIT_vect occurred, canReady: %i"), ctr, canReady);
+//
+//		}
+//
+//#warning CAN add detailed Interrupt handling
+//		CANPAGE = save_canpage; /* restore CANPAGE*/
+//		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("ISR (%i): CANIT_vect occurred, canReady: %i"), ctr, canReady);
+//	}
+//	else /*general error*/
+//	{
+//#warning CAN add detailed Interrupt handling
+//		// --- general interrupt was generated
+//		if ( 0 != canIsGeneralStatusError() )
+//		{
+//			canReady = canState_GENERAL_ERROR;
+//			printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, general error occurred"), ctr, canReady);
+//		}
+//#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+//		CANGIT |= 0;
+//	}
+//
+//	printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("ISR (%i): CANIT_vect occurred, canReady: %i ---  END of ISR"), ctr, canReady);
+//
+//}//END of ISR(CANIT_vect)
 
 /*
  *USART0 must be initialized before using this function
@@ -1723,9 +1779,50 @@ void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, con
 void Initialization( void )
 {
 #warning TODO find a generalized way to check for correct init and a modular possibility to fail and still run, e.g. relay
+
    uint16_t status = 0;
+
    /* disable interrupts*/
    cli();
+
+   // if not watchdog reset
+   if (0 == (mcusr & (1 << WDRF)))
+   {
+	   watchdogIncarnationsCounter = 0;
+   }
+
+   /*
+    * pointers and structures
+    */
+   ptr_uartStruct = &uartFrame; /* initialize pointer for CPU-structure */
+   initUartStruct(ptr_uartStruct);/*initialize basic properties of uartStruct*/
+
+   ptr_canStruct = &canFrame; /* initialize pointer for CAN-structure */
+
+   ptr_owiStruct = &owiFrame; /* initialize pointer for 1-wire structure*/
+   owiInitOwiStruct(ptr_owiStruct); /* initialize basic properties*/
+
+   /* initialize flags */
+#warning TODO: replace hardcoded values by named enum states
+   nextCharPos = 0;
+   uartReady = 0;
+   canReady = canState_IDLE;
+   timer0Ready = 0;
+   timer1Ready = 0;
+   timer0AReady = 0;
+   timer0ASchedulerReady = 0;
+   ptr_subscribe = 2; /*start value of pointer*/
+   ptr_buffer_in = NULL; /*initialize pointer for write in buffer_ring*/
+   ptr_buffer_out = NULL; /*initialize pointer for read in  buffer_ring*/
+   res0 = 0, res1 = 0, res2 = 0, res3 = 0;
+   res4 = 0, res5 = 0, res6 = 0, res7 = 0;
+   canCurrentMObStatus = 0;
+
+   relayThresholdCurrentState = relayThresholdState_IDLE;
+
+   owiBusMask = 0xFF;
+   adcBusMask = 0x0F;
+
 
    uart0_init = UART0_Init();
 
@@ -1752,6 +1849,7 @@ void Initialization( void )
    if ( -1 == can_init )
    {
       can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_CAN_was_not_successfully_initialized, FALSE, NULL);
+#warning exit must not be used - replace by "unsigned char status __attribute__ ((section (".noinit"))) / reset / retry / fallback "
       exit(0);
    }
    else
@@ -1762,6 +1860,7 @@ void Initialization( void )
    if ( 1 != timer0_init )
    {
       general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_init_for_timer0_failed, FALSE, NULL);
+#warning exit must not be used - replace by "unsigned char status __attribute__ ((section (".noinit"))) / reset / retry / fallback "
       exit(0);
    }
    else
@@ -1771,11 +1870,10 @@ void Initialization( void )
    if ( 1 != timer0A_init )
    {
       general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_init_for_timer0A_failed, FALSE, NULL);
+#warning exit must not be used - replace by "unsigned char status __attribute__ ((section (".noinit"))) / reset / retry / fallback "
       exit(0);
    }
 
-   /* enable interrupts*/
-   sei();
 
    clearString(currentResponseKeyword,MAX_LENGTH_KEYWORD);
    strncat_P(currentResponseKeyword, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_RECV])) ), MAX_LENGTH_KEYWORD - 1);
@@ -1792,8 +1890,12 @@ void Initialization( void )
 #warning TODO: missing action in case of failure: either exit or deactivate relay
 	   }
    }
+
 # warning remove it
 //PORTG |= (1<<PG2);
+
+   /* enable interrupts*/
+   sei();
 
 }//END of Initialization
 
@@ -2074,7 +2176,24 @@ int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value)
 
 void reset(struct uartStruct *ptr_uartStruct)
 {
+	for (uint8_t seconds = RESET_TIME_TO_WAIT_S; seconds > 0; --seconds)
+	{
+		createReceiveHeader(NULL, NULL, 0);
+		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s--- %i seconds to reset (via watchdog)"),uart_message_string, seconds );
+		UART0_Send_Message_String_p(NULL,0);
+		_delay_ms(1000);
+	}
+
+    // watchdog
+	wdt_enable(WDTO_15MS);
+	while (1);
+	wdt_disable();
+}
+
+void init(struct uartStruct *ptr_uartStruct)
+{
 	createReceiveHeader(NULL, NULL, 0);
+	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s(re)init of system"), uart_message_string);
     UART0_Send_Message_String_p(NULL,0);
 
     Initialization();
@@ -2133,4 +2252,25 @@ uint8_t initUartStruct(struct uartStruct *ptr_myUartStruct)
 //   }
 //   //safePArrayFree(array,level);
 //}
+
+void startMessage(void)
+{
+	showResetSource(TRUE);
+
+	version();
+	showMem(ptr_uartStruct, commandShowKeyNumber_UNUSED_MEM_START);
+	showMem(ptr_uartStruct, commandShowKeyNumber_UNUSED_MEM_NOW);
+	owiApiFlag(ptr_uartStruct, owiApiCommandKeyNumber_COMMON_ADC_CONVERSION);
+	owiApiFlag(ptr_uartStruct, owiApiCommandKeyNumber_COMMON_TEMPERATURE_CONVERSION);
+
+	if ( debugLevelVerboseDebug <= globalDebugLevel && ( ( globalDebugSystemMask >> debugSystemMain ) & 0x1 ) )
+	{
+		owiFindParasitePoweredDevices(TRUE);
+	}
+
+	if (0 != watchdogIncarnationsCounter)
+	{
+		showWatchdogIncarnationsCounter(TRUE);
+	}
+}
 
