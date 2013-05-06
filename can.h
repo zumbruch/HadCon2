@@ -43,6 +43,7 @@ enum canState {
 	canState_RXOK = 1,
 	canState_MOB_ERROR = 2,
 	canState_GENERAL_ERROR = 3,
+	canState_UNKNOWN,
 	canState_MAXIMUM_INDEX
 	};
 
