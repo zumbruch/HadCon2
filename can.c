@@ -1360,11 +1360,8 @@ ISR(CANIT_vect)
 		}
 		else
 		{
-
-#warning CAN: this case is not covered or not possible?
-			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i"), ctr, canReady); */
-
+			canCurrentMObStatus = CANSTMOB;
+			canReady = canState_UNKNOWN;
 		}
 
 #warning CAN add detailed Interrupt handling
@@ -1394,6 +1391,18 @@ ISR(CANIT_vect)
 					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, general error occurred"), ctr, canReady); */
 		}
 
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
+#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
 #warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
 
 		CANGIT |= 0;
