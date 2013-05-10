@@ -269,71 +269,71 @@ int main( void )
 	   }
 
 	   // CANbus interface has received a message
-	   printDebug_p(debugLevelPeriodicDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN %s"), ( 1 == canReady ) ? "--yes" : "");
+	   printDebug_p(debugLevelPeriodicDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN %s"), ( canState_IDLE != canReady ) ? "--yes" : "");
 
-	   switch (canReady)
+	   if ( canState_IDLE != canReady)
 	   {
-	   case canState_IDLE:
-		   break;
-	   case canState_RXOK:
-		   /* received complete message */
+		   switch (canReady)
+		   {
+		   case canState_IDLE:
+			   break;
+		   case canState_RXOK:
+			   /* received complete message */
 
-		   // disable interrupts
-		   cli();
-		   printDebug_p(debugLevelEventDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__),
-				   PSTR("interrupts disabled (cli)"));
+			   // disable interrupts
+			   cli();
+			   printDebug_p(debugLevelEventDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__),
+					   PSTR("interrupts disabled (cli)"));
 
-		   canConvertCanFrameToUartFormat(ptr_canStruct);
-		   canReady = canState_IDLE; /* restore flag */
+			   canConvertCanFrameToUartFormat(ptr_canStruct);
 
-		   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
-				   PSTR("CAN canReady %i received"), canReady);
+			   canReady = canState_IDLE; /* restore flag */
 
-		   // (re)enable interrupts
-		   printDebug_p(debugLevelEventDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__),
-				   PSTR("enabling interrupts (sei)"));
-		   sei();
-		   printDebug_p(debugLevelEventDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__),
-				   PSTR("interrupts enabled (sei)"));
-		   break;
-	   case canState_MOB_ERROR:
-	   case canState_GENERAL_ERROR:
-	   default:
-		   /* can error detected */
+			   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+					   PSTR("CAN canReady %i received"), canReady);
 
-		   // disable interrupts
-		   cli();
-		   printDebug_p(debugLevelEventDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__),
-				   PSTR("interrupts disabled (cli)"));
-		   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
-				   PSTR("CAN canReady %i received -> ErrorHandling"), canReady);
+			   // (re)enable interrupts
+			   sei();
+			   printDebug_p(debugLevelEventDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__),
+					   PSTR("interrupts enabled (sei)"));
+			   break;
+		   case canState_MOB_ERROR:
+		   case canState_GENERAL_ERROR:
+		   case canState_UNKNOWN:
+		   default:
+			   /* can error detected */
 
-		   canErrorHandling(canReady);
+			   // disable interrupts
+			   cli();
 
-		   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
-				   PSTR("CAN canReady %i received -> resetting to 0"), canReady);
+			   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+					   PSTR("CAN canReady %i received -> ErrorHandling"), canReady);
+			   printDebug_p(debugLevelEventDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__),
+					   PSTR("interrupts disabled (cli)"));
 
-		   canReady = canState_IDLE; /* restore flag */
+			   canErrorHandling(canReady);
 
-		   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
-				   PSTR("CAN canReady %i reset to %i"), canReady, canState_IDLE);
+			   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+					   PSTR("CAN canReady %i received -> resetting to 0"), canReady);
 
-		   // (re)enable interrupts
-		   printDebug_p(debugLevelEventDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__),
-				   PSTR("enabling interrupts (sei)"));
-		   sei();
-		   printDebug_p(debugLevelEventDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__),
-				   PSTR("interrupts enabled (sei)"));
-		   break;
+			   canReady = canState_IDLE; /* restore flag */
+
+			   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+					   PSTR("CAN canReady %i reset to %i"), canReady, canState_IDLE);
+
+			   // (re)enable interrupts
+			   sei();
+			   printDebug_p(debugLevelEventDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__),
+					   PSTR("interrupts enabled (sei)"));
+			   break;
+		   }
 	   }
-
 	   // timer 0 set by ISR
 	   printDebug_p(debugLevelPeriodicDebug, debugSystemTIMER0, __LINE__, PSTR(__FILE__), PSTR("timer 0%s"), ( 1 == timer0Ready ) ? "--yes" : "");
 
 	   if ( 1 == timer0Ready )
 	   {
 		   cli();
-		   /*         canGetGeneralStatusError(); */
 		   timer0Ready = 0;
 		   sei();
 	   }
@@ -361,7 +361,6 @@ int main( void )
 	   if ( 1 == timer0AReady )
 	   {
 		   cli();
-		   /*         canGetMObError(); */
 		   timer0AReady = 0; /* restore flag */
 		   sei();
 	   }
@@ -371,14 +370,14 @@ int main( void )
 
 	   if(1 == timer0ASchedulerReady )
 	   {
-		   // ATOMIC_BLOCK()
-		   cli();
-		   if (0 != owiTemperatureConversionGoingOnCountDown)
+		   ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 		   {
-			   owiTemperatureConversionGoingOnCountDown--;
+			   if (0 != owiTemperatureConversionGoingOnCountDown)
+			   {
+				   owiTemperatureConversionGoingOnCountDown--;
+			   }
+			   timer0ASchedulerReady = 0; /* restore flag */
 		   }
-		   timer0ASchedulerReady = 0; /* restore flag */
-		   sei();
 	   }
 
 	   /*relay block*/
