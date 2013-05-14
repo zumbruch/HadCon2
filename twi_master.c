@@ -64,6 +64,32 @@
 #define TWI_NO_STATE		        0xF8  // No relevant state information available; TWINT = �0�
 #define TWI_BUS_ERROR			    0x00  // Bus error due to an illegal START or STOP condition
 
+static const char tw00[] PROGMEM = "Error Initiating TWI interface";
+static const char tw01[] PROGMEM = "Could not start TWI Bus for WRITE";
+static const char tw02[] PROGMEM = "Could not start TWI Bus for READ";
+static const char tw03[] PROGMEM = "unknown command";
+static const char tw04[] PROGMEM = "address_is_too_long";
+static const char tw05[] PROGMEM = "data length is too long";
+static const char tw06[] PROGMEM = "data 0 is too long";
+static const char tw07[] PROGMEM = "data 1 is too long";
+static const char tw08[] PROGMEM = "data 2 is too long";
+static const char tw09[] PROGMEM = "data 3 is too long";
+static const char tw10[] PROGMEM = "data 4 is too long";
+static const char tw11[] PROGMEM = "data 5 is too long";
+static const char tw12[] PROGMEM = "data 6 is too long";
+static const char tw13[] PROGMEM = "data 7 is too long";
+static const char tw14[] PROGMEM = "failed writing TWI_Bus";
+static const char tw15[] PROGMEM = "failed reading TWI_Bus";
+static const char tw16[] PROGMEM = "too few (numeric) arguments";
+static const char tw17[] PROGMEM = "wrong length or number of data bytes";
+const char *twi_error[] PROGMEM = { tw00, tw01, tw02, tw03, tw04,
+		                            tw05, tw06, tw07, tw08, tw09,
+		                            tw10, tw11, tw12, tw13, tw14,
+		                            tw15, tw16, tw17 };
+
+/* array for defined can error number*/
+const uint8_t twi_error_number[] = { 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E, 0x5F, 0x60};
+
 void twiMaster(struct uartStruct *ptr_uartStruct)
 {
 	int status = -1;

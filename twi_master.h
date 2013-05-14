@@ -8,10 +8,35 @@
 #warning READ/WRITE mins differ!
 #define TWIS_MIN_NARGS 3
 
+extern const char *twi_error[] PROGMEM;
+enum te_index
+{
+   TWI_ERROR_Error_in_initiating_TWI_interface = 0,
+   TWI_ERROR_Could_not_start_TWI_Bus_for_WRITE,
+   TWI_ERROR_Could_not_start_TWI_Bus_for_READ,
+   TWI_ERROR_unknown_command,
+   TWI_ERROR_address_is_too_long,
+   TWI_ERROR_data_length_is_too_long,
+   TWI_ERROR_data_0_is_too_long,
+   TWI_ERROR_data_1_is_too_long,
+   TWI_ERROR_data_2_is_too_long,
+   TWI_ERROR_data_3_is_too_long,
+   TWI_ERROR_data_4_is_too_long,
+   TWI_ERROR_data_5_is_too_long,
+   TWI_ERROR_data_6_is_too_long,
+   TWI_ERROR_data_7_is_too_long,
+   TWI_ERROR_failed_writing_TWI_Bus,
+   TWI_ERROR_failed_reading_TWI_Bus,
+   TWI_ERROR_too_few_numeric_arguments,
+   TWI_ERROR_wrong_length_or_number_of_data_bytes,
+   TWI_ERROR_MAXIMUM_INDEX
+};
+
 /* Elements necessary for TWI communication */
 #define TWI_MAX_DATA_ELEMENTS 8					// Maximum data elements in one transfer
 extern uint16_t twi_data[TWI_MAX_DATA_ELEMENTS];	// Data array
 extern uint8_t twi_bytes_to_transceive;			// How much bytes to send/receive.
+
 
 /* Function-declaration for writing/reading TWI */
 uint8_t Twim_Write_Data(uint8_t Address, uint8_t twi_bytes_to_transceive, uint16_t twi_data[TWI_MAX_DATA_ELEMENTS]);
