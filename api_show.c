@@ -12,6 +12,7 @@
 #include "api_define.h"
 #include "api_global.h"
 #include "api_debug.h"#include "mem-check.h"
+#include "twi_master.h"
 #include "api_show.h"
 
 
@@ -60,7 +61,7 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 
 			ptr_uartStruct->number_of_arguments = 1;
 			for (uint8_t i = 0; i < MAX_LENGTH_PARAMETER; i++) {setParameter[1][i]=STRING_END;}
-			snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (const prog_char*) (pgm_read_word( &(commandShowKeywords[index]))));
+			snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (PGM_P) (pgm_read_word( &(commandShowKeywords[index]))));
 
  			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("recursive call of show with parameter \"%s\" (%p)"), &setParameter[1][0], &setParameter[1][0]);
 
