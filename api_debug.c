@@ -44,69 +44,48 @@ const char* commandDebugKeywords[] PROGMEM = {
 		commandDebugKeyword03
 };
 
-static const char debugLevelName00[] PROGMEM = "          noDebug";
-static const char debugLevelName01[] PROGMEM = "     verboseDebug";
-static const char debugLevelName02[] PROGMEM = "       eventDebug";
+static const char debugLevelName00[] PROGMEM = "noDebug";
+static const char debugLevelName01[] PROGMEM = "verboseDebug";
+static const char debugLevelName02[] PROGMEM = "eventDebug";
 static const char debugLevelName03[] PROGMEM = "eventDebugVerbose";
-static const char debugLevelName04[] PROGMEM = "    periodicDebug";
+static const char debugLevelName04[] PROGMEM = "periodicDebug";
+static const char debugLevelName05[] PROGMEM = "periodicDebugVerbose";
 
 const char *debugLevelNames[] PROGMEM = {
-         debugLevelName00,
-         debugLevelName01,
-         debugLevelName02,
-         debugLevelName03,
-         debugLevelName04
+         debugLevelName00, debugLevelName01, debugLevelName02, debugLevelName03, debugLevelName04, debugLevelName05
 };
 
-static const char debugSystemName00[] PROGMEM = "             Main";
-static const char debugSystemName01[] PROGMEM = "              Api";
-static const char debugSystemName02[] PROGMEM = "          ApiMisc";
-static const char debugSystemName03[] PROGMEM = "             UART";
-static const char debugSystemName04[] PROGMEM = "              CAN";
-static const char debugSystemName05[] PROGMEM = "       GETVOLTAGE";
-static const char debugSystemName06[] PROGMEM = "            RELAY";
-static const char debugSystemName07[] PROGMEM = "       CommandKey";
-static const char debugSystemName08[] PROGMEM = "              OWI";
-static const char debugSystemName09[] PROGMEM = "  OWITemperatures";
-static const char debugSystemName10[] PROGMEM = "          Decrypt";
-static const char debugSystemName11[] PROGMEM = "            DEBUG";
-static const char debugSystemName12[] PROGMEM = "           OWIADC";
-static const char debugSystemName13[] PROGMEM = "  OWIDualSwitches";
+static const char debugSystemName00[] PROGMEM = "Main";
+static const char debugSystemName01[] PROGMEM = "Api";
+static const char debugSystemName02[] PROGMEM = "ApiMisc";
+static const char debugSystemName03[] PROGMEM = "UART";
+static const char debugSystemName04[] PROGMEM = "CAN";
+static const char debugSystemName05[] PROGMEM = "GETVOLTAGE";
+static const char debugSystemName06[] PROGMEM = "RELAY";
+static const char debugSystemName07[] PROGMEM = "CommandKey";
+static const char debugSystemName08[] PROGMEM = "OWI";
+static const char debugSystemName09[] PROGMEM = "OWITemperatures";
+static const char debugSystemName10[] PROGMEM = "Decrypt";
+static const char debugSystemName11[] PROGMEM = "DEBUG";
+static const char debugSystemName12[] PROGMEM = "OWIADC";
+static const char debugSystemName13[] PROGMEM = "OWIDualSwitches";
 static const char debugSystemName14[] PROGMEM = "OWISingleSwitches";
-static const char debugSystemName15[] PROGMEM = " OWIOctalSwitches";
-static const char debugSystemName16[] PROGMEM = "             SHOW";
-static const char debugSystemName17[] PROGMEM = "   OWIApiSettings";
-static const char debugSystemName18[] PROGMEM = "           TIMER0";
-static const char debugSystemName19[] PROGMEM = "           TIMER1";
-static const char debugSystemName20[] PROGMEM = "          TIMER0A";
-static const char debugSystemName21[] PROGMEM = " TIMER0AScheduler";
-static const char debugSystemName22[] PROGMEM = "              TWI";
+static const char debugSystemName15[] PROGMEM = "OWIOctalSwitches";
+static const char debugSystemName16[] PROGMEM = "SHOW";
+static const char debugSystemName17[] PROGMEM = "OWIApiSettings";
+static const char debugSystemName18[] PROGMEM = "TIMER0";
+static const char debugSystemName19[] PROGMEM = "TIMER1";
+static const char debugSystemName20[] PROGMEM = "TIMER0A";
+static const char debugSystemName21[] PROGMEM = "TIMER0AScheduler";
+static const char debugSystemName22[] PROGMEM = "TWI";
 
 const char *debugSystemNames[] PROGMEM =
 {
-   debugSystemName00,
-   debugSystemName01,
-   debugSystemName02,
-   debugSystemName03,
-   debugSystemName04,
-   debugSystemName05,
-   debugSystemName06,
-   debugSystemName07,
-   debugSystemName08,
-   debugSystemName09,
-   debugSystemName10,
-   debugSystemName11,
-   debugSystemName12,
-   debugSystemName13,
-   debugSystemName14,
-   debugSystemName15,
-   debugSystemName16,
-   debugSystemName17,
-   debugSystemName18,
-   debugSystemName19,
-   debugSystemName20,
-   debugSystemName21,
-   debugSystemName22
+		debugSystemName00, debugSystemName01, debugSystemName02, debugSystemName03, debugSystemName04, debugSystemName05,
+		debugSystemName06, debugSystemName07, debugSystemName08, debugSystemName09, debugSystemName10,
+		debugSystemName11, debugSystemName12, debugSystemName13, debugSystemName14, debugSystemName15,
+		debugSystemName16, debugSystemName17, debugSystemName18, debugSystemName19, debugSystemName20,
+		debugSystemName21, debugSystemName22
 };
 
 int8_t apiDebug(struct uartStruct *ptr_uartStruct)
