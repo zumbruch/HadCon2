@@ -328,6 +328,7 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             break;
         case commandKeyNumber_DEBG: /*set/get debug level*/
+        {
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s set/get debug level and mask"), message );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [level [mask]]"), message, currentCommandKeyword );
@@ -340,9 +341,17 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s available debug levels are:"), message );
             UART0_Send_Message_String_p(NULL,0);
+            size_t maxLength = getMaximumStringArrayLength_P(debugLevelNames, debugLevel_MAXIMUM_INDEX, BUFFER_SIZE);
+            /*maximum maxLength*/
             for (int i=0; i < debugLevel_MAXIMUM_INDEX; i++)
             {
                 snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s    "), message );
+
+                /* add spaces before*/
+                for (size_t spaces = 0; spaces < (maxLength - strlen_P((const char*) (pgm_read_word( &(debugLevelNames[i]))))); spaces++)
+                {
+                	strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE -1) ;
+                }
                 strncat_P(uart_message_string, (const char*) (pgm_read_word( &(debugLevelNames[i]))), BUFFER_SIZE -1) ;
                 snprintf(uart_message_string, BUFFER_SIZE -1, "%s: 0x%X", uart_message_string, i);
                 UART0_Send_Message_String_p(NULL,0);
@@ -351,14 +360,21 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s available masks are:"), message );
             UART0_Send_Message_String_p(NULL,0);
+            maxLength = getMaximumStringArrayLength_P(debugSystemNames, debugSystem_MAXIMUM_INDEX, BUFFER_SIZE);
             for (int i=0; i < debugSystem_MAXIMUM_INDEX; i++)
             {
                 snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s    "), message );
+                /* add spaces before*/
+                for (size_t spaces = 0; spaces < (maxLength - strlen_P((const char*) (pgm_read_word( &(debugSystemNames[i]))))); spaces++)
+                {
+                	strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE -1) ;
+                }
                 strncat_P(uart_message_string, (const char*) (pgm_read_word( &(debugSystemNames[i]))), BUFFER_SIZE -1) ;
                 snprintf(uart_message_string, BUFFER_SIZE -1, "%s: 0x%08lX", uart_message_string, ((int32_t) 0x1) << i);
                 UART0_Send_Message_String_p(NULL,0);
             }
-            break;
+        }
+        break;
         case commandKeyNumber_DBGL: /*set/get debug level*/
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s set/get debug level"), message );
             UART0_Send_Message_String_p(NULL,0);
@@ -523,14 +539,6 @@ void help(struct uartStruct *ptr_uartStruct)
            UART0_Send_Message_String_p(NULL,0);
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: %s [???] "), message, currentReceiveHeader );
            break;
-           //        case commandKeyNumber_EXIT: /*exit*/
-           //           snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s exit"), message );
-           //           UART0_Send_Message_String(NULL,0);
-           //           snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [???]"), message, currentCommandKeyword );
-           //           UART0_Send_Message_String(NULL,0);
-           //           snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: %s [???] "), message, currentReceiveHeader );
-           //           UART0_Send_Message_String(NULL,0);
-           //           break;
         case commandKeyNumber_RLTH: /* relay threshold */
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s manage threshold relay "), message );
            UART0_Send_Message_String_p(NULL,0);
@@ -637,78 +645,3 @@ void help(struct uartStruct *ptr_uartStruct)
               break;
     }
 }
-
-#if 0
-strncat_P(     desc[commandKeyNumber_SEND],PSTR("send CAN messages "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_SEND],PSTR("CAN-Message-ID ID-Range [RTR <Number of data bytes> Data0 ... Data7]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_SUBS],PSTR(" subscribe to CAN message ID "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_SUBS],PSTR("CAN-Message-ID ID-Range"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_USUB],PSTR("unsubscribe from CAN message ID"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_USUB],PSTR("CAN-Message-ID ID-Range"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_STAT],PSTR("???"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_STAT],PSTR("[ID]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWTP],PSTR("1-wire temperature"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWTP],PSTR("[ID [flag_conv [flag_init]]]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_RGWR],PSTR("register write "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_RGWR],PSTR("Register [Value]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_RGRE],PSTR("register read "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_RGRE],PSTR("Register"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_RADC],PSTR("read AVR's ADCs "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_RADC],PSTR("[<ADC Channel>]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWAD],PSTR("one-wire adc "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWAD],PSTR("[ID [flag_conv [flag_init]]]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWDS],PSTR(" set/get one wire dual switches  "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWDS],PSTR("[ID]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_RSET],PSTR("reset micro controller"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_RSET],PSTR(""),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWSS],PSTR("set/get one wire single switches  "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWSS],PSTR("[ID]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWLS],PSTR("one wire list devices [of type <family code>]"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWLS],PSTR("[<Family Code>]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_PING],PSTR("receive an ALIV(e) periodically"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_PING],PSTR(""),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWSP],PSTR("one-wire set/get active pins/bus mask"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWSP],PSTR("<bus mask>"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWRP],PSTR("one-wire get pins' bus mask"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWRP],PSTR(""),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_CANT],PSTR("AVR's adcs set active pins/bus mask"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_CANT],PSTR("<bus mask>"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_CANS],PSTR("relay set low  level"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_CANS],PSTR("<bus> [val]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_CANU],PSTR("relay set high level"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_CANU],PSTR("<bus> [val]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_CANP],PSTR("relay set ADC pin(s) to monitor "in" "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_CANP],PSTR("<bus> [pins]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_CAN],PSTR("relay set/get output pin mask "),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_CAN],PSTR("<bus> [pins]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_DEBG],PSTR("set/get debug level and mask"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_DEBG],PSTR("[level [mask]]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_DBGL],PSTR("set/get debug level"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_DBGL],PSTR("[level]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_DBGM],PSTR("set/get debug mask"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_DBGM],PSTR("[mask]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_WDOG],PSTR("set/get watch/dog status"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_WDOG],PSTR("[???]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_JTAG],PSTR("toggle/set JTAG availability"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_JTAG],PSTR("[???]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWTR],PSTR("trigger one-wire device(s) for action, if possible"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWTR],PSTR("[???]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_HELP],PSTR("get all commands or specific HELP"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_HELP],PSTR("[CMD]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_SHOW],PSTR("show (internal) settings"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_SHOW],PSTR("[command_key]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWMR],PSTR("one wire basics: match rom"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWMR],PSTR("ID <pin_mask>"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWPC],PSTR("one wire basics: presence check"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWPC],PSTR("[<pin_mask>]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWRb],PSTR("one wire basics: receive bit, wait for it"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWRb],PSTR("<pin_mask> <delay> <timeout: N (times delay)>"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWRB],PSTR("one wire basics: receive byte"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWRB],PSTR("[<pin_mask>]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWSC],PSTR("one wire basics: send command"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWSC],PSTR("<command_key_word> [<pin_mask> [arguments ...]]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWSB],PSTR("one wire basics: send byte"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWSB],PSTR("<byte> [<pin_mask>]"),ARG_LENGTH -1);
-strncat_P(     desc[commandKeyNumber_OWSA],PSTR("one wire API settings: set/get 1-wire specific API settings"),DESC_LENGTH -1);
-strncat_P(arguments[commandKeyNumber_OWSA],PSTR("<command_key_word> [arguments]"),ARG_LENGTH -1);
-#endif
