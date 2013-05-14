@@ -23,6 +23,7 @@ enum debugLevels
    debugLevelEventDebug,
    debugLevelEventDebugVerbose,
    debugLevelPeriodicDebug,
+   debugLevelPeriodicDebugVerbose,
    debugLevel_MAXIMUM_INDEX
 };
 
