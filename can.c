@@ -67,8 +67,6 @@ static const char ce14[] PROGMEM = "Acknowledgment Error General";
 
 const char *can_error[] PROGMEM = { ce00, ce01, ce02, ce03, ce04, ce05, ce06, ce07, ce08, ce09, ce10, ce11, ce12, ce13, ce14 };
 
-/* array for defined can error number*/
-const uint8_t can_error_number[] = { 21, 22, 23, 24, 25, 26, 27, 28, 29, 0x2A, 0x2B, 0x2c, 0x2d, 0x2e };
 /* pointer of array for defined mailbox error */
 
 static const char me00[] PROGMEM = "all mailboxes already in use";
@@ -76,9 +74,6 @@ static const char me01[] PROGMEM = "message ID not found";
 static const char me02[] PROGMEM = "this message already exists";
 
 const char *mob_error[] PROGMEM = { me00, me01, me02 };
-
-/* array for defined mailbox error number*/
-const uint8_t mob_error_number[] = { 31, 32, 33 };
 
 /*
  * canSubscribeMessage creates/sets a listener to an ID/mask for a free MOb
@@ -99,7 +94,7 @@ void canSubscribeMessage( struct uartStruct *ptr_uartStruct )
       if ( ( ptr_uartStruct->Uart_Message_ID ) == ( subscribe_ID[count_subscribe] ) && ( ptr_uartStruct->Uart_Mask ) == ( subscribe_mask[count_subscribe] ) )
       {
          equality = 0;
-         mailbox_errorCode = CommunicationError_p(ERRM, MOB_ERROR_this_message_already_exists, FALSE, NULL);
+         mobErrorCode = CommunicationError_p(ERRM, MOB_ERROR_this_message_already_exists, FALSE, NULL);
       }
    }
    if ( 1 == equality )
@@ -117,7 +112,7 @@ void canSubscribeMessage( struct uartStruct *ptr_uartStruct )
 
       if ( ( -1 ) == findMob )
       {
-         mailbox_errorCode = CommunicationError_p(ERRM, MOB_ERROR_all_mailboxes_already_in_use, FALSE, NULL);
+         mobErrorCode = CommunicationError_p(ERRM, MOB_ERROR_all_mailboxes_already_in_use, FALSE, NULL);
       }
       else
       {
@@ -177,7 +172,7 @@ void canUnsubscribeMessage( struct uartStruct *ptr_uartStruct )
    }
    if ( 1 == inequality )
    {
-      mailbox_errorCode = CommunicationError_p(ERRM, MOB_ERROR_message_ID_not_found, FALSE, NULL);
+      mobErrorCode = CommunicationError_p(ERRM, MOB_ERROR_message_ID_not_found, FALSE, NULL);
    }
 } //END of canUnsubscribeMessage
 
@@ -993,31 +988,31 @@ void canShowGeneralStatusError( void )
 	{
 		canErrorCode = CAN_ERROR_Can_Bus_is_off_interrupt;
 		CommunicationError_p(ERRC, canErrorCode, FALSE,
-				PSTR("CANTEC: %i CANREC: %i stored CANGIT: 0x%x"), canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter,
+				PSTR("CANTEC: %i CANREC: %i CANGIT: 0x%x"), canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter,
 				canCurrentGeneralInterruptRegister);
 	}
 	if (canCurrentGeneralInterruptRegister & (1 << SERG))
 	{
 		canErrorCode = CAN_ERROR_Stuff_Error_General;
-		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("stored CANGIT: 0x%x"),
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: 0x%x"),
 				canCurrentGeneralInterruptRegister);
 	}
 	if (canCurrentGeneralInterruptRegister & (1 << CERG))
 	{
 		canErrorCode = CAN_ERROR_CRC_Error_General;
-		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("stored CANGIT: 0x%x"),
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: 0x%x"),
 				canCurrentGeneralInterruptRegister);
 	}
 	if (canCurrentGeneralInterruptRegister & (1 << FERG))
 	{
 		canErrorCode = CAN_ERROR_Form_Error_General;
-		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("stored CANGIT: 0x%x"),
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: 0x%x"),
 				canCurrentGeneralInterruptRegister);
 	}
 	if (canCurrentGeneralInterruptRegister & (1 << AERG))
 	{
 		canErrorCode = CAN_ERROR_Acknowledgment_Error_General;
-		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("stored CANGIT: 0x%x"),
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: 0x%x"),
 				canCurrentGeneralInterruptRegister);
 	}
 
@@ -1218,7 +1213,7 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 		case 1:
 			if ( ( 0x7FFFFFF ) < ptr_uartStruct->Uart_Message_ID )
 			{
-				uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_ID_is_too_long, FALSE, NULL);
+				uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_ID_is_too_long, FALSE, NULL);
 				error = TRUE;
 				break;
 			}
@@ -1226,7 +1221,7 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 		case 2:
 			if ( ( 0x7FFFFFF ) < ptr_uartStruct->Uart_Mask )
 			{
-				uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_mask_is_too_long, FALSE, NULL);
+				uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_mask_is_too_long, FALSE, NULL);
 				error = TRUE;
 				break;
 			}
@@ -1234,7 +1229,7 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 		case 3:
 			if ( ( 1 ) < ptr_uartStruct->Uart_Rtr )
 			{
-				uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_rtr_is_too_long, FALSE, NULL);
+				uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_rtr_is_too_long, FALSE, NULL);
 				error = TRUE;
 				break;
 			}
@@ -1242,7 +1237,7 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 		case 4:
 			if ( ( 8 ) < ptr_uartStruct->Uart_Length )
 			{
-				uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_length_is_too_long, FALSE, NULL);
+				uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_length_is_too_long, FALSE, NULL);
 				error = TRUE;
 				break;
 			}
@@ -1259,7 +1254,7 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 			{
 				if ( ( 0XFF ) < ptr_uartStruct->Uart_Data[i] )
 				{
-					uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_data_0_is_too_long + i, 0, NULL);
+					uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_data_0_is_too_long + i, 0, NULL);
 					error = TRUE;
 					break;
 				}

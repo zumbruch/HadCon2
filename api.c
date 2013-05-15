@@ -417,16 +417,6 @@ const char *serial_error[] PROGMEM = {
 		se00, se01, se02, se03, se04, se05, se06, se07, se08, se09, se10, se11, se12, se13, se14, se15, se16, se17, se18,
 		se19, se20, se21, se22, se23, se24, se25, se26, se27, se28, se29, se30, se31, se32 };
 
-
-/* array for defined serial error number*/
-const uint8_t serial_error_number[] = {
-		11, 12, 13, 14, 15, 16, 17, 18, 19, 110,
-		111, 112, 113, 114, 115, 116, 117, 118, 119, 120,
-		121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
-		131};
-
-/* pointer of array for defined general error number*/
-
 static const char ge00[] PROGMEM = "init for timer0 failed";
 static const char ge01[] PROGMEM = "init for timer0A failed";
 static const char ge02[] PROGMEM = "family code not found";
@@ -440,35 +430,6 @@ static const char ge09[] PROGMEM = "undefined family code";
 static const char ge10[] PROGMEM = "invalid argument";
 
 const char *general_error[] PROGMEM = { ge00, ge01, ge02, ge03, ge04, ge05, ge06, ge07, ge08, ge09, ge10 };
-
-/* array for defined general error number*/
-const uint16_t general_error_number[] = { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 0x4A };
-
-//static const char tw00[] PROGMEM = "Error Initiating TWI interface";
-//static const char tw01[] PROGMEM = "Could not start TWI Bus for WRITE";
-//static const char tw02[] PROGMEM = "Could not start TWI Bus for READ";
-//static const char tw03[] PROGMEM = "unknown command";
-//static const char tw04[] PROGMEM = "address_is_too_long";
-//static const char tw05[] PROGMEM = "data length is too long";
-//static const char tw06[] PROGMEM = "data 0 is too long";
-//static const char tw07[] PROGMEM = "data 1 is too long";
-//static const char tw08[] PROGMEM = "data 2 is too long";
-//static const char tw09[] PROGMEM = "data 3 is too long";
-//static const char tw10[] PROGMEM = "data 4 is too long";
-//static const char tw11[] PROGMEM = "data 5 is too long";
-//static const char tw12[] PROGMEM = "data 6 is too long";
-//static const char tw13[] PROGMEM = "data 7 is too long";
-//static const char tw14[] PROGMEM = "failed writing TWI_Bus";
-//static const char tw15[] PROGMEM = "failed reading TWI_Bus";
-//static const char tw16[] PROGMEM = "too few (numeric) arguments";
-//static const char tw17[] PROGMEM = "wrong length or number of data bytes";
-//const char *twi_error[] PROGMEM = { tw00, tw01, tw02, tw03, tw04,
-//		                            tw05, tw06, tw07, tw08, tw09,
-//		                            tw10, tw11, tw12, tw13, tw14,
-//		                            tw15, tw16, tw17 };
-//
-///* array for defined can error number*/
-//const uint8_t twi_error_number[] = { 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E, 0x5F, 0x60};
 
 /* pointer of array for defined general error number*/
 static const char errorType00[] PROGMEM = "ERRG"; /*general*/
@@ -488,6 +449,12 @@ const char *errorTypes[] PROGMEM = {
 		errorType05
 };
 
+int8_t uart0_init = 0; /* return variable of UART0_Init function*/
+int8_t can_init = 0; /* return variable of  canInit function*/
+int8_t twim_init = 0; /* return variable of TWIM_Init function*/
+int8_t owi_init = 0; /* return variable of OWI_Init function*/
+int8_t timer0_init = 0; /* return variable of Timer0_Init function*/
+int8_t timer0A_init = 0;/* return variable of Timer0A_Init function*/
 
 /*----------------------------------------------------------------------------------------------------*/
 
@@ -710,7 +677,7 @@ int8_t uartSplitUartString( void )
 
 	if ( MAX_LENGTH_COMMAND < strlen(decrypt_uartString) )
 	{
-		uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
+		uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
 
 		/* reset */
 		clearString(decrypt_uartString, BUFFER_SIZE);
@@ -737,7 +704,7 @@ int8_t uartSplitUartString( void )
 		if (MAX_LENGTH_PARAMETER < strlen(result))
 		{
 			/* TODO: create correct error code*/
-			uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
+			uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
 		    clearString(decrypt_uartString, BUFFER_SIZE);
 		    /* "reset": decrypt_uartString[0] = '\0'; */
 
@@ -750,7 +717,7 @@ int8_t uartSplitUartString( void )
 
 		if ( MAX_PARAMETER < parameterIndex )
 		{
-			uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_too_many_arguments, FALSE, NULL);
+			uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_too_many_arguments, FALSE, NULL);
 	        clearString(decrypt_uartString, BUFFER_SIZE);
 	        /* "reset": decrypt_uartString[0] = '\0'; */
 			return 0;
@@ -1031,7 +998,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
 
    if ( 0 > ptr_uartStruct->commandKeywordIndex )
    {
-      uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name,0,NULL);
+      uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name,0,NULL);
       error = TRUE;
    }
    else
@@ -1040,7 +1007,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
       {
          if (0 != *ptr_setParameter[index])
          {
-            uart_errorCode = CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type + index, 0, NULL);
+            uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type + index, 0, NULL);
             error = TRUE;
          }
          if ( TRUE == error )
@@ -1454,6 +1421,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
  * output: ERRG/C/U/A/M <error number> <error message> [<alternative/extra Error>]
  * output: ERRA/C/U/A/M "<command key> <command arguments>" --- <error number> <error message>
  *
+ * positive <error number> = ERRindex * 100 + errorIndex
  * arguments:
  *    - Error type: defines the error class the error belongs to (ERRG, ERRA, ERRM, ERRC, ERRU)
  *      - use enums as input
@@ -1563,27 +1531,27 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
        switch (errorType)
        {
           case ERRG:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, general_error_number[errorIndex]);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(general_error[errorIndex]))), BUFFER_SIZE -1);
              break;
+          case ERRC:
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+             strncat_P(uart_message_string, (const char*) (pgm_read_word( &(can_error[errorIndex]))), BUFFER_SIZE -1);
+             break;
           case ERRA:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, serial_error_number[errorIndex]);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(serial_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRM:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, mob_error_number[errorIndex]);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(mob_error[errorIndex]))), BUFFER_SIZE -1);
              break;
-          case ERRC:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, can_error_number[errorIndex]);
-             strncat_P(uart_message_string, (const char*) (pgm_read_word( &(can_error[errorIndex]))), BUFFER_SIZE -1);
-             break;
           case ERRT:
-              snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, twi_error_number[errorIndex]);
+              snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
               strncat_P(uart_message_string, (const char*) (pgm_read_word( &(twi_error[errorIndex]))), BUFFER_SIZE -1);
               break;
           case ERRU:
-              snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, 0);
+              snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
               break;
           default:
          	  printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("wrong error type %i... returning"), errorType);
@@ -1702,7 +1670,7 @@ void Initialization( void )
 
    if( FALSE == twim_init)
    {
-	   twi_errorCode = CommunicationError_p(ERRT, TWI_ERROR_Error_in_initiating_TWI_interface, FALSE, NULL);
+	   twiErrorCode = CommunicationError_p(ERRT, TWI_ERROR_Error_in_initiating_TWI_interface, FALSE, NULL);
    }
 
    owi_init = OWI_Init(0x3f);
@@ -1728,7 +1696,7 @@ void Initialization( void )
 
    if ( 1 != timer0_init )
    {
-      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_init_for_timer0_failed, FALSE, NULL);
+      generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_init_for_timer0_failed, FALSE, NULL);
 #warning exit must not be used - replace by "unsigned char status __attribute__ ((section (".noinit"))) / reset / retry / fallback "
       exit(0);
    }
@@ -1738,7 +1706,7 @@ void Initialization( void )
    }
    if ( 1 != timer0A_init )
    {
-      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_init_for_timer0A_failed, FALSE, NULL);
+      generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_init_for_timer0A_failed, FALSE, NULL);
 #warning exit must not be used - replace by "unsigned char status __attribute__ ((section (".noinit"))) / reset / retry / fallback "
       exit(0);
    }

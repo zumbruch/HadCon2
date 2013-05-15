@@ -26,11 +26,11 @@ extern int8_t owi_init; /* return variable of TWIM_Init function*/
 extern int8_t timer0_init; /* return variable of Timer0_Init function*/
 extern int8_t timer0A_init;/* return variable of Timer0A_Init function*/
 
-extern uint8_t canErrorCode; /* error code for CAN-communication */
-extern uint8_t twi_errorCode; /* error code for I2C/TWI-communication */
-extern uint8_t general_errorCode; /*general error code */
-extern uint8_t mailbox_errorCode; /* error code for Message Object Block */
-extern uint8_t uart_errorCode; /* error code for UART-communication */
+extern uint16_t canErrorCode; /* error code for CAN-communication */
+extern uint16_t twiErrorCode; /* error code for I2C/TWI-communication */
+extern uint16_t generalErrorCode; /*general error code */
+extern uint16_t mobErrorCode; /* error code for Message Object Block */
+extern uint16_t uartErrorCode; /* error code for UART-communication */
 
 extern volatile unsigned char BufferFull;/*variable for UART Interrupt*/
 extern volatile unsigned char canReady; /* variable for CAN ISR */
@@ -59,19 +59,10 @@ extern uint8_t ptr_subscribe; /* pointer of variable subscribe_ID and subscribe_
 
 extern uint8_t flag_pingActive; /* flag for PING mechanism */
 
-extern const uint8_t serial_error_number[] ;
 extern const char *serial_error[] PROGMEM;
-
-extern const uint8_t can_error_number[];
 extern const char *can_error[] PROGMEM;
-
-extern const uint8_t twi_error_number[];
 extern const char *twi_error[] PROGMEM;
-
-extern const uint8_t mob_error_number[] ;
 extern const char *mob_error[] PROGMEM;
-
-extern const uint16_t general_error_number[];
 extern const char *general_error[] PROGMEM;
 
 extern char currentCommandKeyword[MAX_LENGTH_KEYWORD];/*variable to store current command keyword e.g. "SEND"*/

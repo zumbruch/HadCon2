@@ -71,7 +71,7 @@ void atmelReadADCs( struct uartStruct *ptr_uartStruct)
       }
       break;
       default:
-         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
+         generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
    return;
@@ -111,12 +111,12 @@ uint8_t atmelCollectSingleADCChannel( int8_t channelIndex, uint8_t quiet )
       case 7:
          if ( FALSE == disableJTAG_flag)
          {
-            general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_channel_undefined, TRUE, NULL);
+            generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_channel_undefined, TRUE, NULL);
             return eADCwrongAddress;
          }
          break;
       default:
-         general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_channel_undefined, TRUE, NULL);
+         generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_channel_undefined, TRUE, NULL);
          return eADCwrongAddress;
          break;
    }
