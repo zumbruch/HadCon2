@@ -37,11 +37,6 @@
 #include "one_wire_octalSwitch.h"
 #include "relay.h"
 
-#include "adc.h"
-#include "api.h"
-#include "api_define.h"
-#include "api_global.h"
-
 #include "api_debug.h"
 #include "api_show.h"
 #include "api_help.h"
@@ -51,6 +46,12 @@
 #include "mem-check.h"
 #include "api_version.h"
 #include "twi_master.h"
+
+#include "adc.h"
+#include "api_define.h"
+#include "api_global.h"
+#include "api.h"
+
 
 #warning TODO: combine responseKeyword and other responses error into one set of responses
 
@@ -168,13 +169,11 @@ static const             char commandShortDescription18[]     PROGMEM = "CAN-ID 
 static const             char commandImplementation18[]       PROGMEM = "CAN unsubscribe";
 
 // index: 19
-#warning obsolete RL functions, included in RLTH
 static const             char commandKeyword19[]              PROGMEM = "CANP"; /* CAN properties */
 static const             char commandShortDescription19[]     PROGMEM = "[<keyword> [value[s]]]";
 static const             char commandImplementation19[]       PROGMEM = "CAN properties --- not implemented";
 
 // index: 20
-#warning obsolete RL functions, included in RLTH
 static const             char commandKeyword20[]              PROGMEM = "CAN";
 static const             char commandShortDescription20[]     PROGMEM = "<bus> [pins]";
 static const             char commandImplementation20[]       PROGMEM = "--- not implemented";
@@ -383,7 +382,7 @@ const char* commandImplementations[] PROGMEM= {
 static const char se00[] PROGMEM = "no valid command name";
 static const char se01[] PROGMEM = "ID is too long";
 static const char se02[] PROGMEM = "mask is too long";
-static const char se03[] PROGMEM = "rtr is too long";
+static const char se03[] PROGMEM = "RTR is too long";
 static const char se04[] PROGMEM = "length is  too long";
 static const char se05[] PROGMEM = "data 0 is too long";
 static const char se06[] PROGMEM = "data 1 is too long";
@@ -397,7 +396,7 @@ static const char se13[] PROGMEM = "command is too long";
 static const char se14[] PROGMEM = "argument has invalid type";
 static const char se15[] PROGMEM = "ID has invalid type";
 static const char se16[] PROGMEM = "mask has invalid type";
-static const char se17[] PROGMEM = "rtr has invalid type";
+static const char se17[] PROGMEM = "RTR has invalid type";
 static const char se18[] PROGMEM = "length has invalid type";
 static const char se19[] PROGMEM = "data 0 has invalid type";
 static const char se20[] PROGMEM = "data 1 has invalid type";
@@ -426,34 +425,6 @@ const uint8_t serial_error_number[] = {
 		121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
 		131};
 
-///* pointer of array for defined can error number*/
-//
-//static const char ce00[] PROGMEM = "Can_Bus is off";
-//static const char ce01[] PROGMEM = "Can_Bus is passive";
-//static const char ce02[] PROGMEM = "Can_Bus is on";
-//static const char ce03[] PROGMEM = "Bit Error";
-//static const char ce04[] PROGMEM = "Stuff Error";
-//static const char ce05[] PROGMEM = "CRC Error";
-//static const char ce06[] PROGMEM = "Form Error";
-//static const char ce07[] PROGMEM = "Acknowledgment Error";
-//static const char ce08[] PROGMEM = "CAN was not successfully initialized";
-//static const char ce09[] PROGMEM = "CAN communication timeout";
-//
-//const char *can_error[] PROGMEM = { ce00, ce01, ce02, ce03, ce04, ce05, ce06, ce07, ce08, ce09 };
-//
-///* array for defined can error number*/
-//const uint8_t can_error_number[] = { 21, 22, 23, 24, 25, 26, 27, 28, 29, 0x2A };
-///* pointer of array for defined mailbox error */
-//
-//static const char me00[] PROGMEM = "all mailboxes already in use";
-//static const char me01[] PROGMEM = "message ID not found";
-//static const char me02[] PROGMEM = "this message already exists";
-//
-//const char *mob_error[] PROGMEM = { me00, me01, me02 };
-//
-///* array for defined mailbox error number*/
-//const uint8_t mob_error_number[] = { 31, 32, 33 };
-
 /* pointer of array for defined general error number*/
 
 static const char ge00[] PROGMEM = "init for timer0 failed";
@@ -473,31 +444,31 @@ const char *general_error[] PROGMEM = { ge00, ge01, ge02, ge03, ge04, ge05, ge06
 /* array for defined general error number*/
 const uint16_t general_error_number[] = { 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 0x4A };
 
-static const char tw00[] PROGMEM = "Error Initiating TWI interface";
-static const char tw01[] PROGMEM = "Could not start TWI Bus for WRITE";
-static const char tw02[] PROGMEM = "Could not start TWI Bus for READ";
-static const char tw03[] PROGMEM = "unknown command";
-static const char tw04[] PROGMEM = "address_is_too_long";
-static const char tw05[] PROGMEM = "data length is too long";
-static const char tw06[] PROGMEM = "data 0 is too long";
-static const char tw07[] PROGMEM = "data 1 is too long";
-static const char tw08[] PROGMEM = "data 2 is too long";
-static const char tw09[] PROGMEM = "data 3 is too long";
-static const char tw10[] PROGMEM = "data 4 is too long";
-static const char tw11[] PROGMEM = "data 5 is too long";
-static const char tw12[] PROGMEM = "data 6 is too long";
-static const char tw13[] PROGMEM = "data 7 is too long";
-static const char tw14[] PROGMEM = "failed writing TWI_Bus";
-static const char tw15[] PROGMEM = "failed reading TWI_Bus";
-static const char tw16[] PROGMEM = "too few (numeric) arguments";
-static const char tw17[] PROGMEM = "wrong length or number of data bytes";
-const char *twi_error[] PROGMEM = { tw00, tw01, tw02, tw03, tw04,
-		                            tw05, tw06, tw07, tw08, tw09,
-		                            tw10, tw11, tw12, tw13, tw14,
-		                            tw15, tw16, tw17 };
-
-/* array for defined can error number*/
-const uint8_t twi_error_number[] = { 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E, 0x5F, 0x60};
+//static const char tw00[] PROGMEM = "Error Initiating TWI interface";
+//static const char tw01[] PROGMEM = "Could not start TWI Bus for WRITE";
+//static const char tw02[] PROGMEM = "Could not start TWI Bus for READ";
+//static const char tw03[] PROGMEM = "unknown command";
+//static const char tw04[] PROGMEM = "address_is_too_long";
+//static const char tw05[] PROGMEM = "data length is too long";
+//static const char tw06[] PROGMEM = "data 0 is too long";
+//static const char tw07[] PROGMEM = "data 1 is too long";
+//static const char tw08[] PROGMEM = "data 2 is too long";
+//static const char tw09[] PROGMEM = "data 3 is too long";
+//static const char tw10[] PROGMEM = "data 4 is too long";
+//static const char tw11[] PROGMEM = "data 5 is too long";
+//static const char tw12[] PROGMEM = "data 6 is too long";
+//static const char tw13[] PROGMEM = "data 7 is too long";
+//static const char tw14[] PROGMEM = "failed writing TWI_Bus";
+//static const char tw15[] PROGMEM = "failed reading TWI_Bus";
+//static const char tw16[] PROGMEM = "too few (numeric) arguments";
+//static const char tw17[] PROGMEM = "wrong length or number of data bytes";
+//const char *twi_error[] PROGMEM = { tw00, tw01, tw02, tw03, tw04,
+//		                            tw05, tw06, tw07, tw08, tw09,
+//		                            tw10, tw11, tw12, tw13, tw14,
+//		                            tw15, tw16, tw17 };
+//
+///* array for defined can error number*/
+//const uint8_t twi_error_number[] = { 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5E, 0x5F, 0x60};
 
 /* pointer of array for defined general error number*/
 static const char errorType00[] PROGMEM = "ERRG"; /*general*/
@@ -1368,141 +1339,6 @@ ISR (SIG_UART0_RECV)
 	}
 }//END of ISR (SIG_UART0_RECV)
 
-
-//ISR(CANIT_vect)
-//{
-//	uint8_t save_canpage = CANPAGE;
-//
-//	static uint16_t ctr = 0;
-//	ctr++;
-//	/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//			PSTR("ISR (%i): CANIT_vect occurred, canReady: %i ---  BEGIN of ISR SREG=%x"), ctr, canReady, SREG ); */
-//
-//	// --- interrupt generated by a MOb
-//	// i.e. there is a least one MOb,
-//	//      if more than one choose the highest priority CANHPMOB
-//	if ((CANHPMOB & 0xF0) != 0xF0)
-//	{
-//		// set current canMob to the 'winner' in CANHPMOB
-//		canMob = (CANHPMOB & 0xf0) >> HPMOB0;
-//		// set CANPAGE to current canMob
-//		CANPAGE = ((canMob << MOBNB0) & 0xf0);
-//
-//		// check all interrupt bits of CANSTMOB Bit 6:0
-//
-//		// check whether MOb has an error Bit 4:0
-//		if (0 != canIsMObErrorAndAcknowledge())
-//		{
-//			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//					PSTR("ISR (%i): CANIT_vect occurred, MOb (%i) error occurred, CANSTMOB before/after acknowledge: 0x%x/0x%x,"),
-//					ctr, canMob, canCurrentMObStatus, CANSTMOB ); */
-//
-//			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, MOb (%i) error occurred, setting canReady to %i"),
-//					ctr, canReady, canMob, canState_MOB_ERROR); */
-//
-//			canReady = canState_MOB_ERROR;
-//
-//			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i"), ctr, canReady); */
-//
-//			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//					PSTR("ISR (%i): CANIT_vect occurred, MOb (%i), CANCDMOB: 0x%x"), ctr, canMob, CANCDMOB ); */
-//
-//			// disable communication
-//			CANCDMOB &= ~(1 << CONMOB1 | 1 << CONMOB0);
-//
-//			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//					PSTR("ISR (%i): CANIT_vect occurred, MOb (%i), CANCDMOB: 0x%x"), ctr, canMob, CANCDMOB ); */
-//		}
-//		else if (CANSTMOB & (1 << TXOK)) // Bit 5
-//		{
-//			// MOb finished transmission
-//
-//			// clear transmit OK flag
-//			CANSTMOB &= ~(1 << TXOK);
-//			// disable communication
-//			CANCDMOB &= ~(1 << CONMOB1 | 1 << CONMOB0);
-//
-//			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, TXOK received"), ctr, canReady); */
-//		}
-//		else if (CANSTMOB & (1 << RXOK)) // Bit 6
-//		{
-//			// MOb received message
-//
-//			// get mailbox number
-//			ptr_canStruct->mob = canMob;
-//			ptr_canStruct->length = CANCDMOB & 0xF;
-//
-//			// get identifier
-//			ptr_canStruct->id = 0;
-//			ptr_canStruct->id = CANIDT2 >> 5;
-//			ptr_canStruct->id |= CANIDT1 << 3;
-//
-//			// get data of selected MOb
-//			for (uint8_t i = 0; i < ptr_canStruct->length; i++)
-//			{
-//				ptr_canStruct->data[i] = CANMSG;
-//			}
-//
-//			// acknowledge/clear interrupt
-//			CANSTMOB &= (0xFF & ~(1 << RXOK));
-//
-//			// enable any previous communication (receive) mode
-//			CANCDMOB &= ( 1 << CONMOB1 | 1 << CONMOB0 | 1 << IDE );
-//			// mark, that we got an CAN_interrupt, to be handled by main
-//			canReady = canState_RXOK;
-//
-//			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, RXOK"), ctr, canReady); */
-//		}
-//		else
-//		{
-//
-//#warning CAN: this case is not covered or not possible?
-//			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i"), ctr, canReady); */
-//
-//		}
-//
-//#warning CAN add detailed Interrupt handling
-//
-//		CANPAGE = save_canpage; /* restore CANPAGE*/
-//
-//		/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//				PSTR("ISR (%i): CANIT_vect occurred, canReady: %i"), ctr, canReady); */
-//	}
-//	else /*general error*/
-//	{
-//#warning CAN add detailed Interrupt handling
-//		// --- general interrupt was generated
-//		if (0 != canIsGeneralStatusError())
-//		{
-//			canReady = canState_GENERAL_ERROR;
-//
-//			// Abort Request
-//			CANGCON |= (1 << ABRQ);
-//			// disable communication
-//			CANCDMOB &= ~(1 << CONMOB1 | 1 << CONMOB0);
-//			// clear Abort Request bit
-//			CANGCON &= (0xFF & ~(1 << ABRQ));
-//
-//
-//			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, general error occurred"), ctr, canReady); */
-//		}
-//
-//#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-//
-//		CANGIT |= 0;
-//	}
-//
-//	/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-//			PSTR("ISR (%i): CANIT_vect occurred, canReady: %i ---  END of ISR"), ctr, canReady); */
-//
-//} //END of ISR(CANIT_vect)
-
 /*
  *USART0 must be initialized before using this function
  *for use this function, be sure that data is no longer then 8 bit
@@ -1610,7 +1446,7 @@ int8_t UART0_Send_Message_String_woLF( char *tmp_str, uint32_t maxSize )
 
 
 uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const uint8_t flag_printCommand,
-		                    const prog_char *alternativeErrorMessage, ...)
+		PGM_P alternativeErrorMessage, ...)
 {
 /* This (new) Communication Error function
  * sends a ((partly) predefined) error message to UART
@@ -1782,7 +1618,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
     return 0;
 }//END of CommunicationError function
 
-void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, const prog_char* file, const prog_char *format, ...)
+void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, PGM_P file, PGM_P format, ...)
 {
 	if ( debugLevel <= globalDebugLevel && ((globalDebugSystemMask >> debugMaskIndex) & 1))
 	{
@@ -1838,6 +1674,7 @@ void Initialization( void )
    nextCharPos = 0;
    uartReady = 0;
    canReady = canState_IDLE;
+   canTimerOverrun = FALSE; /*variable for can timer overrun interrupt*/
    timer0Ready = 0;
    timer1Ready = 0;
    timer0AReady = 0;
@@ -1879,7 +1716,8 @@ void Initialization( void )
 
    if ( -1 == can_init )
    {
-      can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_CAN_was_not_successfully_initialized, FALSE, NULL);
+      canErrorCode = CAN_ERROR_CAN_was_not_successfully_initialized;
+      CommunicationError_p(ERRC, canErrorCode, FALSE, NULL);
 #warning exit must not be used - replace by "unsigned char status __attribute__ ((section (".noinit"))) / reset / retry / fallback "
       exit(0);
    }
@@ -2120,7 +1958,7 @@ void toggle_pin( unsigned char pin_number )
  */
 
 void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct,
-                                                   int8_t keyNumber, int8_t index,  const prog_char* commandKeywords[])
+                                                   int8_t keyNumber, int8_t index, PGM_P commandKeywords[])
 {
    /* make sure keyNumber is shown */
    int8_t keywordIndex = ptr_uartStruct->commandKeywordIndex;
@@ -2305,3 +2143,26 @@ void startMessage(void)
 	}
 }
 
+size_t getMaximumStringArrayLength_P(PGM_P array[], size_t maxIndex, size_t maxResult)
+{
+	size_t maxLength = 0;
+	for (size_t index = 0; index < maxIndex; ++index)
+	{
+		if ( maxLength < strlen_P((const char*) (pgm_read_word( &(array[index])) )))
+		{ maxLength = strlen_P((const char*) (pgm_read_word( &(array[index])))); }
+	}
+	maxLength = (maxLength < maxResult) ? maxLength : maxResult;
+	return maxLength;
+}
+
+size_t getMaximumStringArrayLength(const char* array[], size_t maxIndex, size_t maxResult)
+{
+	size_t maxLength = 0;
+	for (size_t index = 0; index < maxIndex; ++index)
+	{
+		if ( maxLength < strlen( array[index]))
+		{ maxLength = strlen( array[index]); }
+	}
+	maxLength = (maxLength < maxResult) ? maxLength : maxResult;
+	return maxLength;
+}

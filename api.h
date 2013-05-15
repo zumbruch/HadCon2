@@ -76,11 +76,11 @@ void clearUartStruct( struct uartStruct *ptr_uartStruct ); /* resets all values 
 
 uint8_t initUartStruct(struct uartStruct *ptr_myUartStruct);
 
-uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const uint8_t flag_printCommand, const prog_char *alternativeErrorMessage, ... );
-extern uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, const prog_char*, ...);
+uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const uint8_t flag_printCommand, PGM_P alternativeErrorMessage, ... );
+extern uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, PGM_P, ...);
 
-void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, const prog_char* file, const prog_char *format, ...);
-extern void (*printDebug_p)(uint8_t, uint32_t, uint32_t, const prog_char*, const prog_char*, ...);
+void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, PGM_P file, PGM_P format, ...);
+extern void (*printDebug_p)(uint8_t, uint32_t, uint32_t, PGM_P, PGM_P, ...);
 
 uint16_t clearString( char mystring[], uint16_t length );
 extern uint16_t (*clearString_p)( char[], uint16_t );
@@ -89,7 +89,7 @@ void toggle_pin( unsigned char pin_number );
 
 uint8_t createReceiveHeader( struct uartStruct *ptr_uartStruct, char message_string[], uint16_t size );
 
-void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct, int8_t keyNumber, int8_t index,  const prog_char* commandKeyword[]);
+void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct, int8_t keyNumber, int8_t index,  PGM_P commandKeyword[]);
 
 uint16_t getNumericLength(const char string[], const uint16_t maxLenght);
 
@@ -99,6 +99,8 @@ void reset(struct uartStruct *ptr_uartStruct);
 void init(struct uartStruct *ptr_uartStruct);
 
 void startMessage(void);
+size_t getMaximumStringArrayLength_P(PGM_P array[], size_t maxIndex, size_t maxResult);
+size_t getMaximumStringArrayLength(const char* array[], size_t maxIndex, size_t maxResult);
 
 #ifndef API_CONSTANTS_H_
 
@@ -157,55 +159,6 @@ enum se_index
    SERIAL_ERROR_arguments_exceed_boundaries,
    SERIAL_ERROR_too_many_arguments,
    SERIAL_ERROR_MAXIMUM_INDEX
-};
-//
-//extern const char *can_error[] PROGMEM;
-//enum ce_index
-//{
-//   CAN_ERROR_Can_Bus_is_off = 0,
-//   CAN_ERROR_Can_Bus_is_passive,
-//   CAN_ERROR_Can_Bus_is_on,
-//   CAN_ERROR_MOb_Bit_Error,
-//   CAN_ERROR_MOb_Stuff_Error,
-//   CAN_ERROR_MOb_CRC_Error,
-//   CAN_ERROR_MOb_Form_Error,
-//   CAN_ERROR_MOb_Acknowledgement_Error,
-//   CAN_ERROR_CAN_was_not_successfully_initialized,
-//   CAN_ERROR_CAN_communication_timeout,
-//   CAN_ERROR_MAXIMUM_INDEX
-//};
-//
-//extern const char *mob_error[] PROGMEM;
-//enum me_index
-//{
-//   MOB_ERROR_all_mailboxes_already_in_use = 0,
-//   MOB_ERROR_message_ID_not_found,
-//   MOB_ERROR_this_message_already_exists,
-//   MOB_ERROR_MAXIMUM_INDEX
-//};
-
-extern const char *twi_error[] PROGMEM;
-enum te_index
-{
-   TWI_ERROR_Error_in_initiating_TWI_interface = 0,
-   TWI_ERROR_Could_not_start_TWI_Bus_for_WRITE,
-   TWI_ERROR_Could_not_start_TWI_Bus_for_READ,
-   TWI_ERROR_unknown_command,
-   TWI_ERROR_address_is_too_long,
-   TWI_ERROR_data_length_is_too_long,
-   TWI_ERROR_data_0_is_too_long,
-   TWI_ERROR_data_1_is_too_long,
-   TWI_ERROR_data_2_is_too_long,
-   TWI_ERROR_data_3_is_too_long,
-   TWI_ERROR_data_4_is_too_long,
-   TWI_ERROR_data_5_is_too_long,
-   TWI_ERROR_data_6_is_too_long,
-   TWI_ERROR_data_7_is_too_long,
-   TWI_ERROR_failed_writing_TWI_Bus,
-   TWI_ERROR_failed_reading_TWI_Bus,
-   TWI_ERROR_too_few_numeric_arguments,
-   TWI_ERROR_wrong_length_or_number_of_data_bytes,
-   TWI_ERROR_MAXIMUM_INDEX
 };
 
 enum dynamicMessage_index
