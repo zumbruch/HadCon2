@@ -38,7 +38,7 @@ void owiTemperatureSensorBySensorParasiticConversion(uint8_t currentPins, uint16
 void owiTemperatureMiscSubCommands( struct uartStruct *ptr_uartStruct );
 void owiTemperatureMiscSubCommandGetSetForceParasiticMode(struct uartStruct *ptr_uartStruct);
 void owiTemperatureMiscSubCommandGetSetMaxConversionTime(struct uartStruct *ptr_uartStruct);
-void owiTemperatureMiscSubCommandGetSetFlag(struct uartStruct *ptr_uartStruct, uint8_t *flag, const prog_char *text, uint8_t invert);
+void owiTemperatureMiscSubCommandGetSetFlag(struct uartStruct *ptr_uartStruct, uint8_t *flag, PGM_P text, uint8_t invert);
 void owiTemperatureMiscSubCommandGetSetResolution_DS18B20(struct uartStruct *ptr_uartStruct);
 void owiTemperatureMiscSubCommandConvertOnly(struct uartStruct *ptr_uartStruct);
 void owiTemperatureMiscSubCommandGetSetStepByStepParasiticConversion(struct uartStruct *ptr_uartStruct);
