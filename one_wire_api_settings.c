@@ -51,7 +51,7 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
             ptr_uartStruct->number_of_arguments = 1;
 
             clearString(setParameter[1], MAX_LENGTH_PARAMETER);
-            snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (const prog_char*) (pgm_read_word( &(owiApiCommandKeywords[index]))));
+            snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (PGM_P) (pgm_read_word( &(owiApiCommandKeywords[index]))));
 
             printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("recursive call of %s with parameter \"%s\" (%p)"), __func__, &setParameter[1][0], &setParameter[1][0]);
 

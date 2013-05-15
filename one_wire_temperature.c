@@ -257,7 +257,7 @@ uint16_t owiTemperatureGetNumberOfDevicesAndSetTemperatureMask(struct uartStruct
    return tempDevices;
 }
 
-void owiTemperatureMiscSubCommandGetSetFlag(struct uartStruct *ptr_uartStruct, uint8_t *flag, const prog_char *text, uint8_t invert)
+void owiTemperatureMiscSubCommandGetSetFlag(struct uartStruct *ptr_uartStruct, uint8_t *flag, PGM_P text, uint8_t invert)
 {
    switch(ptr_uartStruct->number_of_arguments - 1 /* arguments of argument */)
    {
