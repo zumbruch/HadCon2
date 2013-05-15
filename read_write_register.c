@@ -53,11 +53,11 @@ void writeRegister(struct uartStruct *ptr_uartStruct)
 
 	if (0XFF < ptr_uartStruct->Uart_Message_ID)
 	{
-		general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_value_has_invalid_type, TRUE, NULL);
+		generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_value_has_invalid_type, TRUE, NULL);
 	}
 	if (0XFF < ptr_uartStruct->Uart_Mask)
 	{
-		general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_adress_has_invalid_type, TRUE, NULL);
+		generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_adress_has_invalid_type, TRUE, NULL);
 	}
 	else
 	{
@@ -97,12 +97,12 @@ void readRegister(struct uartStruct *ptr_uartStruct)
 {
 	if (0XFF < ptr_uartStruct->Uart_Message_ID)
 	{
-		general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_value_has_invalid_type, FALSE, NULL);
+		generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_value_has_invalid_type, FALSE, NULL);
 	}
 
 	if (0XFF < ptr_uartStruct->Uart_Mask)
 	{
-		general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_adress_has_invalid_type, FALSE, NULL);
+		generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_adress_has_invalid_type, FALSE, NULL);
 	}
 	else
 	{

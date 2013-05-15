@@ -476,7 +476,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
             }
             break;
          default:
-         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
+         generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
 
@@ -516,7 +516,7 @@ uint8_t relayThresholdInBoundPolarityInit(void)
          relayThresholdsExternalPolarity = (PORTF >> (relayThresholdsExternalPolarityPinPos -1) ) & 0x1;
          break;
       default:
-         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("'RLTH invalid input port for external polarity"));
+         generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("'RLTH invalid input port for external polarity"));
          break;
          return 0xFF;
    }

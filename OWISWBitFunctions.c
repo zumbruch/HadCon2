@@ -30,6 +30,7 @@
 #include <avr/interrupt.h>//before changing it was inavr.h
 #include <util/delay.h>
 
+#include "api_global.h"
 #include "OWIBitFunctions.h"
 #include "twi_master.h"
 
@@ -124,14 +125,14 @@ uint8_t OWI_Init(unsigned char pins)
 				status = Twim_Owi_Set_Configuration(address, configuration_nibble);
 				if (FALSE == status)
 				{
-					general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI_Init()"));
+					generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI_Init()"));
 				}
 			}
 		}
 	}
 	else
 	{
-		general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI_Init(): missing I2C support"));
+		generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI_Init(): missing I2C support"));
 		status = FALSE;
 	}
 #else
@@ -141,7 +142,7 @@ uint8_t OWI_Init(unsigned char pins)
     int8_t hadconVersion = HADCON_VERSION;
 #endif
     status = FALSE;
-	general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI_Init() doesn't support HADCON_VERSION %i"), hadconVersion);
+	generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI_Init() doesn't support HADCON_VERSION %i"), hadconVersion);
 #endif
 	return status;
 }
