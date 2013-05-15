@@ -248,13 +248,12 @@ int main( void )
    {
 	   mainLoopIndex++;
 
-- 	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__), PSTR("ALIV --- alive --- %i"), mainLoopIndex);
-
+ 	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__), PSTR("ALIV --- alive --- %i"), mainLoopIndex);
 
 #warning think of using ATOMIC_BLOCK() from util/atomic.h
 
 	   // UART has received a string
-	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemUART, __LINE__, PSTR(__FILE__), PSTR("UART%s"), ( 1 == uartReady ) ? "--yes" : "");
+	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemUART, __LINE__, PSTR(__FILE__), PSTR("UART %s"), ( 1 == uartReady ) ? "--yes" : "");
 
 	   if ( 1 == uartReady )/* of the ISR was completely receive a string */
 	   {
