@@ -1,4 +1,4 @@
-/* The can.h is a header file for the functions and structure specific to the CAN interface between the microcontroller and CAN devices.
+/* The can.h is a header file for the functions and structure specific to the CAN interface between the micro controller and CAN devices.
  *the baud rate is 250Kbit/s
  */
 /* Structure for CAN data */
@@ -43,6 +43,8 @@ enum canState {
 	canState_RXOK = 1,
 	canState_MOB_ERROR = 2,
 	canState_GENERAL_ERROR = 3,
+	canState_GENERAL_BXOK = 4,
+	canState_GENERAL_OVRTIM = 5,
 	canState_UNKNOWN,
 	canState_MAXIMUM_INDEX
 	};
@@ -51,6 +53,7 @@ extern const char *can_error[] PROGMEM;
 enum ce_index
 {
    CAN_ERROR_Can_Bus_is_off = 0,
+   CAN_ERROR_Can_Bus_is_off_interrupt,
    CAN_ERROR_Can_Bus_is_passive,
    CAN_ERROR_Can_Bus_is_on,
    CAN_ERROR_MOb_Bit_Error,
@@ -60,6 +63,10 @@ enum ce_index
    CAN_ERROR_MOb_Acknowledgement_Error,
    CAN_ERROR_CAN_was_not_successfully_initialized,
    CAN_ERROR_CAN_communication_timeout,
+   CAN_ERROR_Stuff_Error_General,
+   CAN_ERROR_CRC_Error_General,
+   CAN_ERROR_Form_Error_General,
+   CAN_ERROR_Acknowledgment_Error_General,
    CAN_ERROR_MAXIMUM_INDEX
 };
 
@@ -78,11 +85,11 @@ int8_t canInit( int32_t Baudrate ); /* initialize CAN communication*/
 
 void canEnableCan( void );
 
-void canGetGeneralStatusError( void ); /* state on the CAN channel */
+void canShowGeneralStatusError( void ); /* state on the CAN channel */
 
-uint8_t canIsGeneralStatusError( void );
+uint8_t canIsGeneralStatusErrorAndAcknowledge( void );
 
-void canGetMObError( void ); /* can error for the communication */
+void canShowMObError( void ); /* can error for the communication */
 
 uint8_t canIsMObErrorAndAcknowledge( void );
 

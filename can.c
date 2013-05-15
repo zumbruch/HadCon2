@@ -4,7 +4,7 @@
  * modified (heavily rather rebuild): Peter Zumbruch
  * modified: Florian Feldbauer
  * modified: Peter Zumbruch, July 2011
- * modified: Peter Zumbruch, April 2013
+ * modified: Peter Zumbruch, April/May 2013
  */
 #include <stdint.h>
 #include <stdio.h>
@@ -49,21 +49,26 @@ uint32_t subscribe_mask[MAX_LENGTH_SUBSCRIBE];
 
 /* pointer of array for defined can error number*/
 
-static const char ce00[] PROGMEM = "Can_Bus is off";
-static const char ce01[] PROGMEM = "Can_Bus is passive";
-static const char ce02[] PROGMEM = "Can_Bus is on";
-static const char ce03[] PROGMEM = "Bit Error";
-static const char ce04[] PROGMEM = "Stuff Error";
-static const char ce05[] PROGMEM = "CRC Error";
-static const char ce06[] PROGMEM = "Form Error";
-static const char ce07[] PROGMEM = "Acknowledgment Error";
-static const char ce08[] PROGMEM = "CAN was not successfully initialized";
-static const char ce09[] PROGMEM = "CAN communication timeout";
+static const char ce00[] PROGMEM = "CAN bus is off";
+static const char ce01[] PROGMEM = "CAN bus is off BOFFIT interrupt";
+static const char ce02[] PROGMEM = "CAN bus is passive";
+static const char ce03[] PROGMEM = "CAN bus is on";
+static const char ce04[] PROGMEM = "Bit Error";
+static const char ce05[] PROGMEM = "Stuff Error";
+static const char ce06[] PROGMEM = "CRC Error";
+static const char ce07[] PROGMEM = "Form Error";
+static const char ce08[] PROGMEM = "Acknowledgment Error";
+static const char ce09[] PROGMEM = "CAN was not successfully initialized";
+static const char ce10[] PROGMEM = "CAN communication timeout";
+static const char ce11[] PROGMEM = "Stuff Error General";
+static const char ce12[] PROGMEM = "CRC Error General";
+static const char ce13[] PROGMEM = "Form Error General";
+static const char ce14[] PROGMEM = "Acknowledgment Error General";
 
-const char *can_error[] PROGMEM = { ce00, ce01, ce02, ce03, ce04, ce05, ce06, ce07, ce08, ce09 };
+const char *can_error[] PROGMEM = { ce00, ce01, ce02, ce03, ce04, ce05, ce06, ce07, ce08, ce09, ce10, ce11, ce12, ce13, ce14 };
 
 /* array for defined can error number*/
-const uint8_t can_error_number[] = { 21, 22, 23, 24, 25, 26, 27, 28, 29, 0x2A };
+const uint8_t can_error_number[] = { 21, 22, 23, 24, 25, 26, 27, 28, 29, 0x2A, 0x2B, 0x2c, 0x2d, 0x2e };
 /* pointer of array for defined mailbox error */
 
 static const char me00[] PROGMEM = "all mailboxes already in use";
@@ -79,6 +84,10 @@ const uint8_t mob_error_number[] = { 31, 32, 33 };
  * canSubscribeMessage creates/sets a listener to an ID/mask for a free MOb
  * the function has a pointer of the serial structure as input and returns no parameter
  */
+
+#warning TODO: CAN define operation to enable ovrtim
+#warning TODO: CAN define operation to set timer prescaler
+#warning TODO: CAN define operation to time stamping
 
 void canSubscribeMessage( struct uartStruct *ptr_uartStruct )
 {
@@ -295,7 +304,8 @@ void canWaitForCanSendMessageFinished( void )
 		canTimeoutCounter = CAN_TIMEOUT_US;
 
 		/* timeout */
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_CAN_communication_timeout, TRUE, PSTR("(%i us)"), CAN_TIMEOUT_US);
+		canErrorCode = CAN_ERROR_CAN_communication_timeout;
+		CommunicationError_p(ERRC, canErrorCode, TRUE, PSTR("(%i us)"), CAN_TIMEOUT_US);
 		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("send w/o RTR: timeout"));
 	}
 	else
@@ -330,7 +340,8 @@ void canWaitForCanSendRemoteTransmissionRequestMessageFinished( void )
 #warning CAN TODO: compare behaviour to canWaitForCanSendMessageFinished
 	if ( ( 0 == canTimeoutCounter ) && ( CANSTMOB & ( 1 << TXOK ) ) )
 	{
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_CAN_communication_timeout, TRUE, PSTR("(%i us)"), CAN_TIMEOUT_US);
+		canErrorCode = CAN_ERROR_CAN_communication_timeout;
+		CommunicationError_p(ERRC, canErrorCode, TRUE, PSTR("(%i us)"), CAN_TIMEOUT_US);
 		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("send w/ RTR: timeout"));
 		canTimeoutCounter = CAN_TIMEOUT_US;
 	}
@@ -821,11 +832,11 @@ int8_t canInit( int32_t Baudrate )
 	CANGCON &= ~( 1 << SWRES );
 
 	/* CAN General Interrupt Enable Register - CANGIE
-	 *    enable interupts*/
+	 *    enable interrupts*/
 	CANGIE = ( 1 << ENIT )  | ( 1 << ENBOFF ) | ( 1 << ENRX )  | ( 1 << ENTX ) |
-			 ( 1 << ENERR ) | ( 1 << ENBX )   | ( 1 << ENERG ) | ( 0 << ENOVRT );
+			 ( 1 << ENERR ) | ( 1 << ENBX )   | ( 1 << ENERG ) | ( 1 << ENOVRT );
 
-	/* CAN Enable Interrupt of MOBs register*/
+	/* CAN Enable Interrupt of all MOBs register*/
 	CANIE2 = 0xFF;
 	CANIE1 = 0x7F;
 
@@ -845,6 +856,20 @@ int8_t canInit( int32_t Baudrate )
 
 	canUseOldRecvMessage_flag = CAN_USE_OLD_RECV_MESSAGE_FLAG;
 	canUseNewRecvMessage_flag = CAN_USE_NEW_RECV_MESSAGE_FLAG;
+
+	/* Timer control:
+	 * set prescaler to max to reduce influence
+	 * T_OVR	 	= Tclk_CANTIM * 0x10000
+	 *
+	 * Tclk_CANTIM 	= 1/F_CPU_IO x 8 x (CANTCON [7:0] + 1)
+	 * Tclk_CANTIM	= 1/F_CPU_IO x 8 x 0x100;
+	 *
+	 * T_OVR 		= Tclk_CANTIM * 0x10000
+	 *              = 1/F_CPU_IO x 8 x 0x1000000
+	 *              = 13.4 s
+	 */
+
+	CANTCON = 0xFF;
 
 	canEnableCan();
 	SREG = intstate2; /*restore global interrupt flag*/
@@ -904,6 +929,12 @@ void canClearCanRegisters( void )
        {
           CANMSG = 0; /*clear all CAN message register*/
        }
+       /* clear CAN General Interrupt Register
+        * by writing a logical one to all but the CANIT bit,
+        * which is read only
+        *
+        */
+       CANGIT &= (0xFF &  ~(1 << CANIT));
     }
 }//END of canClearCanRegisters function
 
@@ -938,42 +969,127 @@ int8_t canGetFreeMob( void )
  *the function has no input and output parameters
  */
 
-void canGetGeneralStatusError( void )
+void canShowGeneralStatusError( void )
 {
-	if ( canCurrentGeneralStatus & ( 1 << BOFF ) )
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("entering canShowGeneralStatusError"));
+
+	if (canCurrentGeneralStatus & (1 << BOFF))
 	{
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Can_Bus_is_off, FALSE, PSTR("TEC: %i REC: %i"),
-											 canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter);
-		//    canInit(0); /* CAN reinit */
+		canErrorCode = CAN_ERROR_Can_Bus_is_off;
+		CommunicationError_p(ERRC, canErrorCode, FALSE,
+				PSTR("CANTEC: %i CANREC: %i CANGST: 0x%x"), canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter,
+				canCurrentGeneralStatus);
 	}
 
-	if ( canCurrentGeneralStatus & ( 1 << ERRP ) )
+	if (canCurrentGeneralStatus & (1 << ERRP))
 	{
-		can_errorCode = CommunicationError_p(ERRC, CAN_ERROR_Can_Bus_is_passive, FALSE, PSTR("TEC: %i REC: %i"),
-				                             canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter);
-		//    canInit(0); /* CAN reinit*/
+		canErrorCode = CAN_ERROR_Can_Bus_is_passive;
+		CommunicationError_p(ERRC, canErrorCode, FALSE,
+				PSTR("CANTEC: %i CANREC: %i CANGST: 0x%x"), canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter,
+				canCurrentGeneralStatus);
 	}
-}//END of canGetGeneralStatusError function
+
+	if (canCurrentGeneralInterruptRegister & (1 << BOFFIT))
+	{
+		canErrorCode = CAN_ERROR_Can_Bus_is_off_interrupt;
+		CommunicationError_p(ERRC, canErrorCode, FALSE,
+				PSTR("CANTEC: %i CANREC: %i stored CANGIT: 0x%x"), canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter,
+				canCurrentGeneralInterruptRegister);
+	}
+	if (canCurrentGeneralInterruptRegister & (1 << SERG))
+	{
+		canErrorCode = CAN_ERROR_Stuff_Error_General;
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("stored CANGIT: 0x%x"),
+				canCurrentGeneralInterruptRegister);
+	}
+	if (canCurrentGeneralInterruptRegister & (1 << CERG))
+	{
+		canErrorCode = CAN_ERROR_CRC_Error_General;
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("stored CANGIT: 0x%x"),
+				canCurrentGeneralInterruptRegister);
+	}
+	if (canCurrentGeneralInterruptRegister & (1 << FERG))
+	{
+		canErrorCode = CAN_ERROR_Form_Error_General;
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("stored CANGIT: 0x%x"),
+				canCurrentGeneralInterruptRegister);
+	}
+	if (canCurrentGeneralInterruptRegister & (1 << AERG))
+	{
+		canErrorCode = CAN_ERROR_Acknowledgment_Error_General;
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("stored CANGIT: 0x%x"),
+				canCurrentGeneralInterruptRegister);
+	}
+
+}//END of canShowGeneralStatusError function
 
 
-uint8_t canIsGeneralStatusError( void )
+uint8_t canIsGeneralStatusErrorAndAcknowledge( void )
 {
-	/* testing the following
-	 * errors of CANGSTA:
-	 * BOFF, ERRP */
+	//			To acknowledge a general interrupt, the corresponding bits of CANGIT register (BXOK, BOFFIT,...)
+	//			must be cleared by the software application. This operation is made writing a logical one
+	//			in these interrupt flags (writing a logical zero doesn’t change the interrupt flag value).
+
+	//	• Bit 7 – CANIT: General Interrupt Flag
+	//	This is a read only bit.
+	//	– 0 - no interrupt.
+	//	– 1 - CAN interrupt: image of all the CAN controller interrupts except for OVRTIM
+	//	interrupt. This bit can be used for polling method.
+
+	//	• Bit 6 – BOFFIT: Bus Off Interrupt Flag
+	//	Writing a logical one resets this interrupt flag. BOFFIT flag is only set when the CAN enters in
+	//	bus off mode (coming from error passive mode).
+	//	– 0 - no interrupt.
+	//	– 1 - bus off interrupt when the CAN eaddnters in bus off mode.
+	//	• Bit 5 – OVRTIM: Overrun CAN Timer
+	//	Writing a logical one resets this interrupt flag. Entering in CAN timer overrun interrupt handler
+	//	also reset this interrupt flag
+	//	– 0 - no interrupt.
+	//	– 1 - CAN timer overrun interrupt: set when the CAN timer switches from 0xFFFF to 0.
+	//	• Bit 4 – BXOK: Frame Buffer Receive Interrupt
+	//	Writing a logical one resets this interrupt flag. BXOK flag can be cleared only if all CONMOB
+	//	fields of the MOb’s of the buffer have been re-written before.
+	//	– 0 - no interrupt.
+	//	– 1 - burst receive interrupt: set when the frame buffer receive is completed.
+	//	• Bit 3 – SERG: Stuff Error General
+	//	Writing a logical one resets this interrupt flag.
+	//	– 0 - no interrupt.
+	//	– 1 - stuff error interrupt: detection of more than 5 consecutive bits with the same
+	//	polarity.
+	//	• Bit 2 – CERG: CRC Error General
+	//	Writing a logical one resets this interrupt flag.
+	//	– 0 - no interrupt.
+	//	– 1 - CRC error interrupt: the CRC check on destuffed message does not fit with the
+	//	CRC field.
+	//	• Bit 1 – FERG: Form Error General
+	//	Writing a logical one resets this interrupt flag.
+	//	– 0 - no interrupt.
+	//	– 1 - form error interrupt: one or more violations of the fixed form in the CRC delimiter,
+	//	acknowledgment delimiter or EOF.
+	//	• Bit 0 – AERG: Acknowledgment Error General
+	//	Writing a logical one resets this interrupt flag.
+	//	– 0 - no interrupt.
+	//	– 1 - acknowledgment error interrupt: no detection of the dominant bit in acknowledge
+	//	slot.
+
 	canCurrentGeneralStatus = CANGSTA;
+	canCurrentGeneralInterruptRegister = CANGIT;
 	canCurrentReceiveErrorCounter = CANREC;
 	canCurrentTransmitErrorCounter = CANTEC;
-	return 0xFF && (canCurrentGeneralStatus & ( 1 << BOFF | 1 << ERRP ));
 
-}//END of canIsMObErrorAndAcknowledge
+	// reset all error Bits at once, leaving out read-only CANIT as well as  BKOK and OVRTIM
+	CANGIT = (CANGIT & ( 0xFF & ~(1 << CANIT | 1 << BXOK | 1 << OVRTIM )));
+
+	return ((canCurrentGeneralInterruptRegister & ( 1 << BOFFIT | 1 << SERG | 1 << CERG | 1 << FERG | 1 << AERG )) || (canCurrentGeneralStatus & ( 1 << BOFF | 1 << ERRP )));
+
+}//END of canIsGeneralStatusErrorAndAcknowledge
 
 
 /*
  *this function prints the various CAN errors
  *the function has no input and output parameters
  */
-void canGetMObError( void )
+void canShowMObError( void )
 {
 	static const uint16_t errorNumbers[5] = { CAN_ERROR_MOb_Acknowledgement_Error,
 				                              CAN_ERROR_MOb_Form_Error,
@@ -983,7 +1099,7 @@ void canGetMObError( void )
 
 	for (int8_t bit = 4; 0 <= bit; bit--)
 	{
-		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("canGetMObError: bit index: %i"), bit);
+		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("canShowMObError: bit index: %i"), bit);
 		if ( canCurrentMObStatus & ( 1 << bit ) )
 		{
 			//	• Bit 0 – AERR: Acknowledgment Error
@@ -1005,12 +1121,13 @@ void canGetMObError( void )
 			//		Exceptions: the monitored recessive bit sent as a dominant bit during the arbitration field and the
 			//		acknowledge slot detecting a dominant bit during the sending of an error frame.
 
-			can_errorCode = CommunicationError_p(ERRC, errorNumbers[bit], FALSE, PSTR("MOb#: %i CANSTMOB: 0x%x"),
-					                             canMob, canCurrentMObStatus);
+			canErrorCode = errorNumbers[bit];
+			CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("MOb#: %i CANSTMOB: 0x%x"), canMob,
+					canCurrentMObStatus);
 		}
 	}
 
-}//END of canGetMObError
+}//END of canShowMObError
 
 uint8_t canIsMObErrorAndAcknowledge( void )
 {
@@ -1070,20 +1187,18 @@ uint8_t canIsMObErrorAndAcknowledge( void )
 
 uint8_t canErrorHandling( uint8_t error )
 {
-#warning TODO: detailed error handling needed
-
 	switch (error)
 	{
 	case canState_MOB_ERROR: /* mob */
 		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN error handling: mob status"), canReady);
-		canGetMObError();
+		canShowMObError();
 		break;
 	case canState_GENERAL_ERROR: /* general */
 		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN error handling: general status"), canReady);
-		canGetGeneralStatusError();
+		canShowGeneralStatusError();
 		break;
 	default:
-		can_errorCode = CommunicationError(ERRC, -1, TRUE, PSTR("(unknown internal CAN status error %i)"), error);
+		canErrorCode = CommunicationError(ERRC, -1, TRUE, PSTR("(unknown internal CAN status error %i)"), error);
 		break;
 	}
 
@@ -1355,8 +1470,6 @@ ISR(CANIT_vect)
 			// mark, that we got an CAN_interrupt, to be handled by main
 			canReady = canState_RXOK;
 
-			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, RXOK"), ctr, canReady); */
 		}
 		else
 		{
@@ -1364,18 +1477,12 @@ ISR(CANIT_vect)
 			canReady = canState_UNKNOWN;
 		}
 
-#warning CAN add detailed Interrupt handling
-
 		CANPAGE = save_canpage; /* restore CANPAGE*/
-
-		/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-				PSTR("ISR (%i): CANIT_vect occurred, canReady: %i"), ctr, canReady); */
 	}
-	else /*general error*/
+	else /*general interrupt*/
 	{
-#warning CAN add detailed Interrupt handling
 		// --- general interrupt was generated
-		if (0 != canIsGeneralStatusError())
+		if (0 != canIsGeneralStatusErrorAndAcknowledge())
 		{
 			canReady = canState_GENERAL_ERROR;
 
@@ -1385,30 +1492,32 @@ ISR(CANIT_vect)
 			CANCDMOB &= ~(1 << CONMOB1 | 1 << CONMOB0);
 			// clear Abort Request bit
 			CANGCON &= (0xFF & ~(1 << ABRQ));
-
-
-			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, general error occurred"), ctr, canReady); */
 		}
-
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-#warning CAN TODO !!! wrong assignment CANGIT |= 0 does not work !!!
-
-		CANGIT |= 0;
+		else if ( CANGIT & (1 << BXOK))
+		{
+			canReady = canState_GENERAL_BXOK;
+		}
+		else if ( CANGIT & (1 << OVRTIM))
+		{
+			canReady = canState_GENERAL_OVRTIM;
+		}
+		else
+		{
+			canReady = canState_UNKNOWN;
+		}
 	}
 
 	/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
 			PSTR("ISR (%i): CANIT_vect occurred, canReady: %i ---  END of ISR"), ctr, canReady); */
 
 } //END of ISR(CANIT_vect)
+
+ISR(OVRIT_vect)
+{
+	uint8_t save_canpage = CANPAGE;
+
+	canTimerOverrun = TRUE;
+#warning define probable prompt action if OVR occurs
+
+	CANPAGE = save_canpage; /* restore CANPAGE*/
+}
