@@ -173,12 +173,12 @@ void owiTemperatureReadSensors( struct uartStruct *ptr_uartStruct, uint8_t conve
 
       if ( TRUE == ptr_owiStruct->idSelect_flag && 0 == foundDevices)
       {
-         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no matching ID was found"));
+         generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no matching ID was found"));
       }
    }
    else
    {
-      general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no supported 1-wire temperature device present"));
+      generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no supported 1-wire temperature device present"));
    }
 }
 
@@ -234,7 +234,7 @@ uint16_t owiTemperatureGetNumberOfDevicesAndSetTemperatureMask(struct uartStruct
    NumDevicesFound = owiReadDevicesID(BUSES);
    if ( 0 == NumDevicesFound )
    {
-      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, FALSE, NULL);
+      generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, FALSE, NULL);
       tempDevices = 0;
    }
    else
@@ -301,7 +301,7 @@ void owiTemperatureMiscSubCommandGetSetFlag(struct uartStruct *ptr_uartStruct, u
          ptr_uartStruct->number_of_arguments=2;
          break;
       default:
-         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
+         generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
 }
@@ -341,7 +341,7 @@ void owiTemperatureMiscSubCommandGetSetStepByStepParasiticConversion(struct uart
          ptr_uartStruct->number_of_arguments=2;
          break;
       default:
-         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
+         generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
 }
@@ -382,7 +382,7 @@ void owiTemperatureMiscSubCommandGetSetForceParasiticMode(struct uartStruct *ptr
          ptr_uartStruct->number_of_arguments=2;
          break;
       default:
-         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
+         generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
 }
@@ -412,7 +412,7 @@ void owiTemperatureMiscSubCommandGetSetMaxConversionTime(struct uartStruct *ptr_
          ptr_uartStruct->number_of_arguments=2;
          break;
       default:
-         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
+         generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
 }
@@ -446,7 +446,7 @@ void owiTemperatureMiscSubCommandGetSetResolution_DS18B20(struct uartStruct *ptr
                owiTemperatureResolution_DS18B20 = value;
                break;
             default:
-               general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("%s value '%i' out of range [9,..,12]"), value);
+               generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("%s value '%i' out of range [9,..,12]"), value);
                return;
                break;
          }
@@ -458,7 +458,7 @@ void owiTemperatureMiscSubCommandGetSetResolution_DS18B20(struct uartStruct *ptr
       }
       break;
       default:
-         general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
+         generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("invalid number of arguments"));
          break;
    }
 }
@@ -483,7 +483,7 @@ void owiTemperatureMiscSubCommandConvertOnly(struct uartStruct *ptr_uartStruct)
          }
          else
          {
-            general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no supported 1-wire temperature device present"));
+            generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no supported 1-wire temperature device present"));
          }
          break;
       case 1:
@@ -505,7 +505,7 @@ void owiTemperatureMiscSubCommandConvertOnly(struct uartStruct *ptr_uartStruct)
          }
          else
          {
-            general_errorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no supported 1-wire temperature device present"));
+            generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no supported 1-wire temperature device present"));
          }
          break;
       default:

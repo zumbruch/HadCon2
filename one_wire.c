@@ -185,7 +185,7 @@ int8_t owiReadDevicesID( uint8_t *pins )
 
    if ( 0 == countDEV )
    {
-      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, TRUE, NULL);
+      generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, TRUE, NULL);
    }
 
 
@@ -286,7 +286,7 @@ int8_t owiShowDevicesID( struct uartStruct* ptr_myuartStruct)
    // found any matching device??
    if ( 0 == countFoundFamilyCode && 0 != familyCode )
    {
-      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_family_code_not_found, TRUE, NULL);
+      generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_family_code_not_found, TRUE, NULL);
    }//end of if ( 0 == countFoundFamilyCode && 0 != familyCode )
 
    return countFoundFamilyCode;
@@ -358,7 +358,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
 
    if ( 0 == countDev )
    {
-      general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, FALSE, NULL);
+      generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_no_device_is_connected_to_the_bus, FALSE, NULL);
       return 0;
    }
 
@@ -486,7 +486,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
                snprintf(message, BUFFER_SIZE - 1, "%s %.2X", owi_id_string, readValueSS);
                break;
             default:
-               general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_undefined_family_code, FALSE, NULL);
+               generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_undefined_family_code, FALSE, NULL);
                continue;
                break;
          }
@@ -536,7 +536,7 @@ int8_t owiFindFamilyDevicesAndAccessValues( uint8_t *pins, uint8_t countDev, uin
 //               snprintf(message, BUFFER_SIZE - 1, "%s %.2X", owi_id_string, readValueSS);
                break;
             default:
-               general_errorCode = CommunicationError_p(ERRG, GENERAL_ERROR_undefined_family_code, FALSE, NULL);
+               generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_undefined_family_code, FALSE, NULL);
                continue;
                break;
          }

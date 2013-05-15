@@ -140,20 +140,13 @@ char message[BUFFER_SIZE];
 char resultString[BUFFER_SIZE];
 
 unsigned char nextCharPos; /*pointer of the variable uartString  */
-uint8_t canErrorCode = 0; /* error code for CAN-communication */
-uint8_t twi_errorCode = 0; /* error code for I2C/TWI-communication */
-uint8_t uart_errorCode = 0; /* error code for UART-communication */
-uint8_t mailbox_errorCode = 0; /* error code for Message Object Block */
-uint8_t general_errorCode = 0; /*  general error code */
+uint16_t canErrorCode = 0; /* error code for CAN-communication */
+uint16_t twiErrorCode = 0; /* error code for I2C/TWI-communication */
+uint16_t uartErrorCode = 0; /* error code for UART-communication */
+uint16_t mobErrorCode = 0; /* error code for Message Object Block */
+uint16_t generalErrorCode = 0; /*  general error code */
 uint8_t ptr_subscribe = 0;/* pointer of variable subscribe_ID and subscribe_mask */
 uint8_t canMob; /*variable  for Message Object Block in the interrupt routine*/
-
-int8_t uart0_init = 0; /* return variable of UART0_Init function*/
-int8_t can_init = 0; /* return variable of  canInit function*/
-int8_t twim_init = 0; /* return variable of TWIM_Init function*/
-int8_t owi_init = 0; /* return variable of OWI_Init function*/
-int8_t timer0_init = 0; /* return variable of Timer0_Init function*/
-int8_t timer0A_init = 0;/* return variable of Timer0A_Init function*/
 
 uint8_t *ptr_buffer_in = NULL; /*pointer to write CAN data in buffer_ring*/
 uint8_t *ptr_buffer_out = NULL; /*pointer to read CAN data in buffer_ring*/
