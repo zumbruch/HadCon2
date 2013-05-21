@@ -265,34 +265,32 @@ void showResetSource(uint8_t startup_flag)
     	strncat_P(uart_message_string, PSTR(" system (re)started by: "), BUFFER_SIZE - 1);
     }
 
-	if ( mcusr & (1 << JTRF) )
+	switch(resetSource)
 	{
-		strncat_P(uart_message_string, PSTR("JTAG Reset"), BUFFER_SIZE - 1);
-	}
-	else if ( mcusr & (1 << WDRF) )
-	{
+	case resetSource_WATCHDOG:
 		strncat_P(uart_message_string, PSTR("Watchdog Reset"), BUFFER_SIZE - 1);
-	}
-	else if ( mcusr & (1 << BORF) )
-	{
+		break;
+	case resetSource_JTAG:
+		strncat_P(uart_message_string, PSTR("JTAG Reset"), BUFFER_SIZE - 1);
+		break;
+	case resetSource_BROWN_OUT:
 		strncat_P(uart_message_string, PSTR("Brown Out Reset"), BUFFER_SIZE - 1);
-	}
-	else if ( mcusr & (1 << EXTRF) )
-	{
+		break;
+	case resetSource_EXTERNAL:
 		strncat_P(uart_message_string, PSTR("External Reset"), BUFFER_SIZE - 1);
-	}
-    else if ( mcusr & (1 << PORF) )
-	{
+		break;
+	case resetSource_POWER_ON:
 		strncat_P(uart_message_string, PSTR("Power On Reset"), BUFFER_SIZE - 1);
+		break;
+	case resetSource_UNKNOWN_REASON:
+	default:
+		strncat_P(uart_message_string, PSTR("unknown reset reason"), BUFFER_SIZE - 1);
+		break;
 	}
-	else
-	{
-		strncat_P(uart_message_string, PSTR("unknown reason"), BUFFER_SIZE - 1);
-	}
+
 	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s (MCUSR: 0x%x)"),uart_message_string, mcusr );
 
 	UART0_Send_Message_String_p(NULL,0);
-
 
 }
 
