@@ -41,6 +41,8 @@
 #include "relay.h"
 #include "help_twis.h"
 
+
+
 void help(struct uartStruct *ptr_uartStruct)
 {
     /* list all available commands with short descriptions
@@ -67,24 +69,9 @@ void help(struct uartStruct *ptr_uartStruct)
     switch (ptr_uartStruct->number_of_arguments)
     {
     case 0:
-        snprintf_P(message, BUFFER_SIZE, PSTR("%s---"), header);
-        snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s available commands are:"), message);
-        UART0_Send_Message_String_p(NULL,0);
-        for (index = 0; index < commandKeyNumber_MAXIMUM_NUMBER; index++)
-        {
-            /* compose message */
-            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s "), message);
-            strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandKeywords[index]))), BUFFER_SIZE -1 );
-            strncat_P(uart_message_string, PSTR(" : "), BUFFER_SIZE - 1 );
-            strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandKeywords[index]))), BUFFER_SIZE -1 );
-            strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1 );
-            strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandShortDescriptions[index]))), LENGTH);
-            while (strlen(uart_message_string) < (MAX_LENGTH_KEYWORD + 1 + LENGTH))
-            {
-                strncat_P(uart_message_string, PSTR(" "), 1);
-            }
-            strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandImplementations[index]))), MAX_LENGTH_COMMAND);
-            UART0_Send_Message_String_p(NULL,0);
+    	{
+    		snprintf_P(message, BUFFER_SIZE, PSTR("%s---"), header);
+    		helpAll(helpMode_IMPLEMENTED, NULL);
         }
         break;
     case 1:
@@ -101,11 +88,11 @@ void help(struct uartStruct *ptr_uartStruct)
             snprintf_P(message, BUFFER_SIZE, PSTR("%s%s ***"), header, currentCommandKeyword);
 
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s %s "), message, currentCommandKeyword);
-            strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandShortDescriptions[index]))), BUFFER_SIZE - 1 );
+            strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandSyntaxes[index]))), BUFFER_SIZE - 1 );
             UART0_Send_Message_String_p(NULL,0);
 
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s "), message);
-            strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandImplementations[index]))), BUFFER_SIZE - 1);
+            strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandShortDescriptions[index]))), BUFFER_SIZE - 1);
             UART0_Send_Message_String_p(NULL,0);
 
             /*create keyword specific receiveHeader, e.g. "RECV CMDP"*/
@@ -139,25 +126,24 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s       response TODO: %s CAN-Message-ID CAN-Length [Data0 ... Data7] "), message, currentReceiveHeader );
             UART0_Send_Message_String_p(NULL,0);
-            //                        canSendMessage(ptr_uartStruct); /* call function with name canSendMessage */
             break;
         case commandKeyNumber_SUBS:
+        case commandKeyNumber_CANS:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s subscribe to CAN message ID "), message );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s CAN-Message-ID ID-Range"), message, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: "), message );
             UART0_Send_Message_String_p(NULL,0);
-            //                     canSubscribeMessage(ptr_uartStruct); /* call function with name canSubscribeMessage */
             break;
         case commandKeyNumber_USUB:
+        case commandKeyNumber_CANU:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s unsubscribe from CAN message ID "), message );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s CAN-Message-ID ID-Range"), message, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: "), message );
             UART0_Send_Message_String_p(NULL,0);
-            //                     canUnsubscribeMessage(ptr_uartStruct); /* call function with name canUnsubscribeMessage */
             break;
         case commandKeyNumber_STAT:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s ??? "), message );
@@ -172,16 +158,8 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s  originally ment to read the pressure in the bus"), message );
             UART0_Send_Message_String_p(NULL,0);
-            //         //atmelControlLoopReadStatus(ptr_uartStruct);
             break;
         case commandKeyNumber_OWTP:
-           /* command : OWTP [ID / keyword [keyword arguments]]
-               * [ID] response: RECV OWTP ID1 value1\r
-               *                ...
-               *                RECV OWTP IDx valueX\n
-               * keyword response: RECV keyword STATUS
-               * command : OWTP
-               */
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s one wire temperature "), message );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [ID [flag_conv] | <command_keyword> [arguments] ] "), message, currentCommandKeyword );
@@ -224,14 +202,12 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response TODO: %s Register Value "), message, currentReceiveHeader );
             UART0_Send_Message_String_p(NULL,0);
-            //         readRegister(ptr_uartStruct); /* call function with name  readRegister */
             break;
         case commandKeyNumber_RADC: /* read AVR's ADCs */
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s read AVR's ADCs "), message );
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command      : %s [<ADC Channel>] "), message, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
-            //         atmelReadADCs(ptr_uartStruct);
             break;
         case commandKeyNumber_OWAD: /* one-wire adc */
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s one wire adc "), message );
@@ -244,8 +220,6 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s           %s IDx valueX.1 ... valueX.n "), message, currentReceiveHeader );
             UART0_Send_Message_String_p(NULL,0);
-            //         owiReadADCs(ptr_uartStruct);
-            //         /* similar to OWTP*/
             break;
         case commandKeyNumber_OWDS:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s one wire dual switches"), message );
@@ -282,7 +256,6 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: %s bus mask: 0x<bus mask> ID :<owi ID>"), message, currentReceiveHeader );
             UART0_Send_Message_String_p(NULL,0);
-            //         list_all_devices(ptr_uartStruct); /* call function with name  readRegister */
             break;
         case commandKeyNumber_PING:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s receive an ALIV(e) periodically"), message );
@@ -291,7 +264,6 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: ALIV "), message );
             UART0_Send_Message_String_p(NULL,0);
-            //         keep_alive(ptr_uartStruct); /* call function with name  readRegister */
             break;
         case commandKeyNumber_OWSP: /*one-wire set active pins/bus mask*/
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s one wire set/get pin/bus mask"), message );
@@ -300,7 +272,6 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: ... "), message );
             UART0_Send_Message_String_p(NULL,0);
-            //         setOneWireBusMask(ptr_uartStruct);
             break;
         case commandKeyNumber_OWRP: /*one-wire read active pins/bus mask*/
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s one wire get pin/bus mask"), message );
@@ -309,7 +280,6 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: %s value "), message, currentReceiveHeader );
             UART0_Send_Message_String_p(NULL,0);
-            //         getOneWireBusMask(ptr_uartStruct);
             break;
         case commandKeyNumber_CANP:
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s CAN preferences"), message );
@@ -384,7 +354,6 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s get response: %s level "), message, currentReceiveHeader );
             UART0_Send_Message_String_p(NULL,0);
-            //         apiDebugReadModifyDebugLevel(ptr_uartStruct);
             break;
         case commandKeyNumber_DBGM: /*set/get only debug system mask*/
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s set/get debug mask"), message );
@@ -395,7 +364,6 @@ void help(struct uartStruct *ptr_uartStruct)
             UART0_Send_Message_String_p(NULL,0);
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s get response: %s mask"), message, currentReceiveHeader );
             UART0_Send_Message_String_p(NULL,0);
-            //         apiDebugReadModifyDebugMask(ptr_uartStruct);
             break;
         case commandKeyNumber_PARA: /*set/get debug level*/
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s check for parasiticly connected devices"), message );
@@ -407,17 +375,6 @@ void help(struct uartStruct *ptr_uartStruct)
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: %s %s pins 0xXX have been pulled HIGH within XX ms"), message, currentReceiveHeader, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
             break;
-//        case commandKeyNumber_WDOG: /*set/get debug level*/
-//            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s set/get watch dog status"), message );
-//            UART0_Send_Message_String(NULL,0);
-//            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [???]]"), message, currentCommandKeyword );
-//            UART0_Send_Message_String(NULL,0);
-//            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s set response: ..."), message );
-//            UART0_Send_Message_String(NULL,0);
-//            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s get response: %s ???"), message, currentReceiveHeader );
-//            UART0_Send_Message_String(NULL,0);
-//            //         apiDebugReadModifyDebugLevelAndMask(ptr_uartStruct);
-//            break;
         case commandKeyNumber_JTAG: /*toggle/set JTAG availability*/
             snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s switch of %s and enable 4 more ADC channels"), message, currentCommandKeyword );
             UART0_Send_Message_String_p(NULL,0);
@@ -568,6 +525,7 @@ void help(struct uartStruct *ptr_uartStruct)
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: %s <Version> "), message, currentReceiveHeader );
            UART0_Send_Message_String_p(NULL,0);
            break;
+        case commandKeyNumber_I2C: /* I2C / TWI */
         case commandKeyNumber_TWIS: /* I2C / TWI */
            help_twis(currentReceiveHeader, currentCommandKeyword);
            break;
@@ -644,4 +602,95 @@ void help(struct uartStruct *ptr_uartStruct)
               help(ptr_uartStruct);
               break;
     }
+}
+
+void helpAll(uint8_t mode, char prefix[])
+{
+
+	char spaces[20];
+    int32_t index = -1;
+    uint8_t implemented = FALSE;
+    if (NULL == prefix)
+    {
+    	prefix = message;
+    }
+
+    snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s available commands are:"), prefix);
+	UART0_Send_Message_String_p(NULL,0);
+
+	for (index = 0; index < commandKeyNumber_MAXIMUM_NUMBER; index++)
+	{
+		implemented = (uint8_t) (pgm_read_byte((uint8_t*) pgm_read_word( &commandImplementations[index])));
+
+		switch(mode)
+		{
+		case helpMode_IMPLEMENTED:
+			if (!implemented)
+			{
+				continue;
+			}
+			break;
+		case helpMode_TODO:
+			if (implemented)
+			{
+				continue;
+			}
+			break;
+		case helpMode_ALL:
+			break;
+		default:
+        	CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("unknown help mode"));
+			break;
+		}
+
+		size_t strLength = strlen_P((const char*) (pgm_read_word( &(commandKeywords[index]))));
+		if ( strLength < MAX_LENGTH_KEYWORD)
+		{
+			clearString(spaces, MAX_LENGTH_KEYWORD);
+			/* prepare spaces */
+			while ( MAX_LENGTH_KEYWORD - strLength > strlen(spaces))
+			{
+				strncat_P(spaces, PSTR(" "), MAX_LENGTH_KEYWORD -1) ;
+			}
+		}
+
+		/* compose message */
+		// e.g.
+		//	RECV HELP --- SEND : send can message
+		//	RECV HELP ---        	SEND CAN-ID ID-Range [RTR <nBytes> D0 .. D7]
+
+		// short description
+		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s "), prefix);
+		strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandKeywords[index]))), BUFFER_SIZE - 1);
+		if (strLength < MAX_LENGTH_KEYWORD)
+		{
+			strncat(uart_message_string, spaces, BUFFER_SIZE - 1);
+		}
+		strncat_P(uart_message_string, PSTR(" : "), BUFFER_SIZE - 1);
+		strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandShortDescriptions[index]))), BUFFER_SIZE - 1);
+		if (!implemented)
+		{
+			strncat_P(uart_message_string, PSTR(" --- not implemented "), BUFFER_SIZE - 1);
+		}
+		UART0_Send_Message_String_p(NULL,0);
+
+		// syntaxes
+		void* syntaxes_p[] = { &(commandSyntaxes[index]), &(commandSyntaxAlternatives[index]), NULL };
+		for (int var = 0; NULL != syntaxes_p[var]; ++var)
+		{
+			if ( 0 == strlen_P( (const char*) (pgm_read_word( syntaxes_p[var])) ) ) { break; }
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s "), prefix);
+
+			for (size_t var = 0; var < MAX_LENGTH_KEYWORD + 3; ++var)
+			{
+				strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE -1 ) ;
+			}
+
+			strncat_P(uart_message_string, PSTR(" \t"), BUFFER_SIZE -1 ) ;
+			strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandKeywords[index]))), BUFFER_SIZE - 1);
+			strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE -1 ) ;
+			strncat_P(uart_message_string, (const char*) (pgm_read_word( syntaxes_p[var])), BUFFER_SIZE - 1);
+			UART0_Send_Message_String_p(NULL, 0);
+		}
+	}
 }
