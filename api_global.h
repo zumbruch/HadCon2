@@ -19,6 +19,8 @@ extern char uartString[BUFFER_SIZE]; /* variable for storage received a complete
 extern char resultString[BUFFER_SIZE];
 extern char keepAliveString[15];
 
+extern uint8_t resetSource; /* reason of a reset */
+
 extern int8_t uart0_init; /* return variable of canInit function*/
 extern int8_t can_init; /* return variable of canInit function*/
 extern int8_t twim_init; /* return variable of TWIM_Init function*/
@@ -26,6 +28,8 @@ extern int8_t owi_init; /* return variable of TWIM_Init function*/
 extern int8_t timer0_init; /* return variable of Timer0_Init function*/
 extern int8_t timer0A_init;/* return variable of Timer0A_Init function*/
 
+extern uint8_t canBusStoredState;
+extern double  canBusStateResetInterval_seconds;
 extern uint16_t canErrorCode; /* error code for CAN-communication */
 extern uint16_t twiErrorCode; /* error code for I2C/TWI-communication */
 extern uint16_t generalErrorCode; /*general error code */
@@ -64,6 +68,8 @@ extern const char *can_error[] PROGMEM;
 extern const char *twi_error[] PROGMEM;
 extern const char *mob_error[] PROGMEM;
 extern const char *general_error[] PROGMEM;
+
+extern const char *canBusModes[] PROGMEM;
 
 extern char currentCommandKeyword[MAX_LENGTH_KEYWORD];/*variable to store current command keyword e.g. "SEND"*/
 extern char currentResponseKeyword[MAX_LENGTH_KEYWORD];/*variable to store current command keyword e.g. "RECV"*/
