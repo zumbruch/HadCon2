@@ -62,7 +62,7 @@ int8_t countDEVbus = 0;/*number of devices on the current bus (initialized to 0)
  * DEBUG settings
  */
 uint8_t globalDebugLevel = 0;
-uint32_t globalDebugSystemMask = 0x0;
+uint32_t globalDebugSystemMask = UINT_FAST32_MAX;
 
 /*
  * RELAY
@@ -95,7 +95,8 @@ volatile uint8_t relayThresholdUseIndividualThresholds = FALSE;
 volatile uint16_t relayThresholdHigh[8] = {0x384}; /*the maximum gas pressure*/
 volatile uint16_t relayThresholdLow[8]  = {0x64};  /*the minimum gas pressure*/
 
-
+uint8_t canBusStoredState = canChannelMode_UNDEFINED;
+double canBusStateResetInterval_seconds = CAN_BUS_STATE_RESET_INTERVAL_SECONDS;
 int32_t canDefaultBaudRate = CAN_DEFAULT_BAUD_RATE;
 
 uint8_t usercommand;
@@ -168,7 +169,7 @@ struct owiStruct *ptr_owiStruct;
 /*define function pointers*/
 int16_t (*UART0_Send_Message_String_p)( char *, uint16_t ) = UART0_Send_Message_String;
 uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, PGM_P, ...) = CommunicationError;
-void (*printDebug_p)(uint8_t, uint32_t, uint32_t, PGM_P, PGM_P, ...) = printDebug;
+void (*printDebug_p)(uint8_t, uint32_t, int16_t, PGM_P, PGM_P, ...) = printDebug;
 void (*UART0_Transmit_p)( uint8_t ) = UART0_Transmit;
 void (*relayThresholdDetermineStateAndTriggerRelay_p)(uint8_t) = relayThresholdDetermineStateAndTriggerRelay;
 void (*Process_Uart_Event_p)( void ) = Process_Uart_Event;
@@ -231,17 +232,16 @@ int main( void )
 	// main endless loop
    uint32_t mainLoopIndex = 0;
 
-#warning TODO make it switchable, up-to-now disabled
-   // watchdog
-   wdt_enable(WDTO_2S);
-   watchdogIncarnationsCounter++;
-   wdt_disable();
-
    while ( 1 )
    {
 	   mainLoopIndex++;
 
  	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__), PSTR("ALIV --- alive --- %i"), mainLoopIndex);
+
+#warning TODO make it switchable, up-to-now disabled
+ 	   // watchdog
+ 	   wdt_enable(WDTO_2S);
+ 	   wdt_disable();
 
 #warning think of using ATOMIC_BLOCK() from util/atomic.h
 
@@ -294,10 +294,11 @@ int main( void )
 
 			   break;
 		   }
-		   canReady = canState_IDLE; /* restore flag */
 
 		   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
 				   PSTR("CAN canReady %i reset to %i"), canReady, canState_IDLE);
+
+		   canReady = canState_IDLE; /* restore flag */
 
 		   // (re)enable interrupts
 		   sei();
@@ -389,7 +390,8 @@ int main( void )
 	   }
 	   else
 	   {
-		   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemRELAY, __LINE__, PSTR(__FILE__), PSTR("relay enable: %i - thr valid: %i"), relayThresholdEnable_flag, relayThresholdAllThresholdsValid);
+		   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemRELAY, __LINE__, PSTR(__FILE__), PSTR("relay enable: %i - thr valid: %i"),
+				        relayThresholdEnable_flag, relayThresholdAllThresholdsValid);
 	   }
 	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__), PSTR("-------------------------"));
    }// END of while
