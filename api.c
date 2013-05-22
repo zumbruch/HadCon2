@@ -392,11 +392,11 @@ static const char commandShortDescription43[]  PROGMEM = "";
 static const uint8_t commandImplementation43   PROGMEM = FALSE;
 
 // index: 44
-static const char commandKeyword44[]           PROGMEM = "CMD4"; /* command (dummy name) */
-static const char commandSyntax44[]            PROGMEM = "[???]";
-static const char commandSyntaxAlternative44[] PROGMEM = "";
-static const char commandShortDescription44[]  PROGMEM = "";
-static const uint8_t commandImplementation44   PROGMEM = FALSE;
+static const char commandKeyword44[]           PROGMEM = "SPI"; /* SPI master */
+static const char commandSyntax44[]            PROGMEM = "[data]";
+static const char commandSyntaxAlternative44[] PROGMEM = "<cmd> <arguments>";
+static const char commandShortDescription44[]  PROGMEM = "experimental SPI master (slave)";
+static const uint8_t commandImplementation44   PROGMEM = TRUE;
 
 // index: 45
 static const char commandKeyword45[]           PROGMEM = "GNWR"; /* send <address> <data> for waveform generator */
@@ -762,7 +762,9 @@ void Process_Uart_Event(void)
 			case commandKeyNumber_OWSA:
 			case commandKeyNumber_RLTH:
 			case commandKeyNumber_TWIS:
+			case commandKeyNumber_I2C:
 			case commandKeyNumber_DEBG:
+			case commandKeyNumber_SPI:
 				Choose_Function(ptr_uartStruct);
 				break;
 				/*use 1-wire parsing*/
@@ -1388,7 +1390,8 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
     case commandKeyNumber_CMD3: /* command (dummy name) */
        PINA |= 0x01;
        break;
-    case commandKeyNumber_CMD4: /* command (dummy name) */
+    case commandKeyNumber_SPI: /* command (dummy name) */
+    	spiApi(ptr_uartStruct);
     	break;
     case commandKeyNumber_GNWR: /* generator write */
       waveformGeneratorWriteRegister(ptr_uartStruct);

@@ -553,7 +553,7 @@ void help(struct uartStruct *ptr_uartStruct)
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: %s [???] "), message, currentReceiveHeader );
            UART0_Send_Message_String_p(NULL,0);
            break;
-        case commandKeyNumber_CMD4: /* command (dummy name) */
+        case commandKeyNumber_SPI: /* command (dummy name) */
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s  command (dummy name) "), message );
            UART0_Send_Message_String_p(NULL,0);
            snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [???]"), message, currentCommandKeyword );

@@ -226,7 +226,7 @@ enum cmdKeyNumber
                commandKeyNumber_CMD1,
                commandKeyNumber_CMD2,
                commandKeyNumber_CMD3,
-               commandKeyNumber_CMD4,
+               commandKeyNumber_SPI,
                commandKeyNumber_GNWR,
                commandKeyNumber_GNRE,
                commandKeyNumber_OW8S,
