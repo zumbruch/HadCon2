@@ -79,8 +79,8 @@ uint8_t initUartStruct(struct uartStruct *ptr_myUartStruct);
 uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const uint8_t flag_printCommand, PGM_P alternativeErrorMessage, ... );
 extern uint8_t (*CommunicationError_p)(uint8_t, const int16_t, const uint8_t, PGM_P, ...);
 
-void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, PGM_P file, PGM_P format, ...);
-extern void (*printDebug_p)(uint8_t, uint32_t, uint32_t, PGM_P, PGM_P, ...);
+void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, int16_t line, PGM_P file, PGM_P format, ...);
+extern void (*printDebug_p)(uint8_t, uint32_t, int16_t, PGM_P, PGM_P, ...);
 
 uint16_t clearString( char mystring[], uint16_t length );
 extern uint16_t (*clearString_p)( char[], uint16_t );
@@ -101,6 +101,8 @@ void init(struct uartStruct *ptr_uartStruct);
 void startMessage(void);
 size_t getMaximumStringArrayLength_P(PGM_P array[], size_t maxIndex, size_t maxResult);
 size_t getMaximumStringArrayLength(const char* array[], size_t maxIndex, size_t maxResult);
+
+void determineAndHandleResetSource(void);
 
 #ifndef API_CONSTANTS_H_
 
@@ -218,8 +220,8 @@ enum cmdKeyNumber
                commandKeyNumber_OWSC,
                commandKeyNumber_OWSB,
                commandKeyNumber_OWSA,
-               commandKeyNumber_WDOG,
-               commandKeyNumber_EXIT,
+               commandKeyNumber_TWIS,
+               commandKeyNumber_I2C,
                commandKeyNumber_RLTH,
                commandKeyNumber_CMD1,
                commandKeyNumber_CMD2,
@@ -228,13 +230,21 @@ enum cmdKeyNumber
                commandKeyNumber_GNWR,
                commandKeyNumber_GNRE,
                commandKeyNumber_OW8S,
-               commandKeyNumber_TWIS,
+               commandKeyNumber_WDOG,
                commandKeyNumber_VERS,
+               commandKeyNumber_CMD5,
+               commandKeyNumber_CMD6,
+               commandKeyNumber_CMD7,
+               commandKeyNumber_CMD8,
                commandKeyNumber_MAXIMUM_NUMBER
 };
 
+extern const char* commandSyntaxes[] PROGMEM;
+extern const char* commandSyntaxAlternatives[] PROGMEM;
 extern const char* commandShortDescriptions[] PROGMEM;
-extern const char* commandImplementations[] PROGMEM;
+extern const uint8_t* commandImplementations[] PROGMEM;
+
+extern const uint8_t* commandImpls[] PROGMEM;
 
 extern const char *errorTypes[] PROGMEM;
 /* those are the corresponding ERRx numbers to errorTypes, beware of the same order*/
@@ -252,5 +262,16 @@ enum ERRs
 extern const char *debugLevelNames[] PROGMEM;
 extern const char *debugSystemNames[] PROGMEM;
 
+enum resetSources
+{
+	resetSource_JTAG,
+	resetSource_WATCHDOG,
+	resetSource_BROWN_OUT,
+	resetSource_EXTERNAL,
+	resetSource_POWER_ON,
+	resetSource_UNKNOWN_REASON,
+	resetSource_UNDEFINED_REASON,
+	resetSource_MAXIMUM_NUMBER
+};
 #endif
 #endif

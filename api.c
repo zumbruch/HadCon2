@@ -73,263 +73,400 @@ const char* responseKeywords[] PROGMEM = {
  * of the API*/
 
 // index: 00
-static const             char commandKeyword00[]              PROGMEM = "SEND";
-static const             char commandShortDescription00[]     PROGMEM = "CAN-ID ID-Range [RTR <nBytes> D0 .. D7]";
-static const             char commandImplementation00[]       PROGMEM = "send can message";
+static const char commandKeyword00[]           PROGMEM = "SEND";
+static const char commandSyntax00[]            PROGMEM = "CAN-ID ID-Range [RTR <nBytes> D0 .. D7]";
+static const char commandSyntaxAlternative00[] PROGMEM = "";
+static const char commandShortDescription00[]  PROGMEM = "send can message";
+static const uint8_t commandImplementation00   PROGMEM = TRUE;
 
 // index: 01
-static const             char commandKeyword01[]              PROGMEM = "SUBS";
-static const             char commandShortDescription01[]     PROGMEM = "CAN-ID ID-Range";
-static const             char commandImplementation01[]       PROGMEM = "unsubscribe can id/mask";
+static const char commandKeyword01[]           PROGMEM = "SUBS";
+static const char commandSyntax01[]            PROGMEM = "CAN-ID ID-Range";
+static const char commandSyntaxAlternative01[] PROGMEM = "";
+static const char commandShortDescription01[]  PROGMEM = "unsubscribe can id/mask";
+static const uint8_t commandImplementation01   PROGMEM = TRUE;
 
 // index: 02
-static const             char commandKeyword02[]              PROGMEM = "USUB";
-static const             char commandShortDescription02[]     PROGMEM = "CAN-ID ID-Range";
-static const             char commandImplementation02[]       PROGMEM = "unsubscribe can id/mask";
+static const char commandKeyword02[]           PROGMEM = "USUB";
+static const char commandSyntax02[]            PROGMEM = "CAN-ID ID-Range";
+static const char commandSyntaxAlternative02[] PROGMEM = "";
+static const char commandShortDescription02[]  PROGMEM = "unsubscribe can id/mask";
+static const uint8_t commandImplementation02   PROGMEM = TRUE;
 
 // index: 03
-static const             char commandKeyword03[]              PROGMEM = "STAT";
-static const             char commandShortDescription03[]     PROGMEM = "[ID]";
-static const             char commandImplementation03[]       PROGMEM = "--- not implemented";
+static const char commandKeyword03[]           PROGMEM = "STAT";
+static const char commandSyntax03[]            PROGMEM = "[ID]";
+static const char commandSyntaxAlternative03[] PROGMEM = "";
+static const char commandShortDescription03[]  PROGMEM = "";
+static const uint8_t commandImplementation03   PROGMEM = FALSE;
 
 // index: 04
-static const             char commandKeyword04[]              PROGMEM = "RGWR";
-static const             char commandShortDescription04[]     PROGMEM = "<Register> <Value>";
-static const             char commandImplementation04[]       PROGMEM = "write register";
+static const char commandKeyword04[]           PROGMEM = "RGWR";
+static const char commandSyntax04[]            PROGMEM = "<Register> <Value>";
+static const char commandSyntaxAlternative04[] PROGMEM = "";
+static const char commandShortDescription04[]  PROGMEM = "write register";
+static const uint8_t commandImplementation04   PROGMEM = TRUE;
 
 // index: 05
-static const             char commandKeyword05[]              PROGMEM = "RGRE";
-static const             char commandShortDescription05[]     PROGMEM = "<Register>";
-static const             char commandImplementation05[]       PROGMEM = "read register";
+static const char commandKeyword05[]           PROGMEM = "RGRE";
+static const char commandSyntax05[]            PROGMEM = "<Register>";
+static const char commandSyntaxAlternative05[] PROGMEM = "";
+static const char commandShortDescription05[]  PROGMEM = "read register";
+static const uint8_t commandImplementation05   PROGMEM = TRUE;
 
 // index: 06
-static const             char commandKeyword06[]              PROGMEM = "RADC";
-static const             char commandShortDescription06[]     PROGMEM = "[<ADC Channel>]";
-static const             char commandImplementation06[]       PROGMEM = "AVR ADCs";
+static const char commandKeyword06[]           PROGMEM = "RADC";
+static const char commandSyntax06[]            PROGMEM = "[<ADC Channel>]";
+static const char commandSyntaxAlternative06[] PROGMEM = "";
+static const char commandShortDescription06[]  PROGMEM = "AVR ADCs";
+static const uint8_t commandImplementation06   PROGMEM = TRUE;
 
 // index: 07
-static const             char commandKeyword07[]              PROGMEM = "OWAD";
-static const             char commandShortDescription07[]     PROGMEM = "[ID [flag_conv [flag_init]]]";
-static const             char commandImplementation07[]       PROGMEM = "1-wire ADC";
+static const char commandKeyword07[]           PROGMEM = "OWAD";
+static const char commandSyntax07[]            PROGMEM = "[ID [flag_conv [flag_init]]]";
+static const char commandSyntaxAlternative07[] PROGMEM = "";
+static const char commandShortDescription07[]  PROGMEM = "1-wire ADC";
+static const uint8_t commandImplementation07   PROGMEM = TRUE;
 
 // index: 08
-static const             char commandKeyword08[]              PROGMEM = "OWDS";
-static const             char commandShortDescription08[]     PROGMEM = "[ID]";
-static const             char commandImplementation08[]       PROGMEM = "1-wire double switch";
+static const char commandKeyword08[]           PROGMEM = "OWDS";
+static const char commandSyntax08[]            PROGMEM = "[ID]";
+static const char commandSyntaxAlternative08[] PROGMEM = "";
+static const char commandShortDescription08[]  PROGMEM = "1-wire double switch";
+static const uint8_t commandImplementation08   PROGMEM = TRUE;
 
 // index: 09
-static const             char commandKeyword09[]              PROGMEM = "INIT"; /*obsolete*/
-static const             char commandShortDescription09[]     PROGMEM = "";
-static const             char commandImplementation09[]       PROGMEM = "(re)init of system";
+static const char commandKeyword09[]           PROGMEM = "INIT";
+static const char commandSyntax09[]            PROGMEM = "";
+static const char commandSyntaxAlternative09[] PROGMEM = "";
+static const char commandShortDescription09[]  PROGMEM = "(re)init of system";
+static const uint8_t commandImplementation09   PROGMEM = TRUE;
 
 // index: 10
-static const             char commandKeyword10[]              PROGMEM = "OWLS";
-static const             char commandShortDescription10[]     PROGMEM = "[<Family Code>]";
-static const             char commandImplementation10[]       PROGMEM = "1-wire list devices";
+static const char commandKeyword10[]           PROGMEM = "OWLS";
+static const char commandSyntax10[]            PROGMEM = "[<Family Code>]";
+static const char commandSyntaxAlternative10[] PROGMEM = "";
+static const char commandShortDescription10[]  PROGMEM = "1-wire list devices";
+static const uint8_t commandImplementation10   PROGMEM = TRUE;
 
 // index: 11
-static const             char commandKeyword11[]              PROGMEM = "OWSS";
-static const             char commandShortDescription11[]     PROGMEM = "[ID]";
-static const             char commandImplementation11[]       PROGMEM = "--- [ID] not implemented";
+static const char commandKeyword11[]           PROGMEM = "OWSS";
+static const char commandSyntax11[]            PROGMEM = "[ID]";
+static const char commandSyntaxAlternative11[] PROGMEM = "";
+static const char commandShortDescription11[]  PROGMEM = "1-wire single switch ([ID] not implemented)";
+static const uint8_t commandImplementation11   PROGMEM = TRUE;
 
 // index: 12
-static const             char commandKeyword12[]              PROGMEM = "RSET";
-static const             char commandShortDescription12[]     PROGMEM = "";
-static const             char commandImplementation12[]       PROGMEM = "reset via watchdog";
+static const char commandKeyword12[]           PROGMEM = "RSET";
+static const char commandSyntax12[]            PROGMEM = "";
+static const char commandSyntaxAlternative12[] PROGMEM = "";
+static const char commandShortDescription12[]  PROGMEM = "reset via watchdog";
+static const uint8_t commandImplementation12   PROGMEM = TRUE;
 
 // index: 13
-static const             char commandKeyword13[]              PROGMEM = "PING";
-static const             char commandShortDescription13[]     PROGMEM = "";
-static const             char commandImplementation13[]       PROGMEM = "";
+static const char commandKeyword13[]           PROGMEM = "PING";
+static const char commandSyntax13[]            PROGMEM = "";
+static const char commandSyntaxAlternative13[] PROGMEM = "";
+static const char commandShortDescription13[]  PROGMEM = "";
+static const uint8_t commandImplementation13   PROGMEM = TRUE;
 
 // index: 14
-static const             char commandKeyword14[]              PROGMEM = "OWTP";
-static const             char commandShortDescription14[]     PROGMEM = "[ID [flag_conv [flag_init]] | <command_keyword> [arguments]]";
-static const             char commandImplementation14[]       PROGMEM = "1-wire temperature";
+static const char commandKeyword14[]           PROGMEM = "OWTP";
+static const char commandSyntax14[]            PROGMEM = "[ID [flag_conv [flag_init]]";
+static const char commandSyntaxAlternative14[] PROGMEM = "<command_keyword> [arguments]]";
+static const char commandShortDescription14[]  PROGMEM = "1-wire temperature";
+static const uint8_t commandImplementation14   PROGMEM = TRUE;
 
 // index: 15
-static const             char commandKeyword15[]              PROGMEM = "OWSP"; /*one-wire set active pins/bus mask*/
-static const             char commandShortDescription15[]     PROGMEM = "<bus mask>"; /*one-wire set/get active pins/bus mask*/
-static const             char commandImplementation15[]       PROGMEM = ""; /*one-wire set/get active pins/bus mask*/
+#warning TODO combine with OWRP
+static const char commandKeyword15[]           PROGMEM = "OWSP"; /*one-wire set active pins/bus mask*/
+static const char commandSyntax15[]            PROGMEM = "<bus mask>";
+static const char commandSyntaxAlternative15[] PROGMEM = "";
+static const char commandShortDescription15[]  PROGMEM = "one-wire set active pins/bus mask";
+static const uint8_t commandImplementation15   PROGMEM = TRUE;
 
 // index: 16
-static const             char commandKeyword16[]              PROGMEM = "CANT"; /*CAN transmit*/
-static const             char commandShortDescription16[]     PROGMEM = "CAN-ID ID-Range [RTR <nBytes> D0 .. D7]";
-static const             char commandImplementation16[]       PROGMEM = "CAN send message";
+static const char commandKeyword16[]           PROGMEM = "CANT"; /*CAN transmit*/
+static const char commandSyntax16[]            PROGMEM = "CAN-ID ID-Range [RTR <nBytes> D0 .. D7]";
+static const char commandSyntaxAlternative16[] PROGMEM = "";
+static const char commandShortDescription16[]  PROGMEM = "CAN send message";
+static const uint8_t commandImplementation16   PROGMEM = TRUE;
 
 
 // index: 17
-static const             char commandKeyword17[]              PROGMEM = "CANS"; /* CAN subscribe */
-static const             char commandShortDescription17[]     PROGMEM = "CAN-ID ID-Range";
-static const             char commandImplementation17[]       PROGMEM = "CAN subscribe";
+static const char commandKeyword17[]           PROGMEM = "CANS"; /* CAN subscribe */
+static const char commandSyntax17[]            PROGMEM = "CAN-ID ID-Range";
+static const char commandSyntaxAlternative17[] PROGMEM = "";
+static const char commandShortDescription17[]  PROGMEM = "CAN subscribe";
+static const uint8_t commandImplementation17   PROGMEM = TRUE;
 
 // index: 18
-static const             char commandKeyword18[]              PROGMEM = "CANU"; /* CAN unsubscribe */
-static const             char commandShortDescription18[]     PROGMEM = "CAN-ID ID-Range";
-static const             char commandImplementation18[]       PROGMEM = "CAN unsubscribe";
+static const char commandKeyword18[]           PROGMEM = "CANU"; /* CAN unsubscribe */
+static const char commandSyntax18[]            PROGMEM = "CAN-ID ID-Range";
+static const char commandSyntaxAlternative18[] PROGMEM = "";
+static const char commandShortDescription18[]  PROGMEM = "CAN unsubscribe";
+static const uint8_t commandImplementation18   PROGMEM = TRUE;
 
 // index: 19
-static const             char commandKeyword19[]              PROGMEM = "CANP"; /* CAN properties */
-static const             char commandShortDescription19[]     PROGMEM = "[<keyword> [value[s]]]";
-static const             char commandImplementation19[]       PROGMEM = "CAN properties --- not implemented";
+static const char commandKeyword19[]           PROGMEM = "CANP"; /* CAN properties */
+static const char commandSyntax19[]            PROGMEM = "[<keyword> [value[s]]]";
+static const char commandSyntaxAlternative19[] PROGMEM = "";
+static const char commandShortDescription19[]  PROGMEM = "CAN properties ";
+static const uint8_t commandImplementation19   PROGMEM = FALSE;
 
 // index: 20
-static const             char commandKeyword20[]              PROGMEM = "CAN";
-static const             char commandShortDescription20[]     PROGMEM = "<bus> [pins]";
-static const             char commandImplementation20[]       PROGMEM = "--- not implemented";
+static const char commandKeyword20[]           PROGMEM = "CAN";
+static const char commandSyntax20[]            PROGMEM = "<key> <arguments>";
+static const char commandSyntaxAlternative20[] PROGMEM = "";
+static const char commandShortDescription20[]  PROGMEM = "CAN operations: send/receive/unsubscribe/properties";
+static const uint8_t commandImplementation20   PROGMEM = FALSE;
 
 // index: 21
-static const             char commandKeyword21[]              PROGMEM = "DBGL"; /*set debug level*/
-static const             char commandShortDescription21[]     PROGMEM = "[level]";
-static const             char commandImplementation21[]       PROGMEM = "set debug level";
+static const char commandKeyword21[]           PROGMEM = "DBGL"; /*set/get debug level*/
+static const char commandSyntax21[]            PROGMEM = "[level]";
+static const char commandSyntaxAlternative21[] PROGMEM = "";
+static const char commandShortDescription21[]  PROGMEM = "set/get debug level";
+static const uint8_t commandImplementation21   PROGMEM = TRUE;
 
 // index: 22
-static const             char commandKeyword22[]              PROGMEM = "DBGM"; /*set debug system mask*/
-static const             char commandShortDescription22[]     PROGMEM = "[mask]";
-static const             char commandImplementation22[]       PROGMEM = "set debug system mask";
+static const char commandKeyword22[]           PROGMEM = "DBGM"; /*set/get debug system mask*/
+static const char commandSyntax22[]            PROGMEM = "[mask]";
+static const char commandSyntaxAlternative22[] PROGMEM = "";
+static const char commandShortDescription22[]  PROGMEM = "set/get debug system mask";
+static const uint8_t commandImplementation22   PROGMEM = TRUE;
 
 // index: 23
-static const             char commandKeyword23[]              PROGMEM = "JTAG"; /*get/set JTAG availability*/
-static const             char commandShortDescription23[]     PROGMEM = "[0|1]";
-static const             char commandImplementation23[]       PROGMEM = "get/set JTAG availability";
+static const char commandKeyword23[]           PROGMEM = "JTAG"; /*get/set JTAG availability*/
+static const char commandSyntax23[]            PROGMEM = "[0|1]";
+static const char commandSyntaxAlternative23[] PROGMEM = "";
+static const char commandShortDescription23[]  PROGMEM = "set/get JTAG availability";
+static const uint8_t commandImplementation23   PROGMEM = TRUE;
 
 // index: 24
-static const             char commandKeyword24[]              PROGMEM = "HELP"; /*output some help*/
-static const             char commandShortDescription24[]     PROGMEM = "[CMND]";
-static const             char commandImplementation24[]       PROGMEM = "help";
+static const char commandKeyword24[]           PROGMEM = "HELP";
+static const char commandSyntax24[]            PROGMEM = "[CMND]";
+static const char commandSyntaxAlternative24[] PROGMEM = "<mode>";
+static const char commandShortDescription24[]  PROGMEM = "help";
+static const uint8_t commandImplementation24   PROGMEM = TRUE;
 
 // index: 25
-static const             char commandKeyword25[]              PROGMEM = "OWTR"; /*trigger one-wire device(s) for action, if possible*/
-static const             char commandShortDescription25[]     PROGMEM = "[ID] ..."; /*trigger one-wire device(s) for action, if possible*/
-static const             char commandImplementation25[]       PROGMEM = "--- not implemented"; /*trigger one-wire device(s) for action, if possible*/
+static const char commandKeyword25[]           PROGMEM = "OWTR"; /*trigger one-wire device(s) for action, if possible*/
+static const char commandSyntax25[]            PROGMEM = "[ID] ...";
+static const char commandSyntaxAlternative25[] PROGMEM = "";
+static const char commandShortDescription25[]  PROGMEM = "trigger one-wire device(s) for action, if possible";
+static const uint8_t commandImplementation25   PROGMEM = FALSE;
 
 // index: 26
-static const             char commandKeyword26[]              PROGMEM = "OWRP"; /*one-wire read active pins/bus mask*/
-static const             char commandShortDescription26[]     PROGMEM = ""; /*one-wire read active pins/bus mask*/
-static const             char commandImplementation26[]       PROGMEM = ""; /*one-wire read active pins/bus mask*/
+#warning TODO combine with OWSP
+static const char commandKeyword26[]           PROGMEM = "OWRP";
+static const char commandSyntax26[]            PROGMEM = "";
+static const char commandSyntaxAlternative26[] PROGMEM = "";
+static const char commandShortDescription26[]  PROGMEM = "1-wire read active pins/bus mask";
+static const uint8_t commandImplementation26   PROGMEM = TRUE;
 
 // index: 27
 #warning obsolete functions, included in RLTH/RADC
-static const             char commandKeyword27[]              PROGMEM = "ADRP"; /*AVR's adcs read active pins/bus mask*/
-static const             char commandShortDescription27[]     PROGMEM = ""; /*AVR's adcs read active pins/bus mask*/
-static const             char commandImplementation27[]       PROGMEM = "--- not implemented"; /*AVR's adcs read active pins/bus mask*/
+static const char commandKeyword27[]           PROGMEM = "ADRP"; /*AVR's adcs read active pins/bus mask*/
+static const char commandSyntax27[]            PROGMEM = "";
+static const char commandSyntaxAlternative27[] PROGMEM = "";
+static const char commandShortDescription27[]  PROGMEM = "AVR's adcs read active pins/bus mask";
+static const uint8_t commandImplementation27   PROGMEM = FALSE;
 
 // index: 28
-static const             char commandKeyword28[]              PROGMEM = "DEBG"; /*set/get debug level and mask*/
-static const             char commandShortDescription28[]     PROGMEM = "[level [mask]]"; /*set/get debug level and mask*/
-static const             char commandImplementation28[]       PROGMEM = ""; /*set/get debug level and mask*/
+static const char commandKeyword28[]           PROGMEM = "DEBG"; /*set/get debug level and mask*/
+static const char commandSyntax28[]            PROGMEM = "[level [mask]]";
+static const char commandSyntaxAlternative28[] PROGMEM = "";
+static const char commandShortDescription28[]  PROGMEM = "set/get debug level and mask";
+static const uint8_t commandImplementation28   PROGMEM = TRUE;
 
 // index: 29
-static const             char commandKeyword29[]              PROGMEM = "PARA"; /*check parasitic power supply mode*/
-static const             char commandShortDescription29[]     PROGMEM = "parasitic device test [???]"; /*not yet figured out*/
-static const             char commandImplementation29[]       PROGMEM = "";
+static const char commandKeyword29[]           PROGMEM = "PARA"; /*check parasitic power supply mode*/
+static const char commandSyntax29[]            PROGMEM = "";
+static const char commandSyntaxAlternative29[] PROGMEM = "";
+static const char commandShortDescription29[]  PROGMEM = "parasitic device presence test";
+static const uint8_t commandImplementation29   PROGMEM = TRUE;
 
 // index: 30
-static const             char commandKeyword30[]              PROGMEM = "SHOW"; /*show (internal) settings*/
-static const             char commandShortDescription30[]     PROGMEM = "[key_word]";
-static const             char commandImplementation30[]       PROGMEM = "show (internal) settings";
+static const char commandKeyword30[]           PROGMEM = "SHOW"; /*show (internal) settings*/
+static const char commandSyntax30[]            PROGMEM = "[key_word]";
+static const char commandSyntaxAlternative30[] PROGMEM = "";
+static const char commandShortDescription30[]  PROGMEM = "show (internal) settings";
+static const uint8_t commandImplementation30   PROGMEM = TRUE;
 
 // index: 31
 #warning to put into one command OW?? with sub commands
-static const             char commandKeyword31[]              PROGMEM = "OWMR"; /*one wire basics: match rom*/
-static const             char commandShortDescription31[]     PROGMEM = "ID <pin_mask>";
-static const             char commandImplementation31[]       PROGMEM = "--- not implemented";
+static const char commandKeyword31[]           PROGMEM = "OWMR"; /*1-wire basics: match rom*/
+static const char commandSyntax31[]            PROGMEM = "ID <pin_mask>";
+static const char commandSyntaxAlternative31[] PROGMEM = "";
+static const char commandShortDescription31[]  PROGMEM = "1-wire basics: match rom";
+static const uint8_t commandImplementation31   PROGMEM = FALSE;
 
 // index: 32
 #warning to put into one command OW?? with sub commands
-static const             char commandKeyword32[]              PROGMEM = "OWPC"; /*one wire basics: presence check*/
-static const             char commandShortDescription32[]     PROGMEM = "[<pin_mask>]"; /*one wire basics: presence check*/
-static const             char commandImplementation32[]       PROGMEM = "--- not implemented"; /*one wire basics: presence check*/
+static const char commandKeyword32[]           PROGMEM = "OWPC"; /*1-wire basics: presence check*/
+static const char commandSyntax32[]            PROGMEM = "[<pin_mask>]";
+static const char commandSyntaxAlternative32[] PROGMEM = "";
+static const char commandShortDescription32[]  PROGMEM = "1-wire basics: presence check";
+static const uint8_t commandImplementation32   PROGMEM = FALSE;
 
 // index: 33
 #warning to put into one command OW?? with sub commands
-static const             char commandKeyword33[]              PROGMEM = "OWRb"; /*one wire basics: receive bit, wait for it*/
-static const             char commandShortDescription33[]     PROGMEM = "<pin_mask> <delay> <timeout: N (times delay)> "; /*one wire basics: receive bit, wait for it*/
-static const             char commandImplementation33[]       PROGMEM = "--- not implemented"; /*one wire basics: receive bit, wait for it*/
+static const char commandKeyword33[]           PROGMEM = "OWRb"; /*1-wire basics: receive bit, wait for it*/
+static const char commandSyntax33[]            PROGMEM = "<pin_mask> <delay> <timeout: N (times delay)> ";
+static const char commandSyntaxAlternative33[] PROGMEM = "";
+static const char commandShortDescription33[]  PROGMEM = "1-wire basics: receive bit, wait for it";
+static const uint8_t commandImplementation33   PROGMEM = FALSE;
 
 // index: 34
 #warning to put into one command OW?? with sub commands
-static const             char commandKeyword34[]              PROGMEM = "OWRB"; /*one wire basics: receive byte*/
-static const             char commandShortDescription34[]     PROGMEM = "[<pin_mask>]"; /*one wire basics: receive byte*/
-static const             char commandImplementation34[]       PROGMEM = "--- not implemented"; /*one wire basics: receive byte*/
+static const char commandKeyword34[]           PROGMEM = "OWRB"; /*1-wire basics: receive byte*/
+static const char commandSyntax34[]            PROGMEM = "[<pin_mask>]";
+static const char commandSyntaxAlternative34[] PROGMEM = "";
+static const char commandShortDescription34[]  PROGMEM = "1-wire basics: receive byte";
+static const uint8_t commandImplementation34   PROGMEM = FALSE;
 
 // index: 35
 #warning to put into one command OW?? with sub commands
-static const             char commandKeyword35[]              PROGMEM = "OWSC"; /*one wire basics: send command*/
-static const             char commandShortDescription35[]     PROGMEM = "<command_key_word> [<pin_mask> [arguments ...]] "; /*one wire basics: send command*/
-static const             char commandImplementation35[]       PROGMEM = "--- not implemented"; /*one wire basics: send command*/
+static const char commandKeyword35[]           PROGMEM = "OWSC"; /*1-wire basics: send command*/
+static const char commandSyntax35[]            PROGMEM = "<command_key_word> [<pin_mask> [arguments ...]] ";
+static const char commandSyntaxAlternative35[] PROGMEM = "";
+static const char commandShortDescription35[]  PROGMEM = "1-wire basics: send command";
+static const uint8_t commandImplementation35   PROGMEM = FALSE;
 
 // index: 36
 #warning to put into one command OW?? with sub commands
-static const             char commandKeyword36[]              PROGMEM = "OWSB"; /*one wire basics: send byte*/
-static const             char commandShortDescription36[]     PROGMEM = "<byte> [<pin_mask>]"; /*one wire basics: send byte*/
-static const             char commandImplementation36[]       PROGMEM = "--- not implemented"; /*one wire basics: send byte*/
+static const char commandKeyword36[]           PROGMEM = "OWSB"; /*1-wire basics: send byte*/
+static const char commandSyntax36[]            PROGMEM = "<byte> [<pin_mask>]";
+static const char commandSyntaxAlternative36[] PROGMEM = "";
+static const char commandShortDescription36[]  PROGMEM = "1-wire basics: send byte";
+static const uint8_t commandImplementation36   PROGMEM = FALSE;
 
 // index: 37
 #warning to put into one command OW?? with sub commands
-static const             char commandKeyword37[]              PROGMEM = "OWSA"; /*one wire API settings: set/get 1-wire specific API settings*/
-static const             char commandShortDescription37[]     PROGMEM = "<command_key_word> [arguments] ";
-static const             char commandImplementation37[]       PROGMEM = "one wire API settings";
+static const char commandKeyword37[]           PROGMEM = "OWSA"; /*1-wire API settings: set/get 1-wire specific API settings*/
+static const char commandSyntax37[]            PROGMEM = "<command_key_word> [arguments] ";
+static const char commandSyntaxAlternative37[] PROGMEM = "";
+static const char commandShortDescription37[]  PROGMEM = "1-wire API settings";
+static const uint8_t commandImplementation37   PROGMEM = TRUE;
 
 // index: 38
-static const             char commandKeyword38[]              PROGMEM = "WDOG"; /*set/get watch dog status*/
-static const             char commandShortDescription38[]     PROGMEM = "[???]";
-static const             char commandImplementation38[]       PROGMEM = "--- not implemented"; /*wdog*/
+static const char commandKeyword38[]           PROGMEM = "TWIS"; /* I2C access */
+static const char commandSyntax38[]            PROGMEM = "<0|1> <I2C address> <data length> <byte1 ... byte8>";
+static const char commandSyntaxAlternative38[] PROGMEM = "";
+static const char commandShortDescription38[]  PROGMEM = "I2C access";
+static const uint8_t commandImplementation38   PROGMEM = TRUE;
 
 // index: 39
-static const             char commandKeyword39[]              PROGMEM = "EXIT"; /*exit*/
-static const             char commandShortDescription39[]     PROGMEM = ""; /* exit */
-static const             char commandImplementation39[]       PROGMEM = "--- not implemented"; /*exit*/
+static const char commandKeyword39[]           PROGMEM = "I2C"; /* I2C access */
+static const char commandSyntax39[]            PROGMEM = "<0|1> <I2C address> <data length> <byte1 ... byte8>";
+static const char commandSyntaxAlternative39[] PROGMEM = "";
+static const char commandShortDescription39[]  PROGMEM = "I2C access";
+static const uint8_t commandImplementation39   PROGMEM = TRUE;
 
 // index: 40
-static const             char commandKeyword40[]              PROGMEM = "RLTH"; /* relay threshold */
-static const             char commandShortDescription40[]     PROGMEM = "[command_key_word] <value>";
-static const             char commandImplementation40[]       PROGMEM = "relay threshold";
+static const char commandKeyword40[]           PROGMEM = "RLTH"; /* relay threshold */
+static const char commandSyntax40[]            PROGMEM = "[command_key_word] <value>";
+static const char commandSyntaxAlternative40[] PROGMEM = "";
+static const char commandShortDescription40[]  PROGMEM = "relay threshold";
+static const uint8_t commandImplementation40   PROGMEM = TRUE;
 
 // index: 41
-static const             char commandKeyword41[]              PROGMEM = "CMD1"; /* command (dummy name) */
-static const             char commandShortDescription41[]     PROGMEM = "[???]";
-static const             char commandImplementation41[]       PROGMEM = "--- not implemented";
+static const char commandKeyword41[]           PROGMEM = "CMD1"; /* command (dummy name) */
+static const char commandSyntax41[]            PROGMEM = "[???]";
+static const char commandSyntaxAlternative41[] PROGMEM = "";
+static const char commandShortDescription41[]  PROGMEM = "";
+static const uint8_t commandImplementation41   PROGMEM = FALSE;
 
 // index: 42
-static const             char commandKeyword42[]              PROGMEM = "CMD2"; /* command (dummy name) */
-static const             char commandShortDescription42[]     PROGMEM = "[???]";
-static const             char commandImplementation42[]       PROGMEM = "--- not implemented";
+static const char commandKeyword42[]           PROGMEM = "CMD2"; /* command (dummy name) */
+static const char commandSyntax42[]            PROGMEM = "[???]";
+static const char commandSyntaxAlternative42[] PROGMEM = "";
+static const char commandShortDescription42[]  PROGMEM = "";
+static const uint8_t commandImplementation42   PROGMEM = FALSE;
 
 // index: 43
-static const             char commandKeyword43[]              PROGMEM = "CMD3"; /* command (dummy name) */
-static const             char commandShortDescription43[]     PROGMEM = "[???]";
-static const             char commandImplementation43[]       PROGMEM = "--- not implemented";
+static const char commandKeyword43[]           PROGMEM = "CMD3"; /* command (dummy name) */
+static const char commandSyntax43[]            PROGMEM = "[???]";
+static const char commandSyntaxAlternative43[] PROGMEM = "";
+static const char commandShortDescription43[]  PROGMEM = "";
+static const uint8_t commandImplementation43   PROGMEM = FALSE;
 
 // index: 44
-static const             char commandKeyword44[]              PROGMEM = "CMD4"; /* command (dummy name) */
-static const             char commandShortDescription44[]     PROGMEM = "[???]";
-static const             char commandImplementation44[]       PROGMEM = "--- not implemented";
+static const char commandKeyword44[]           PROGMEM = "CMD4"; /* command (dummy name) */
+static const char commandSyntax44[]            PROGMEM = "[???]";
+static const char commandSyntaxAlternative44[] PROGMEM = "";
+static const char commandShortDescription44[]  PROGMEM = "";
+static const uint8_t commandImplementation44   PROGMEM = FALSE;
 
 // index: 45
-static const             char commandKeyword45[]              PROGMEM = "GNWR"; /* send <address> <data> for waveform generator */
-static const             char commandShortDescription45[]     PROGMEM = "<address> <data>";
-static const             char commandImplementation45[]       PROGMEM = "waveform generator write data";
+static const char commandKeyword45[]           PROGMEM = "GNWR"; /* send <address> <data> for waveform generator */
+static const char commandSyntax45[]            PROGMEM = "<address> <data>";
+static const char commandSyntaxAlternative45[] PROGMEM = "";
+static const char commandShortDescription45[]  PROGMEM = "waveform generator write data";
+static const uint8_t commandImplementation45   PROGMEM = TRUE;
 
 // index: 46
-static const             char commandKeyword46[]              PROGMEM = "GNRE";
-static const             char commandShortDescription46[]     PROGMEM = "<address>";
-static const             char commandImplementation46[]       PROGMEM = "waveform generator read data";
+static const char commandKeyword46[]           PROGMEM = "GNRE";
+static const char commandSyntax46[]            PROGMEM = "<address>";
+static const char commandSyntaxAlternative46[] PROGMEM = "";
+static const char commandShortDescription46[]  PROGMEM = "waveform generator read data";
+static const uint8_t commandImplementation46   PROGMEM = TRUE;
 
 // index: 47
-static const             char commandKeyword47[]              PROGMEM = "OW8S"; /* set/read state of one wire octal switches */
-static const             char commandShortDescription47[]     PROGMEM = "[ID [value]]";
-static const             char commandImplementation47[]       PROGMEM = "--- 1-wire octal switches";
+static const char commandKeyword47[]           PROGMEM = "OW8S";
+static const char commandSyntax47[]            PROGMEM = "[ID [value]]";
+static const char commandSyntaxAlternative47[] PROGMEM = "";
+static const char commandShortDescription47[]  PROGMEM = "1-wire octal switches";
+static const uint8_t commandImplementation47   PROGMEM = TRUE;
 
 // index: 48
-static const             char commandKeyword48[]              PROGMEM = "TWIS";
-static const             char commandShortDescription48[]     PROGMEM = "<0|1> <I2C address> <data length> <data byte1 ... byte8>"; /* I2C access */
-static const             char commandImplementation48[]       PROGMEM = "--- I2C access";
+static const char commandKeyword48[]           PROGMEM = "WDOG"; /*set/get watch dog status*/
+static const char commandSyntax48[]            PROGMEM = "[enable/disable/0|1]";
+static const char commandSyntaxAlternative48[] PROGMEM = "[cmd] [arguments]";
+static const char commandShortDescription48[]  PROGMEM = "set/get watch dog status";
+static const uint8_t commandImplementation48   PROGMEM = FALSE;
 
 // index: 49
-static const             char commandKeyword49[]              PROGMEM = "VERS";
-static const             char commandShortDescription49[]     PROGMEM = "";
-static const             char commandImplementation49[]       PROGMEM = "code version";
+static const char commandKeyword49[]           PROGMEM = "VERS";
+static const char commandSyntax49[]            PROGMEM = "";
+static const char commandSyntaxAlternative49[] PROGMEM = "";
+static const char commandShortDescription49[]  PROGMEM = "code version";
+static const uint8_t commandImplementation49   PROGMEM = TRUE;
+
+// index: 50
+static const char commandKeyword50[]           PROGMEM = "CMD5"; /* command (dummy name) */
+static const char commandSyntax50[]            PROGMEM = "[???]";
+static const char commandSyntaxAlternative50[] PROGMEM = "";
+static const char commandShortDescription50[]  PROGMEM = "";
+static const uint8_t commandImplementation50   PROGMEM = FALSE;
+
+// index: 51
+static const char commandKeyword51[]           PROGMEM = "CMD6"; /* command (dummy name) */
+static const char commandSyntax51[]            PROGMEM = "[???]";
+static const char commandSyntaxAlternative51[] PROGMEM = "";
+static const char commandShortDescription51[]  PROGMEM = "";
+static const uint8_t commandImplementation51   PROGMEM = FALSE;
+
+// index: 52
+static const char commandKeyword52[]           PROGMEM = "CMD7"; /* command (dummy name) */
+static const char commandSyntax52[]            PROGMEM = "[???]";
+static const char commandSyntaxAlternative52[] PROGMEM = "";
+static const char commandShortDescription52[]  PROGMEM = "";
+static const uint8_t commandImplementation52   PROGMEM = FALSE;
+
+// index: 53
+static const char commandKeyword53[]           PROGMEM = "CMD8"; /* command (dummy name) */
+static const char commandSyntax53[]            PROGMEM = "[???]";
+static const char commandSyntaxAlternative53[] PROGMEM = "";
+static const char commandShortDescription53[]  PROGMEM = "";
+static const uint8_t commandImplementation53   PROGMEM = FALSE;
+
+// index: 54
+static const char commandKeyword54[]           PROGMEM = "CMD8"; /* command (dummy name) */
+static const char commandSyntax54[]            PROGMEM = "[???]";
+static const char commandSyntaxAlternative54[] PROGMEM = "";
+static const char commandShortDescription54[]  PROGMEM = "";
+static const uint8_t commandImplementation54   PROGMEM = FALSE;
 
 /* this is the corresponding command key array, beware of the same order*/
 const char* commandKeywords[] PROGMEM = {
@@ -341,12 +478,44 @@ const char* commandKeywords[] PROGMEM = {
 		commandKeyword30, commandKeyword31, commandKeyword32, commandKeyword33, commandKeyword34, commandKeyword35,
 		commandKeyword36, commandKeyword37, commandKeyword38, commandKeyword39, commandKeyword40, commandKeyword41,
 		commandKeyword42, commandKeyword43, commandKeyword44, commandKeyword45, commandKeyword46, commandKeyword47,
-		commandKeyword48, commandKeyword49 };
-
+		commandKeyword48, commandKeyword49, commandKeyword50, commandKeyword51, commandKeyword52, commandKeyword53,
+		commandKeyword54
+ };
 /* those are the command keywords of the API*/
 
 /* this is the corresponding command key array, beware of the same order*/
-const char* commandShortDescriptions[] PROGMEM = {
+const char* commandSyntaxes[] PROGMEM = {
+		commandSyntax00, commandSyntax01, commandSyntax02, commandSyntax03, commandSyntax04, commandSyntax05, commandSyntax06,
+		commandSyntax07, commandSyntax08, commandSyntax09, commandSyntax10, commandSyntax11, commandSyntax12,
+		commandSyntax13, commandSyntax14, commandSyntax15, commandSyntax16, commandSyntax17, commandSyntax18,
+		commandSyntax19, commandSyntax20, commandSyntax21, commandSyntax22, commandSyntax23, commandSyntax24,
+		commandSyntax25, commandSyntax26, commandSyntax27, commandSyntax28, commandSyntax29, commandSyntax30,
+		commandSyntax31, commandSyntax32, commandSyntax33, commandSyntax34, commandSyntax35, commandSyntax36,
+		commandSyntax37, commandSyntax38, commandSyntax39, commandSyntax40, commandSyntax41, commandSyntax42,
+		commandSyntax43, commandSyntax44, commandSyntax45, commandSyntax46, commandSyntax47, commandSyntax48,
+		commandSyntax49, commandSyntax50, commandSyntax51, commandSyntax52, commandSyntax53, commandKeyword54
+ };
+
+/* this is the corresponding command key array, beware of the same order*/
+const char* commandSyntaxAlternatives[] PROGMEM = {
+		commandSyntaxAlternative00, commandSyntaxAlternative01, commandSyntaxAlternative02, commandSyntaxAlternative03,
+		commandSyntaxAlternative04, commandSyntaxAlternative05, commandSyntaxAlternative06, commandSyntaxAlternative07,
+		commandSyntaxAlternative08, commandSyntaxAlternative09, commandSyntaxAlternative10, commandSyntaxAlternative11,
+		commandSyntaxAlternative12, commandSyntaxAlternative13, commandSyntaxAlternative14, commandSyntaxAlternative15,
+		commandSyntaxAlternative16, commandSyntaxAlternative17, commandSyntaxAlternative18, commandSyntaxAlternative19,
+		commandSyntaxAlternative20, commandSyntaxAlternative21, commandSyntaxAlternative22, commandSyntaxAlternative23,
+		commandSyntaxAlternative24, commandSyntaxAlternative25, commandSyntaxAlternative26, commandSyntaxAlternative27,
+		commandSyntaxAlternative28, commandSyntaxAlternative29, commandSyntaxAlternative30, commandSyntaxAlternative31,
+		commandSyntaxAlternative32, commandSyntaxAlternative33, commandSyntaxAlternative34, commandSyntaxAlternative35,
+		commandSyntaxAlternative36, commandSyntaxAlternative37, commandSyntaxAlternative38, commandSyntaxAlternative39,
+		commandSyntaxAlternative40, commandSyntaxAlternative41, commandSyntaxAlternative42, commandSyntaxAlternative43,
+		commandSyntaxAlternative44, commandSyntaxAlternative45, commandSyntaxAlternative46, commandSyntaxAlternative47,
+		commandSyntaxAlternative48, commandSyntaxAlternative49, commandSyntaxAlternative50, commandSyntaxAlternative51,
+		commandSyntaxAlternative52, commandSyntaxAlternative53, commandSyntaxAlternative54
+ };
+
+/* this is the corresponding command key array, beware of the same order*/
+const char* commandShortDescriptions[] PROGMEM= {
 		commandShortDescription00, commandShortDescription01, commandShortDescription02, commandShortDescription03,
 		commandShortDescription04, commandShortDescription05, commandShortDescription06, commandShortDescription07,
 		commandShortDescription08, commandShortDescription09, commandShortDescription10, commandShortDescription11,
@@ -359,24 +528,26 @@ const char* commandShortDescriptions[] PROGMEM = {
 		commandShortDescription36, commandShortDescription37, commandShortDescription38, commandShortDescription39,
 		commandShortDescription40, commandShortDescription41, commandShortDescription42, commandShortDescription43,
 		commandShortDescription44, commandShortDescription45, commandShortDescription46, commandShortDescription47,
-		commandShortDescription48, commandShortDescription49
-};
+		commandShortDescription48, commandShortDescription49, commandShortDescription50, commandShortDescription51,
+		commandShortDescription52, commandShortDescription53, commandShortDescription54
+ };
 
-/* this is the corresponding command key array, beware of the same order*/
-const char* commandImplementations[] PROGMEM= {
-		commandImplementation00, commandImplementation01, commandImplementation02, commandImplementation03,
-		commandImplementation04, commandImplementation05, commandImplementation06, commandImplementation07,
-		commandImplementation08, commandImplementation09, commandImplementation10, commandImplementation11,
-		commandImplementation12, commandImplementation13, commandImplementation14, commandImplementation15,
-		commandImplementation16, commandImplementation17, commandImplementation18, commandImplementation19,
-		commandImplementation20, commandImplementation21, commandImplementation22, commandImplementation23,
-		commandImplementation24, commandImplementation25, commandImplementation26, commandImplementation27,
-		commandImplementation28, commandImplementation29, commandImplementation30, commandImplementation31,
-		commandImplementation32, commandImplementation33, commandImplementation34, commandImplementation35,
-		commandImplementation36, commandImplementation37, commandImplementation38, commandImplementation39,
-		commandImplementation40, commandImplementation41, commandImplementation42, commandImplementation43,
-		commandImplementation44, commandImplementation45, commandImplementation46, commandImplementation47,
-		commandImplementation48, commandImplementation49 };
+const uint8_t* commandImplementations[] PROGMEM= {
+		&commandImplementation00, &commandImplementation01, &commandImplementation02, &commandImplementation03,
+		&commandImplementation04, &commandImplementation05, &commandImplementation06, &commandImplementation07,
+		&commandImplementation08, &commandImplementation09, &commandImplementation10, &commandImplementation11,
+		&commandImplementation12, &commandImplementation13, &commandImplementation14, &commandImplementation15,
+		&commandImplementation16, &commandImplementation17, &commandImplementation18, &commandImplementation19,
+		&commandImplementation20, &commandImplementation21, &commandImplementation22, &commandImplementation23,
+		&commandImplementation24, &commandImplementation25, &commandImplementation26, &commandImplementation27,
+		&commandImplementation28, &commandImplementation29, &commandImplementation30, &commandImplementation31,
+		&commandImplementation32, &commandImplementation33, &commandImplementation34, &commandImplementation35,
+		&commandImplementation36, &commandImplementation37, &commandImplementation38, &commandImplementation39,
+		&commandImplementation40, &commandImplementation41, &commandImplementation42, &commandImplementation43,
+		&commandImplementation44, &commandImplementation45, &commandImplementation46, &commandImplementation47,
+		&commandImplementation48, &commandImplementation49, &commandImplementation50, &commandImplementation51,
+		&commandImplementation52, &commandImplementation53, &commandImplementation54
+ };
 
 /* pointer of array for defined serial error number*/
 static const char se00[] PROGMEM = "no valid command name";
@@ -455,6 +626,8 @@ int8_t twim_init = 0; /* return variable of TWIM_Init function*/
 int8_t owi_init = 0; /* return variable of OWI_Init function*/
 int8_t timer0_init = 0; /* return variable of Timer0_Init function*/
 int8_t timer0A_init = 0;/* return variable of Timer0A_Init function*/
+
+uint8_t resetSource = resetSource_UNDEFINED_REASON;
 
 /*----------------------------------------------------------------------------------------------------*/
 
@@ -1024,6 +1197,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
     	  case commandKeyNumber_USUB: /*CAN*/
     		  error = canCheckInputParameterError(ptr_uartStruct);
     	  break;
+    	  case commandKeyNumber_I2C: /*I2C*/
     	  case commandKeyNumber_TWIS: /*I2C*/
     	  {
     		  error = twiMasterCheckError(ptr_uartStruct);
@@ -1201,8 +1375,6 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
        break;
     case commandKeyNumber_WDOG: /*set/get watch dog status*/
        break;
-//    case commandKeyNumber_EXIT: /*exit*/
-//       break;
     case commandKeyNumber_RLTH: /* relay threshold */
        relayThreshold(ptr_uartStruct);
        break;
@@ -1228,6 +1400,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
     	owiOctalSwitches(ptr_uartStruct);
     	break;
     case commandKeyNumber_TWIS: /* I2C interface (twi) */
+    case commandKeyNumber_I2C:  /* I2C interface (twi) */
     	twiMaster(ptr_uartStruct);
        break;
     case commandKeyNumber_VERS: /* version */
@@ -1586,7 +1759,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
     return 0;
 }//END of CommunicationError function
 
-void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, PGM_P file, PGM_P format, ...)
+void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, int16_t line, PGM_P file, PGM_P format, ...)
 {
 	if ( debugLevel <= globalDebugLevel && ((globalDebugSystemMask >> debugMaskIndex) & 1))
 	{
@@ -1599,9 +1772,28 @@ void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, uint32_t line, PGM
 		va_end(argumentPointers);
 
 		// header: "DEBUG (%4i, %s, %s ) %s"
-		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("DEBUG (%4i, "), line);
-		strncat_P(uart_message_string, file, BUFFER_SIZE -1);
-		strncat_P(uart_message_string, PSTR(") "), BUFFER_SIZE -1);
+		strncat_P(uart_message_string, PSTR("DEBUG"), BUFFER_SIZE -1);
+		strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE -1);
+		if ( 0 < line || file )
+		{
+			strncat_P(uart_message_string, PSTR("("), BUFFER_SIZE -1);
+			if ( 0 < line )
+			{
+				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%4i"),uart_message_string, line);
+			}
+			// ,
+
+			if ( 0 < line && file )
+			{
+				strncat_P(uart_message_string, PSTR(", "), BUFFER_SIZE -1);
+			}
+
+			if (file)
+			{
+				strncat_P(uart_message_string, file, BUFFER_SIZE -1);
+			}
+			strncat_P(uart_message_string, PSTR(") "), BUFFER_SIZE -1);
+		}
 		strncat(uart_message_string, message, BUFFER_SIZE -1);
 
 		UART0_Send_Message_String_p(NULL,0);
@@ -2133,4 +2325,65 @@ size_t getMaximumStringArrayLength(const char* array[], size_t maxIndex, size_t 
 	}
 	maxLength = (maxLength < maxResult) ? maxLength : maxResult;
 	return maxLength;
+}
+
+void determineAndHandleResetSource()
+{
+	/*
+	 * void handleResetSource(uint8_t startup_flag)
+	 */
+		// The MCU Status Register provides information on which reset source caused an MCU reset.
+		//	    Bit 0 – PORF:  	Power-On Reset
+		//	    Bit 1 – EXTRF: 	External Reset
+		//	    Bit 2 – BORF:  	Brown-Out Reset
+		//		Bit 3 – WDRF:  	Watchdog Reset
+		//   	Bit 4 – JTRF:  	JTAG Reset Flag
+		//  							This bit is set if a reset is being caused
+		//                              by a logic one in the JTAG Reset Register selected by
+		//                              the JTAG instruction AVR_RESET. This bit is reset by
+		// 								a Power-on Reset, or by writing a logic zero to the flag.
+
+
+		//evaluate mcusr
+
+		if ( mcusr & (1 << JTRF) )
+		{
+			resetSource = resetSource_JTAG;
+		}
+		else if ( mcusr & (1 << WDRF) )
+		{
+			resetSource = resetSource_WATCHDOG;
+		}
+		else if ( mcusr & (1 << BORF) )
+		{
+			resetSource = resetSource_BROWN_OUT;
+		}
+		else if ( mcusr & (1 << EXTRF) )
+		{
+			resetSource = resetSource_EXTERNAL;
+		}
+	    else if ( mcusr & (1 << PORF) )
+		{
+			resetSource = resetSource_POWER_ON;
+		}
+		else
+		{
+			resetSource = resetSource_UNKNOWN_REASON;
+		}
+
+		//action
+		switch(resetSource)
+		{
+		case resetSource_WATCHDOG:
+			watchdogIncarnationsCounter++;
+			break;
+		case resetSource_JTAG:
+		case resetSource_BROWN_OUT:
+		case resetSource_EXTERNAL:
+		case resetSource_POWER_ON:
+		case resetSource_UNKNOWN_REASON:
+		default:
+			watchdogIncarnationsCounter = 0;
+			break;
+		}
 }
