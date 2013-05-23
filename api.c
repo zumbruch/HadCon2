@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdbool.h>
 #include <ctype.h>
 #include <math.h>
 #include <stdlib.h>
@@ -36,6 +37,7 @@
 #include "one_wire_api_settings.h"
 #include "one_wire_octalSwitch.h"
 #include "relay.h"
+#include "spiApi.h"
 
 #include "api_debug.h"
 #include "api_show.h"
@@ -735,7 +737,8 @@ void Process_Uart_Event(void)
 	int8_t number_of_elements = -1;
 	number_of_elements = uartSplitUartString();
 
- 	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("number of string elements found: %i"), number_of_elements);
+ 	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, PSTR(__FILE__),
+ 			PSTR("number of string elements found: %i"), number_of_elements);
 
 	if ( 0 < number_of_elements  )
 	{
@@ -826,7 +829,10 @@ void Process_Uart_Event(void)
 			}
 		}
 	}
-
+	else
+	{
+		   CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("API Parsing failed") );
+	}
 	/*clear the variables*/
 	Reset_SetParameter();
 	Reset_UartStruct(ptr_uartStruct);
@@ -837,11 +843,15 @@ void Process_Uart_Event(void)
 
 /*
  * this function splits the string to receive various parameters
+ * 		 only copy the first MAX_PARAMETER elements
+ * 		 if there are more, still count the elements
+ * 		 and copy the rest into decrypt_uartString_remainder
+ *
  * no direct input : use of global variable decrypt_uartString
  * no direct output: use of global variable setParameter
  * return value:
  *          number of found elements,
- *          FALSE else
+ *          0 else
  */
 
 int8_t uartSplitUartString( void )
@@ -852,7 +862,7 @@ int8_t uartSplitUartString( void )
 
 	if ( MAX_LENGTH_COMMAND < strlen(decrypt_uartString) )
 	{
-		uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
+		CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
 
 		/* reset */
 		clearString(decrypt_uartString, BUFFER_SIZE);
@@ -867,11 +877,11 @@ int8_t uartSplitUartString( void )
 	 * into elements of array setParameter
 	 */
 
-	char *test = NULL;
+	char *save_ptr = NULL;
 	char *result = NULL; /* pointer init */
 
 	/* initial iteration */
-	result = strtok_rP(decrypt_uartString, PSTR(UART_DELIMITER), &test); /*search spaces in string */
+	result = strtok_rP(decrypt_uartString, PSTR(UART_DELIMITER), &save_ptr); /*search spaces in string */
 	parameterIndex = 0; /* pointer of setParameter*/
 
 	while ( result != NULL )
@@ -879,28 +889,39 @@ int8_t uartSplitUartString( void )
 		if (MAX_LENGTH_PARAMETER < strlen(result))
 		{
 			/* TODO: create correct error code*/
-			uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
+			CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
 		    clearString(decrypt_uartString, BUFFER_SIZE);
 		    /* "reset": decrypt_uartString[0] = '\0'; */
 
 			return 0;
 		}
 
-		strncpy(setParameter[parameterIndex], result, MAX_LENGTH_PARAMETER);
-		result = strtok_rP(NULL, PSTR(UART_DELIMITER), &test);
+		/* only copy the first MAX_PARAMETER elements
+		 * if there are more, still count the elements
+		 * and copy the rest into decrypt_uartString_remainder*/
+		if ( MAX_PARAMETER > parameterIndex )
+		{
+			strncpy(setParameter[parameterIndex], result, MAX_LENGTH_PARAMETER);
+		}
+		if (MAX_PARAMETER == parameterIndex)
+		{
+			clearString(decrypt_uartString_remainder, BUFFER_SIZE);
+			strncpy(decrypt_uartString_remainder, save_ptr, BUFFER_SIZE);
+		}
+
+		result = strtok_rP(NULL, PSTR(UART_DELIMITER), &save_ptr);
 		parameterIndex++;
 
-		if ( MAX_PARAMETER < parameterIndex )
-		{
-			uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_too_many_arguments, FALSE, NULL);
-	        clearString(decrypt_uartString, BUFFER_SIZE);
-	        /* "reset": decrypt_uartString[0] = '\0'; */
-			return 0;
-		}
+		//		if ( MAX_PARAMETER < parameterIndex )
+		//		{
+		//			CommunicationError_p(ERRA, SERIAL_ERROR_too_many_arguments, FALSE, NULL);
+		//	        clearString(decrypt_uartString, BUFFER_SIZE);
+		//	        /* "reset": decrypt_uartString[0] = '\0'; */
+		//			return 0;
+		//		}
 	}
 
  	printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, PSTR(__FILE__), PSTR("found %i arguments "), parameterIndex-1);
-
 
     clearString(decrypt_uartString, BUFFER_SIZE);
      /* "reset": decrypt_uartString[0] = '\0'; */

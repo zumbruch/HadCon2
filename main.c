@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <math.h>
 #include <stdlib.h>
 #include <util/delay.h>
@@ -126,6 +127,7 @@ char keepAliveString[15] = "PING";/*only for keep_alive function*/
 
 char uartString[BUFFER_SIZE]; /* variable for storage received a complete string via UART */
 char decrypt_uartString[BUFFER_SIZE];
+char decrypt_uartString_remainder[BUFFER_SIZE];
 
 
 /* unused
