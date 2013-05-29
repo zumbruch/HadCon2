@@ -2164,38 +2164,77 @@ void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartS
 /*
  * getNumberOfHexDigits(const char *string, const uint16_t maxLenght)
  *
- * return number of leading characters of string
- * being an digit (0x/0X of hex numbers are ignored) up to the maximum maxLength-1
+ * returns
+ *	 		- number of hex digits of string,
+ *	 			if it is a number with hexadecimal digits
+ *	 			(0x/0X of hex numbers are ignored) up to the maximum maxLength-1
+ * 				NOTE:
+ * 					if numeric value is not separated from next word
+ * 					nor isn't followed by '\0',
+ * 					it isn't a number
+ * 		or
+ * 			- "1"
+ * 				in case of an case insensitive numerical constant name for 0/1 resulting in length 1:
+ * 					using the definitions in isNumericalConstantOne() and isNumericalConstantZero()
+ *		or
+ *			- "0"
+ *				else
+ *
+ * why not using strtoul(l)(string, NULL, 16) ?
+ *		- numerical constants not supported
+ *		- 64 bit not supported
+ *		- string could represent a very long hex number > 16 digits
  */
 
 uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLength)
 {
-    /* check if argument contains of digits */
     uint16_t index = 0;
-    if ( 0 == strncasecmp_P( string, PSTR("0x"),2) )
+
+    /* first check for strings, which stand for 0/1 */
+    if ( isNumericalConstantZero( string ) || isNumericalConstantOne( string ) )
     {
-       index = 2;
+    	index = 1;
+    	printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length of \"%s\" is %i"), string, index);
     }
-
-    /* calculate length of argument and check if all of them are hex numbers */
-    while (index < maxLength && isxdigit(string[index])) {index++;}
-     printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("found length is %i"), index);
-
-
-    if (index+1 < maxLength)
+    else
     {
-       if   ( ! ( isspace(string[index+1]) || ('\0' == string[index+1] ) ) )
-       {
-           printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length 0 - value is followed by non-space character ASCII: %i, '%c'"), string[index+1], string[index+1]);
+    /* check if argument contains of digits */
+    	if ( 0 == strncasecmp_P( string, PSTR("0x"),2) )
+    	{
+    		index = 2;
+    	}
 
-          index = 0; /* numeric value is not separated from next word nor isn't followed by '\0', so it isn't a number, */
-       }
+    	/* calculate length of argument and check if all of them are hex numbers */
+    	while (index < maxLength && isxdigit(string[index])) {index++;}
+    	printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length is %i"), index);
+
+    	/* check if numeric value is not separated from next word nor isn't followed by '\0', so it isn't a number, */
+    	if (index+1 < maxLength)
+    	{
+    		if   ( ! ( isspace(string[index+1]) || ('\0' == string[index+1] ) ) )
+    		{
+    			printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length 0 - value is followed by non-space character ASCII: %i, '%c'"), string[index+1], string[index+1]);
+    			index = 0;
+    		}
+    	}
     }
 
     return index;
 }
 
-#warning TODO: refactor getNumericValueFromParameter to getUnsignedNumericValueFromParameter
+/*
+ *	int8_t getUnsignedNumericValueFromParameterIndex(uint8_t parameterIndex, uint64_t *ptr_value)
+ *
+ * 	gets from string parameter array "setParameter" string at position "parameterIndex"
+ * 		and converts it to an unsigned number stored in "ptr_value"
+ *
+ *	returns
+ *		- -1
+ *			in case of errors
+ *		- 0
+ *			else (success)
+ */
+
 int8_t getUnsignedNumericValueFromParameterIndex(uint8_t parameterIndex, uint64_t *ptr_value)
 {
 	if ( MAX_PARAMETER < parameterIndex || NULL == ptr_value)
@@ -2213,34 +2252,108 @@ int8_t getUnsignedNumericValueFromParameterIndex(uint8_t parameterIndex, uint64_
 	return 0;
 }
 
-int8_t getUnsignedNumericValueFromParameterString(const char string[], uint64_t *ptr_value)
+/*
+ * bool isNumericArgument(const char string[])
+ *
+ * returns
+ * 		true
+ * 			in case of an case insensitive numerical constant name for 0/1 resulting in length 1:
+ * 				using the definitions in isNumericalConstantOne() and isNumericalConstantZero()
+ * 			or
+ * 			string is a hex number
+ * else
+ * 		false
+ * */
+
+bool isNumericArgument(const char string[], const uint16_t maxLength)
 {
-	if ( NULL == string || NULL == ptr_value)
+	return (0 < getNumberOfHexDigits(string, maxLength)) ? true : false;
+}
+
+/*
+ * bool isNumericalConstantOne(const char string[])
+ *
+ * returns true
+ * 		if string matches case insensitively
+ * 			T(RUE)
+ * 			H(IGH)
+ * else
+ * 		false
+ * */
+
+bool isNumericalConstantOne(const char string[])
+{
+	if ( NULL == string )
 	{
-		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("getNumericValueFromString: wrong input parameters"));
-		return -1;
+		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("isNumericalConstantOne: NULL input"));
+		return false;
 	}
 
-    /* T,F,t,f,H,L : T(RUE)/F(ALSE) */
-    if (
+	return (
     		( 0 == strcasecmp_P(string, PSTR("T")   )) ||
     		( 0 == strcasecmp_P(string, PSTR("TRUE"))) ||
     		( 0 == strcasecmp_P(string, PSTR("H")   )) ||
     		( 0 == strcasecmp_P(string, PSTR("HIGH")))
-    )
-    {
-    	*ptr_value = TRUE;
-    }
-    else if (
+    );
+}
+
+/*
+ * bool isNumericalConstantZero(const char string[])
+ *
+ * returns true
+ * 		if string matches case insensitively
+ * 			F(ALSE)
+ *	 		L(LOW)
+ * else
+ * 		false
+ */
+
+bool isNumericalConstantZero(const char string[])
+{
+	if ( NULL == string )
+	{
+		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("isNumericalConstantOne: NULL input"));
+		return false;
+	}
+    return (
     		( 0 == strcasecmp_P(string, PSTR("F")   )) ||
     		( 0 == strcasecmp_P(string, PSTR("FALSE"))) ||
     		( 0 == strcasecmp_P(string, PSTR("L")   )) ||
     		( 0 == strcasecmp_P(string, PSTR("LOW")))
-    )
+    );
+}
+
+/*
+ *	int8_t getUnsignedNumericValueFromParameterString(uint8_t parameterIndex, uint64_t *ptr_value)
+ *
+ * 	gets from string parameter array "setParameter" string at position "parameterIndex"
+ * 		and converts it to an unsigned number stored in "ptr_value"
+ *
+ *	returns
+ *		- -1
+ *			in case of errors
+ *		- 0
+ *			else (success)
+ */
+
+int8_t getUnsignedNumericValueFromParameterString(const char string[], uint64_t *ptr_value)
+{
+	if ( NULL == string || NULL == ptr_value)
+	{
+		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("getUnsignedNumericValueFromParameterString: NULL input parameters"));
+		return -1;
+	}
+
+    /* T,F,t,f,H,L : T(RUE)/F(ALSE) */
+    if ( isNumericalConstantOne( string ) )
+    {
+    	*ptr_value = TRUE;
+    }
+    else if ( isNumericalConstantZero( string ) )
     {
     	*ptr_value = FALSE;
     }
-    else if ( 0 < getNumberOfHexDigits(string, MAX_LENGTH_PARAMETER) )
+    else if ( isNumericArgument(string, MAX_LENGTH_PARAMETER) )
 	{
     	/* unsigned long */
     	if ( 8 < getNumberOfHexDigits(string, MAX_LENGTH_PARAMETER) )

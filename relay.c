@@ -142,8 +142,8 @@ void relayThreshold(struct uartStruct *ptr_uartStruct)
 void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t subCommandIndex )
 {
    uint32_t status = 0;
-   uint32_t value = 0;
-   uint32_t value2 = 0;
+   uint64_t value = 0;
+   uint64_t value2 = 0;
    uint8_t channel = 0;
    uint8_t recursive = FALSE;
 

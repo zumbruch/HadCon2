@@ -99,10 +99,13 @@ int8_t apiDebug(struct uartStruct *ptr_uartStruct)
 	    	hasSubCommand = FALSE;
 	    	break;
 	    default:
-
-	    	if (0 == getNumberOfHexDigits(&setParameter[1][0], MAX_LENGTH_PARAMETER))
+	    	if ( FALSE == isNumericArgument(&setParameter[1][0], MAX_LENGTH_PARAMETER))
 	    	{
 	    		hasSubCommand = TRUE;
+	    	}
+	    	else
+	    	{
+	    		hasSubCommand = FALSE;
 	    	}
 	    	break;
 	}
@@ -157,8 +160,8 @@ int8_t apiDebug(struct uartStruct *ptr_uartStruct)
 
 int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandIndex)
 {
-	uint32_t status = 0;
-	uint32_t value = 0;
+	int8_t status = 0;
+	uint64_t value = 0;
 
 	if ( 0 > subCommandIndex )
 	{
@@ -297,7 +300,7 @@ void apiDebugReadModifyDebugLevelAndMask(struct uartStruct *ptr_uartStruct)
 	 * set response: ...
 	 * get response: RECV DEBG level mask*/
 
-	uint32_t value = 0;
+	uint64_t value = 0;
     int8_t status = 0;
 	switch (ptr_uartStruct->number_of_arguments)
 	{
@@ -343,7 +346,7 @@ void apiDebugReadModifyDebugLevel(struct uartStruct *ptr_uartStruct)
 
 	/*TODO: change CAN naming to more general */
 
-	uint32_t value = 0;
+	uint64_t value = 0;
     int8_t status = 0;
 
 	switch (ptr_uartStruct->number_of_arguments)
@@ -387,7 +390,7 @@ void apiDebugReadModifyDebugMask(struct uartStruct *ptr_uartStruct)
 	 * get response: RECV DBGM level*/
 
 	int8_t status;
-	uint32_t value;
+	uint64_t value;
 
 	switch (ptr_uartStruct->number_of_arguments)
 	{

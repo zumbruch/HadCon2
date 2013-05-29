@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "api_define.h"
 #include "api_global.h"
@@ -92,6 +93,7 @@ uint8_t createReceiveHeader( struct uartStruct *ptr_uartStruct, char message_str
 void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct, int8_t keyNumber, int8_t index,  PGM_P commandKeyword[]);
 
 uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLenght);
+bool isNumericArgument(const char string[], const uint16_t maxLength);
 
 int8_t getUnsignedNumericValueFromParameterIndex(uint8_t parameterIndex, uint64_t *ptr_value);
 int8_t getUnsignedNumericValueFromParameterString(const char string[], uint64_t *ptr_value);
@@ -104,6 +106,11 @@ size_t getMaximumStringArrayLength_P(PGM_P array[], size_t maxIndex, size_t maxR
 size_t getMaximumStringArrayLength(const char* array[], size_t maxIndex, size_t maxResult);
 
 void determineAndHandleResetSource(void);
+
+bool isNumericalConstantOne(const char string[]);
+bool isNumericalConstantZero(const char string[]);
+
+
 
 #ifndef API_CONSTANTS_H_
 

@@ -722,7 +722,7 @@ uint8_t owiInitOwiStruct(struct owiStruct *ptr_owiStruct)
    return 0;
 
 }
-
+#warning TODO: using uint32_t , think of ID stored in structure/union { familyCode, uniq, CRC } instead/on top of an byte array
 uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex)
 {
    /* calculate length of argument and check if all of them are hex numbers */
@@ -742,7 +742,7 @@ uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex)
    ptr_owiStruct->idSelect_flag = FALSE;
 
    numericLength = getNumberOfHexDigits(setParameter[parameterIndex], MAX_LENGTH_PARAMETER);
-    printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("numeric length of argument '%s' is %i"), setParameter[parameterIndex], numericLength);
+   printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("numeric length of argument '%s' is %i"), setParameter[parameterIndex], numericLength);
 
    if ( 16 == numericLength)
    {
@@ -841,6 +841,8 @@ uint8_t owiConvertUartDataToOwiStruct(void)
 #warning THERE IS TOO MUCH INTELLIGENCE IN THIS FUNCTION (reduce it to filling or split it up into ID ,,,,)
    //unsigned int myid =0;
    owiInitOwiStruct(ptr_owiStruct);
+
+   uint64_t value;
    int8_t numberOfArguments = ptr_uartStruct->number_of_arguments;
 
     printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("number of arguments: %i"), numberOfArguments );
@@ -864,10 +866,11 @@ uint8_t owiConvertUartDataToOwiStruct(void)
          /* value / command */
          if (FALSE == ptr_owiStruct->idSelect_flag)
          {
-             if ( strlen ( setParameter[1]) == getNumberOfHexDigits(setParameter[1], MAX_LENGTH_PARAMETER))
+             if ( isNumericArgument(setParameter[1], MAX_LENGTH_PARAMETER))
              {
-                ptr_owiStruct->value = (uint16_t) strtoul(setParameter[1], &ptr_setParameter[1], 16);
-                ptr_owiStruct->ptr_value = &(ptr_owiStruct->value);
+            	 getUnsignedNumericValueFromParameterIndex( 1 , &value );
+            	 ptr_owiStruct->value = (uint16_t) (0xFFFF & value);
+            	 ptr_owiStruct->ptr_value = &(ptr_owiStruct->value);
              }
              else
              {
@@ -892,33 +895,35 @@ uint8_t owiConvertUartDataToOwiStruct(void)
          /* ID command / ID value/flag */
          if (TRUE == ptr_owiStruct->idSelect_flag)
          {
-            /* numeric value*/
-            if ( strlen ( setParameter[2]) == getNumberOfHexDigits(setParameter[2], MAX_LENGTH_PARAMETER))
-            {
-               /* second argument can either be numeric value (write mode) or numeric convert_flag (read_mode), indistinguishable)
-                * assigning to value*/
-               ptr_owiStruct->value = (uint16_t) strtoul(setParameter[2], &ptr_setParameter[2], 16);
-               ptr_owiStruct->ptr_value = &(ptr_owiStruct->value);
-            }
-            else /* command */
-            {
-               strncpy( ptr_owiStruct->command, setParameter[2], MAX_LENGTH_PARAMETER);
-            }
+        	 /* numeric value*/
+        	 if ( isNumericArgument(setParameter[2], MAX_LENGTH_PARAMETER))
+        	 {
+        		 /* second argument can either be numeric value (write mode) or numeric convert_flag (read_mode), indistinguishable
+        		  * assigning to value*/
+
+        		 getUnsignedNumericValueFromParameterIndex( 2 , &value );
+        		 ptr_owiStruct->value = (uint16_t) (0xFFFF & value);
+        		 ptr_owiStruct->ptr_value = &(ptr_owiStruct->value);
+        	 }
+        	 else /* command */
+        	 {
+        		 strncpy( ptr_owiStruct->command, setParameter[2], MAX_LENGTH_PARAMETER);
+        	 }
          }
          else /* value flag | command value/argument/ID*/
          {
             /* numeric value */
-            if ( strlen ( setParameter[1]) == getNumberOfHexDigits(setParameter[1], MAX_LENGTH_PARAMETER))
-            {
-               ptr_owiStruct->value = (uint16_t) strtoul(setParameter [1], &ptr_setParameter[1], 16);
-               ptr_owiStruct->ptr_value = &(ptr_owiStruct->value);
-#warning TODO: generalize this more, it is too specific
-               ptr_owiStruct->init_flag = ( 0 != (uint16_t) strtoul(setParameter [2], &ptr_setParameter[2], 16));
+        	 if ( isNumericArgument(setParameter[1], MAX_LENGTH_PARAMETER))
+        	 {
+        		 getUnsignedNumericValueFromParameterIndex( 1 , &value );
+        		 ptr_owiStruct->value = (uint16_t) (0xFFFF & value);
+        		 ptr_owiStruct->ptr_value = &(ptr_owiStruct->value);
+        		 getUnsignedNumericValueFromParameterIndex( 2 , &value );
+        		 ptr_owiStruct->init_flag = ( 0 != value );
 
-                printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("second argument sets init_flag to: %i "), ptr_owiStruct->init_flag );
-               /*
-               */
-            }
+        		 printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__),
+        				 	  PSTR("second argument sets init_flag to: %i "), ptr_owiStruct->init_flag );
+        	 }
             else /* command ID/value/argument */
             {
                /* command */
@@ -929,15 +934,17 @@ uint8_t owiConvertUartDataToOwiStruct(void)
                if ( 0 == isParameterIDThenFillOwiStructure(2) )
                {
                   /* numeric value/flag? */
-                  if ( strlen ( setParameter[1]) == getNumberOfHexDigits(setParameter[1], MAX_LENGTH_PARAMETER))
-                  {
-                     ptr_owiStruct->value = (uint16_t) strtoul(setParameter [1], &ptr_setParameter[1], 16);
-                     ptr_owiStruct->ptr_value = &(ptr_owiStruct->value);
-#warning TODO: generalize this more, it is too specific
-                     ptr_owiStruct->init_flag = ( 0 != (uint16_t) strtoul(setParameter [2], &ptr_setParameter[2], 16));
+              	 if ( isNumericArgument(setParameter[1], MAX_LENGTH_PARAMETER))
+              	 {
+              		 getUnsignedNumericValueFromParameterIndex( 1 , &value );
+              		 ptr_owiStruct->value = (uint16_t) (0xFFFF & value);
+              		 ptr_owiStruct->ptr_value = &(ptr_owiStruct->value);
+              		 getUnsignedNumericValueFromParameterIndex( 2 , &value );
+              		 ptr_owiStruct->init_flag = ( 0 != value );
 
-                      printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("second argument sets init_flag to: %i "), ptr_owiStruct->init_flag );
-                  }
+                     printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__),
+                    		 	 PSTR("second argument sets init_flag to: %i "), ptr_owiStruct->init_flag );
+              	 }
                }
             }
          }
