@@ -91,9 +91,10 @@ uint8_t createReceiveHeader( struct uartStruct *ptr_uartStruct, char message_str
 
 void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct, int8_t keyNumber, int8_t index,  PGM_P commandKeyword[]);
 
-uint16_t getNumericLength(const char string[], const uint16_t maxLenght);
+uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLenght);
 
-int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value);
+int8_t getUnsignedNumericValueFromParameterIndex(uint8_t parameterIndex, uint64_t *ptr_value);
+int8_t getUnsignedNumericValueFromParameterString(const char string[], uint64_t *ptr_value);
 
 void reset(struct uartStruct *ptr_uartStruct);
 void init(struct uartStruct *ptr_uartStruct);

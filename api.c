@@ -495,7 +495,7 @@ const char* commandSyntaxes[] PROGMEM = {
 		commandSyntax31, commandSyntax32, commandSyntax33, commandSyntax34, commandSyntax35, commandSyntax36,
 		commandSyntax37, commandSyntax38, commandSyntax39, commandSyntax40, commandSyntax41, commandSyntax42,
 		commandSyntax43, commandSyntax44, commandSyntax45, commandSyntax46, commandSyntax47, commandSyntax48,
-		commandSyntax49, commandSyntax50, commandSyntax51, commandSyntax52, commandSyntax53, commandKeyword54
+		commandSyntax49, commandSyntax50, commandSyntax51, commandSyntax52, commandSyntax53, commandSyntax54
  };
 
 /* this is the corresponding command key array, beware of the same order*/
@@ -2162,20 +2162,17 @@ void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartS
 }
 
 /*
- * getNumericLength(const char *string, const uint16_t maxLenght)
+ * getNumberOfHexDigits(const char *string, const uint16_t maxLenght)
  *
  * return number of leading characters of string
  * being an digit (0x/0X of hex numbers are ignored) up to the maximum maxLength-1
  */
 
-uint16_t getNumericLength(const char string[], const uint16_t maxLength)
+uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLength)
 {
     /* check if argument contains of digits */
     uint16_t index = 0;
-    if (
-             0 == strncmp_P( string, PSTR("0x"),2) ||
-             0 == strncmp_P( string, PSTR("0X"),2)
-        )
+    if ( 0 == strncasecmp_P( string, PSTR("0x"),2) )
     {
        index = 2;
     }
@@ -2198,7 +2195,8 @@ uint16_t getNumericLength(const char string[], const uint16_t maxLength)
     return index;
 }
 
-int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value)
+#warning TODO: refactor getNumericValueFromParameter to getUnsignedNumericValueFromParameter
+int8_t getUnsignedNumericValueFromParameterIndex(uint8_t parameterIndex, uint64_t *ptr_value)
 {
 	if ( MAX_PARAMETER < parameterIndex || NULL == ptr_value)
 	{
@@ -2206,22 +2204,65 @@ int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value)
 		return -1;
 	}
 
-    /* T,F,t,f : T(RUE)/F(ALSE) */
-    if ( 0 == strcmp_P(setParameter[parameterIndex], PSTR("TRUE")) || 0 == strcmp_P(setParameter[parameterIndex], PSTR("true")) )
+	if ( -1 == getUnsignedNumericValueFromParameterString(setParameter[parameterIndex], ptr_value) )
+	{
+		CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("command argument position %i (\"%s\") not a numeric value"), parameterIndex, setParameter[parameterIndex]);
+		return -1;
+	}
+
+	return 0;
+}
+
+int8_t getUnsignedNumericValueFromParameterString(const char string[], uint64_t *ptr_value)
+{
+	if ( NULL == string || NULL == ptr_value)
+	{
+		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("getNumericValueFromString: wrong input parameters"));
+		return -1;
+	}
+
+    /* T,F,t,f,H,L : T(RUE)/F(ALSE) */
+    if (
+    		( 0 == strcasecmp_P(string, PSTR("T")   )) ||
+    		( 0 == strcasecmp_P(string, PSTR("TRUE"))) ||
+    		( 0 == strcasecmp_P(string, PSTR("H")   )) ||
+    		( 0 == strcasecmp_P(string, PSTR("HIGH")))
+    )
     {
     	*ptr_value = TRUE;
     }
-    else if ( 0 == strcmp_P(setParameter[parameterIndex], PSTR("FALSE")) || 0 == strcmp_P(setParameter[parameterIndex], PSTR("false")) )
+    else if (
+    		( 0 == strcasecmp_P(string, PSTR("F")   )) ||
+    		( 0 == strcasecmp_P(string, PSTR("FALSE"))) ||
+    		( 0 == strcasecmp_P(string, PSTR("L")   )) ||
+    		( 0 == strcasecmp_P(string, PSTR("LOW")))
+    )
     {
     	*ptr_value = FALSE;
     }
-    else if ( 0 < getNumericLength(setParameter[parameterIndex], MAX_LENGTH_PARAMETER) )
+    else if ( 0 < getNumberOfHexDigits(string, MAX_LENGTH_PARAMETER) )
 	{
-		*ptr_value = strtoul(setParameter[parameterIndex], &ptr_setParameter[parameterIndex], 16);
+    	/* unsigned long */
+    	if ( 8 < getNumberOfHexDigits(string, MAX_LENGTH_PARAMETER) )
+    	{
+    		*ptr_value = strtoul(string, NULL, 16);
+    	}
+    	else
+    	{
+    		/* unsigned long long */
+    		/* lower 8 digits, i.e. 32 bits */
+    		*ptr_value = strtoul(&string[strlen(string) - 8], NULL, 16);
+
+    		/* remaining higher digits*/
+
+    		char string2[19] = "";
+    		strncpy(string2, string, strlen(string) - 8 );
+    		*ptr_value += (((uint64_t)strtoul(string2, NULL, 16)) << 32);
+    	}
 	}
 	else
 	{
-		CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("command argument not a numeric value"));
+		CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("command argument position (\"%s\") not a numeric value"), string);
 		return -1;
 	}
 	return 0;

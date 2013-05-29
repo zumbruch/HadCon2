@@ -100,7 +100,7 @@ int8_t apiDebug(struct uartStruct *ptr_uartStruct)
 	    	break;
 	    default:
 
-	    	if (0 == getNumericLength(&setParameter[1][0], MAX_LENGTH_PARAMETER))
+	    	if (0 == getNumberOfHexDigits(&setParameter[1][0], MAX_LENGTH_PARAMETER))
 	    	{
 	    		hasSubCommand = TRUE;
 	    	}
@@ -226,7 +226,7 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 	case 1:
 	{
         /* set values*/
-		status = getNumericValueFromParameter(2, &value);
+		status = getUnsignedNumericValueFromParameterIndex(2, &value);
 		if ( 0 != status ) { return -1 ; }
         switch ( subCommandIndex )
         {
@@ -254,7 +254,7 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
     break;
     case 2:
     {
-		status = getNumericValueFromParameter(3, &value);
+		status = getUnsignedNumericValueFromParameterIndex(3, &value);
 		if ( 0 != status ) { return -1 ; }
         switch ( subCommandIndex )
         {
@@ -311,7 +311,7 @@ void apiDebugReadModifyDebugLevelAndMask(struct uartStruct *ptr_uartStruct)
 		apiDebugReadModifyDebugLevel(ptr_uartStruct);
 		break;
 	case 2: /*write debug and mask*/
-        status = getNumericValueFromParameter(2, &value);
+        status = getUnsignedNumericValueFromParameterIndex(2, &value);
         if ( 0 != status ) { return; }
 		apiDebugReadModifyDebugLevel(ptr_uartStruct);
         status = apiDebugSetDebugMask(value);
@@ -356,7 +356,7 @@ void apiDebugReadModifyDebugLevel(struct uartStruct *ptr_uartStruct)
 			UART0_Send_Message_String_p(NULL,0);
 			break;
 		case 1: /*write debug*/
-			status = getNumericValueFromParameter(1, &value);
+			status = getUnsignedNumericValueFromParameterIndex(1, &value);
 			if ( 0 != status ) { return; }
             status = apiDebugSetDebugLevel(value);
 			if ( 0 != status ) { return; }
@@ -399,7 +399,7 @@ void apiDebugReadModifyDebugMask(struct uartStruct *ptr_uartStruct)
 			UART0_Send_Message_String_p(NULL,0);
 			break;
 		case 1: /*write debug*/
-			status = getNumericValueFromParameter(1, &value);
+			status = getUnsignedNumericValueFromParameterIndex(1, &value);
 			if ( 0 != status ) { return; }
             status = apiDebugSetDebugMask(value);
 			if ( 0 != status ) { return; }

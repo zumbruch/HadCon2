@@ -351,7 +351,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
          case 1:
 
          /* set status*/
-    	 getNumericValueFromParameter(2, &value);
+    	 getUnsignedNumericValueFromParameterIndex(2, &value);
          switch ( subCommandIndex )
          {
             case relayThresholdCommandKeyNumber_THR_HIGH:
@@ -446,8 +446,8 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
          case 2:
             /* set status*/
 
-        	if (-1 == getNumericValueFromParameter(2, &value )) {return;}
-        	if (-1 == getNumericValueFromParameter(3, &value2)) {return;}
+        	if (-1 == getUnsignedNumericValueFromParameterIndex(2, &value )) {return;}
+        	if (-1 == getUnsignedNumericValueFromParameterIndex(3, &value2)) {return;}
 
             switch ( subCommandIndex )
             {

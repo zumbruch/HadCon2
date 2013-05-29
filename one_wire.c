@@ -741,7 +741,7 @@ uint16_t isParameterIDThenFillOwiStructure(uint8_t parameterIndex)
    }
    ptr_owiStruct->idSelect_flag = FALSE;
 
-   numericLength = getNumericLength(setParameter[parameterIndex], MAX_LENGTH_PARAMETER);
+   numericLength = getNumberOfHexDigits(setParameter[parameterIndex], MAX_LENGTH_PARAMETER);
     printDebug_p(debugLevelEventDebug, debugSystemOWI, __LINE__, PSTR(__FILE__), PSTR("numeric length of argument '%s' is %i"), setParameter[parameterIndex], numericLength);
 
    if ( 16 == numericLength)
@@ -864,7 +864,7 @@ uint8_t owiConvertUartDataToOwiStruct(void)
          /* value / command */
          if (FALSE == ptr_owiStruct->idSelect_flag)
          {
-             if ( strlen ( setParameter[1]) == getNumericLength(setParameter[1], MAX_LENGTH_PARAMETER))
+             if ( strlen ( setParameter[1]) == getNumberOfHexDigits(setParameter[1], MAX_LENGTH_PARAMETER))
              {
                 ptr_owiStruct->value = (uint16_t) strtoul(setParameter[1], &ptr_setParameter[1], 16);
                 ptr_owiStruct->ptr_value = &(ptr_owiStruct->value);
@@ -893,7 +893,7 @@ uint8_t owiConvertUartDataToOwiStruct(void)
          if (TRUE == ptr_owiStruct->idSelect_flag)
          {
             /* numeric value*/
-            if ( strlen ( setParameter[2]) == getNumericLength(setParameter[2], MAX_LENGTH_PARAMETER))
+            if ( strlen ( setParameter[2]) == getNumberOfHexDigits(setParameter[2], MAX_LENGTH_PARAMETER))
             {
                /* second argument can either be numeric value (write mode) or numeric convert_flag (read_mode), indistinguishable)
                 * assigning to value*/
@@ -908,7 +908,7 @@ uint8_t owiConvertUartDataToOwiStruct(void)
          else /* value flag | command value/argument/ID*/
          {
             /* numeric value */
-            if ( strlen ( setParameter[1]) == getNumericLength(setParameter[1], MAX_LENGTH_PARAMETER))
+            if ( strlen ( setParameter[1]) == getNumberOfHexDigits(setParameter[1], MAX_LENGTH_PARAMETER))
             {
                ptr_owiStruct->value = (uint16_t) strtoul(setParameter [1], &ptr_setParameter[1], 16);
                ptr_owiStruct->ptr_value = &(ptr_owiStruct->value);
@@ -929,7 +929,7 @@ uint8_t owiConvertUartDataToOwiStruct(void)
                if ( 0 == isParameterIDThenFillOwiStructure(2) )
                {
                   /* numeric value/flag? */
-                  if ( strlen ( setParameter[1]) == getNumericLength(setParameter[1], MAX_LENGTH_PARAMETER))
+                  if ( strlen ( setParameter[1]) == getNumberOfHexDigits(setParameter[1], MAX_LENGTH_PARAMETER))
                   {
                      ptr_owiStruct->value = (uint16_t) strtoul(setParameter [1], &ptr_setParameter[1], 16);
                      ptr_owiStruct->ptr_value = &(ptr_owiStruct->value);

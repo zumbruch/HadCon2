@@ -106,6 +106,8 @@ SRC += twi_mpx_functions.c
 SRC += twi_ow_functions.c
 SRC += help_twis.c
 SRC += waveform_generator_registers.c
+#SRC += spi.c
+SRC += spiApi.c
 
 
 # List C++ source files here. (C dependencies are automatically generated.)
