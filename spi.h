@@ -8,10 +8,27 @@
 #ifndef SPI_H_
 #define SPI_H_
 
-void spiWrite();
-void spiRead();
-void spiInit();
-void spiEnable();
+
+typedef struct spiByteArrayStruct
+{
+	uint8_t data[ MAX_LENGTH_COMMAND >> 1 ];
+	size_t length;
+} spiByteDataArray;
+
+extern spiByteDataArray spiWriteData;
+
+typedef struct spiConfigStruct
+{
+
+
+} spiConfig;
+
+extern spiConfig spiConfiguration;
+
+void spiWrite(void);
+void spiRead(void);
+void spiInit(void);
+void spiEnable(void);
 
 
 #endif /* SPI_H_ */
