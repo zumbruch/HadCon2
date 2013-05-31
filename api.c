@@ -2171,24 +2171,27 @@ void toggle_pin( unsigned char pin_number )
  * input: uart container
  *  - key index number of primary command, or -1 for current
  *  - command Keyword of sub command
+ *  output: uart_message_string
  */
 
+#warning TODO: make uart_message_string optional buffer to write to
+
 void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct,
-                                                   int8_t keyNumber, int8_t index, PGM_P commandKeywords[])
+                                                   int8_t commandKeywordIndex, int8_t subCommandKeywordIndex, PGM_P commandKeywords[])
 {
-   /* make sure keyNumber is shown */
+   /* make sure commandKeywordIndex is shown */
    int8_t keywordIndex = ptr_uartStruct->commandKeywordIndex;
 
-   if (0 <= keyNumber) {ptr_uartStruct->commandKeywordIndex = keyNumber;}
+   if (0 <= commandKeywordIndex) {ptr_uartStruct->commandKeywordIndex = commandKeywordIndex;}
 
    createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
 
-   /* reset index to original value */
+   /* reset commandKeywordIndex to original value */
    ptr_uartStruct->commandKeywordIndex = keywordIndex;
 
-   if (-1 < index && NULL != commandKeywords)
+   if (-1 < subCommandKeywordIndex && NULL != commandKeywords)
    {
-	   strncat_P(uart_message_string, (const char*) ( pgm_read_word( &(commandKeywords[index])) ), BUFFER_SIZE - 1);
+	   strncat_P(uart_message_string, (const char*) ( pgm_read_word( &(commandKeywords[subCommandKeywordIndex])) ), BUFFER_SIZE - 1);
 	   strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1);
    }
 }
