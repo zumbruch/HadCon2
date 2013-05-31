@@ -8,5 +8,5 @@ obj_hadcon_*/
 .dep/
 *.hex
 
-/HADCON_VERSION=* TARGET=api_hadcon* make -f Makefile_HadconX program
 /echo
+/HADCON_VERSION=* TARGET=api_hadcon* make -f Makefile_HadconX program
