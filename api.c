@@ -4,6 +4,7 @@
  * modified (heavily rather rebuild): Peter Zumbruch
  * modified: Florian Feldbauer
  * modified: Peter Zumbruch, Oct 2011
+ * modified: Peter Zumbruch, May 2013
  */
 
 #include <stdint.h>
