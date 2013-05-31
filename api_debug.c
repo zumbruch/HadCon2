@@ -78,6 +78,7 @@ static const char debugSystemName19[] PROGMEM = "TIMER1";
 static const char debugSystemName20[] PROGMEM = "TIMER0A";
 static const char debugSystemName21[] PROGMEM = "TIMER0AScheduler";
 static const char debugSystemName22[] PROGMEM = "TWI";
+static const char debugSystemName23[] PROGMEM = "SPI";
 
 const char *debugSystemNames[] PROGMEM =
 {
@@ -85,7 +86,7 @@ const char *debugSystemNames[] PROGMEM =
 		debugSystemName06, debugSystemName07, debugSystemName08, debugSystemName09, debugSystemName10,
 		debugSystemName11, debugSystemName12, debugSystemName13, debugSystemName14, debugSystemName15,
 		debugSystemName16, debugSystemName17, debugSystemName18, debugSystemName19, debugSystemName20,
-		debugSystemName21, debugSystemName22
+		debugSystemName21, debugSystemName22, debugSystemName23
 };
 
 int8_t apiDebug(struct uartStruct *ptr_uartStruct)
