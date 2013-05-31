@@ -24,25 +24,27 @@ static const char spiCommandKeyword03[] PROGMEM = "transmit"; 			 /* transmit wr
 static const char spiCommandKeyword04[] PROGMEM = "read"; 				 /* read read Buffer*/
 static const char spiCommandKeyword05[] PROGMEM = "cs"; 				 /* set chip select: cs <0|1|H(IGH)|L(OW)|T(RUE)|F(ALSE)>, CS is low active */
 static const char spiCommandKeyword06[] PROGMEM = "cs_bar"; 			 /* same as cs but inverse logic*/
-static const char spiCommandKeyword07[] PROGMEM = "cs_select"; 			 /* chip select output pin byte mask */
-static const char spiCommandKeyword08[] PROGMEM = "cs_auto_enable"; 	 /* cs_auto_enable [<a(ll)|w(rite)|t(ransmit)> <0|1 ..>: enable/disable automatic setting for write and transmit actions*/
-static const char spiCommandKeyword09[] PROGMEM = "cs_pins"; 			 /* set hardware addresses of multiple CS outputs*/
-static const char spiCommandKeyword10[] PROGMEM = "control_bits"; 		 /* get/set SPI control bits*/
-static const char spiCommandKeyword11[] PROGMEM = "spi_enable"; 		 /* get/set enable SPI*/
-static const char spiCommandKeyword12[] PROGMEM = "data_order"; 		 /* get/set bit endianess*/
-static const char spiCommandKeyword13[] PROGMEM = "master"; 			 /* get/set master mode*/
-static const char spiCommandKeyword14[] PROGMEM = "clock_polarity"; 	 /* get/set clock polarity*/
-static const char spiCommandKeyword15[] PROGMEM = "clock_phase"; 		 /* get/set clock phase*/
-static const char spiCommandKeyword16[] PROGMEM = "speed"; 				 /* get/set speed */
-static const char spiCommandKeyword17[] PROGMEM = "speed_divisor"; 		 /* get/set speed divider*/
-static const char spiCommandKeyword18[] PROGMEM = "double_speed"; 		 /* get/set double speed*/
-static const char spiCommandKeyword19[] PROGMEM = "show_write_buffer"; 	 /* show content of write buffer, detailed when increasing DEBG level */
-static const char spiCommandKeyword20[] PROGMEM = "show_read_buffer"; 	 /* show content of read buffer, detailed when increasing DEBG level */
-static const char spiCommandKeyword21[] PROGMEM = "purge"; 				 /* purge write/read buffers*/
-static const char spiCommandKeyword22[] PROGMEM = "purge_write_buffer";  /* purge write buffer*/
-static const char spiCommandKeyword23[] PROGMEM = "purge_read_buffer";   /* purge read buffer*/
-static const char spiCommandKeyword24[] PROGMEM = "transmit_byte_order"; /* MSB/LSB, big endian */
-static const char spiCommandKeyword25[] PROGMEM = "complete_byte"; 		 /* completing byte by zero at the end or the beginning, due to odd hex digit*/
+static const char spiCommandKeyword07[] PROGMEM = "cs_set"; 		     /* releases cs, optionally only for <cs mask>*/
+static const char spiCommandKeyword08[] PROGMEM = "cs_release"; 		 /* completing byte by zero at the end or the beginning, due to odd hex digit*/
+static const char spiCommandKeyword09[] PROGMEM = "cs_select_mask";		 /* chip select output pin byte mask */
+static const char spiCommandKeyword10[] PROGMEM = "cs_pins"; 			 /* set hardware addresses of multiple CS outputs*/
+static const char spiCommandKeyword11[] PROGMEM = "cs_auto_enable"; 	 /* cs_auto_enable [<a(ll)|w(rite)|t(ransmit)> <0|1 ..>: enable/disable automatic setting for write and transmit actions*/
+static const char spiCommandKeyword12[] PROGMEM = "purge"; 				 /* purge write/read buffers*/
+static const char spiCommandKeyword13[] PROGMEM = "purge_write_buffer";  /* purge write buffer*/
+static const char spiCommandKeyword14[] PROGMEM = "purge_read_buffer";   /* purge read buffer*/
+static const char spiCommandKeyword15[] PROGMEM = "show_write_buffer"; 	 /* show content of write buffer, detailed when increasing DEBG level */
+static const char spiCommandKeyword16[] PROGMEM = "show_read_buffer"; 	 /* show content of read buffer, detailed when increasing DEBG level */
+static const char spiCommandKeyword17[] PROGMEM = "control_bits"; 		 /* get/set SPI control bits*/
+static const char spiCommandKeyword18[] PROGMEM = "spi_enable"; 		 /* get/set enable SPI*/
+static const char spiCommandKeyword19[] PROGMEM = "data_order"; 		 /* get/set bit endianess*/
+static const char spiCommandKeyword20[] PROGMEM = "master"; 			 /* get/set master mode*/
+static const char spiCommandKeyword21[] PROGMEM = "clock_polarity"; 	 /* get/set clock polarity*/
+static const char spiCommandKeyword22[] PROGMEM = "clock_phase"; 		 /* get/set clock phase*/
+static const char spiCommandKeyword23[] PROGMEM = "speed"; 				 /* get/set speed */
+static const char spiCommandKeyword24[] PROGMEM = "speed_divider"; 		 /* get/set speed divider*/
+static const char spiCommandKeyword25[] PROGMEM = "double_speed"; 		 /* get/set double speed*/
+static const char spiCommandKeyword26[] PROGMEM = "transmit_byte_order"; /* MSB/LSB, big endian */
+static const char spiCommandKeyword27[] PROGMEM = "complete_byte"; 		 /* completing byte by zero at the end or the beginning, due to odd hex digit*/
 
 const char* spiCommandKeywords[] PROGMEM = {
         spiCommandKeyword00, spiCommandKeyword01, spiCommandKeyword02, spiCommandKeyword03, spiCommandKeyword04,
@@ -50,7 +52,7 @@ const char* spiCommandKeywords[] PROGMEM = {
 		spiCommandKeyword10, spiCommandKeyword11, spiCommandKeyword12, spiCommandKeyword13, spiCommandKeyword14,
 		spiCommandKeyword15, spiCommandKeyword16, spiCommandKeyword17, spiCommandKeyword18, spiCommandKeyword19,
 		spiCommandKeyword20, spiCommandKeyword21, spiCommandKeyword22, spiCommandKeyword23, spiCommandKeyword24,
-		spiCommandKeyword25 };
+		spiCommandKeyword25, spiCommandKeyword26, spiCommandKeyword27  };
 
 
 void spiApi(struct uartStruct *ptr_uartStruct)
