@@ -18,4 +18,13 @@ enum helpMode
 	helpMode_MAXIMUM_NUMBER
 };
 
+extern const char* helpCommandKeywords[] PROGMEM;
+enum helpCommandKeyNumber
+{
+      helpCommandKeyNumber_IMPLEMENTED = 0,
+      helpCommandKeyNumber_ALL,
+      helpCommandKeyNumber_TODO,
+      helpCommandKeyNumber_MAXIMUM_NUMBER
+};
+
 #endif /* API_HELP_H_ */
