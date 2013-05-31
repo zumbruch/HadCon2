@@ -165,29 +165,14 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 
 	if ( 0 > subCommandIndex )
 	{
-		subCommandIndex = 0;
-		// find matching command keyword
-		while ( subCommandIndex < commandDebugKeyNumber_MAXIMUM_NUMBER )
-		{
-			if ( 0 == strncmp_P(setParameter[1], (const char*) ( pgm_read_word( &(commandDebugKeywords[subCommandIndex])) ), MAX_LENGTH_PARAMETER) )
-			{
- 				printDebug_p(debugLevelEventDebug, debugSystemDEBUG, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches"), &setParameter[1][0]);
-				break;
-			}
-			else
-			{
- 				printDebug_p(debugLevelEventDebug, debugSystemDEBUG, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), &setParameter[1][0]);
-			}
-			subCommandIndex++;
-		}
+        subCommandIndex = apiFindCommandKeywordIndex(setParameter[1], commandDebugKeywords, commandDebugKeyNumber_MAXIMUM_NUMBER);
 	}
 
 	/* TODO: relayThresholdMiscSubCommandsChooseFunction(ptr_uartStruct, index)*/
 	switch ( ptr_uartStruct->number_of_arguments - 1 /* arguments of argument */)
 	{
-
 		case 0:
-	{
+		{
 		/* printout status*/
 
 		/* generate message */

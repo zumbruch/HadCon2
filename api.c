@@ -746,7 +746,7 @@ void Process_Uart_Event(void)
 		ptr_uartStruct->number_of_arguments = number_of_elements -1;
 
 		/* Find matching command keyword */
-		ptr_uartStruct->commandKeywordIndex = Parse_Keyword(setParameter[0]);
+		ptr_uartStruct->commandKeywordIndex = apiFindCommandKeywordIndex(setParameter[0], commandKeywords, commandKeyNumber_MAXIMUM_NUMBER);
 
  		printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keywordIndex of %s is %i"), setParameter[0], ptr_uartStruct->commandKeywordIndex);
 
@@ -1099,39 +1099,70 @@ void apiConvertUartDataToCanUartStruct( uint8_t offset )
 
 } // END of function Convert_UartFormat_to_CanFormat
 
-/* this function parses for all valid command matching keyword
+/*
+ * int8_t apiFindCommandKeywordIndex(const char string[], PGM_P keywords[], size_t keywordMaximumIndex )
+ *
+ * this function parses for all valid command matching keyword
+ * of the keyword array keywords
  * on the first MAX_LENGTH_PARAMETER characters of the string
  *
  * it has an char pointer as input
  * it returns
- *     the commandKeyNumber of the corresponding command key word
+ *     the commandKeyIndex of the corresponding command key word
  *     -1 if not found
  *     -99 on error
  */
 
-int Parse_Keyword(char string[])
+int8_t apiFindCommandKeywordIndex(const char string[], PGM_P keywords[], size_t keywordMaximumIndex )
 {
-	static int8_t keywordNumber;
+	if (NULL == string )          {return -99;} /* NULL pointer */
+	if (NULL == keywords )        {return -99;} /* NULL pointer */
+	if (STRING_END == string[0] ) {return -99;} /* empty string */
 
-	if (NULL == string   ) {return -99;}
-	if (STRING_END  == string[0]) {return -99;}
+ 	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("find index of command keyword: %s"), string);
 
- 	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("Parse_Keyword %s"), string);
-	for ( keywordNumber = 0; keywordNumber < commandKeyNumber_MAXIMUM_NUMBER ; keywordNumber++ )
+	// find matching command keyword
+
+ 	size_t keywordIndex = 0;
+	while ( keywordIndex < keywordMaximumIndex )
 	{
-		if ( 0 == strncmp_P(&string[0], (const char*) (pgm_read_word( &(commandKeywords[keywordNumber]))), MAX_LENGTH_PARAMETER) )
+		if ( 0 == strncmp_P(string, (const char*) ( pgm_read_word( &(keywords[keywordIndex])) ), MAX_LENGTH_PARAMETER) )
 		{
  			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches "), string);
-			return keywordNumber;
+			return keywordIndex;
 		}
         else
-          {
+        {
          	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), string);
-          }
-
+			keywordIndex++;
+        }
 	}
+
+
 	return -1;
+
+	//	static int8_t keywordNumber;
+	//
+	//	if (NULL == string ) {return -99;} /* NULL pointer */
+	//	if (STRING_END == string[0]) {return -99;} /* empty string */
+	//
+	// 	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("Parse_Keyword %s"), string);
+	//	for ( keywordNumber = 0; keywordNumber < commandKeyNumber_MAXIMUM_NUMBER ; keywordNumber++ )
+	//	{
+	//		if ( 0 == strncmp_P(&string[0], (const char*) (pgm_read_word( &(commandKeywords[keywordNumber]))), MAX_LENGTH_PARAMETER) )
+	//		{
+	// 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches "), string);
+	//			return keywordNumber;
+	//		}
+	//        else
+	//          {
+	//         	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), string);
+	//          }
+	//
+	//	}
+	//	return -1;
 }
+
 
 /* this function checks whether all the received parameters are valid
  * the function has a pointer of the serial structure as input and

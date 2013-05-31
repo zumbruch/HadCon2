@@ -516,21 +516,9 @@ void owiTemperatureMiscSubCommandConvertOnly(struct uartStruct *ptr_uartStruct)
 
 void owiTemperatureMiscSubCommands( struct uartStruct *ptr_uartStruct )
 {
-   uint16_t index = 0;
+   uint8_t index = 0;
    // find matching temperature command keyword
-   while (index < owiTemperatureCommandKeyNumber_MAXIMUM_NUMBER)
-   {
-      if ( 0 == strncmp_P(ptr_owiStruct->command, (const char*) (pgm_read_word( &(owiTemperatureCommandKeywords[index]))), MAX_LENGTH_PARAMETER) )
-      {
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("misc temp commands keyword %s matches"), ptr_owiStruct->command);
-         break;
-      }
-      else
-      {
-          printDebug_p(debugLevelEventDebugVerbose, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("misc temp commands keyword %s doesn't match"), &setParameter[1][0]);
-      }
-      index++;
-   }
+   index = apiFindCommandKeywordIndex(setParameter[1], owiTemperatureCommandKeywords, owiTemperatureCommandKeyNumber_MAXIMUM_NUMBER);
 
    switch (index)
    {

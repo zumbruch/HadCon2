@@ -75,8 +75,8 @@ void help(struct uartStruct *ptr_uartStruct)
         }
         break;
     case 1:
-        index = Parse_Keyword(&setParameter[1][0]);
-        if ( -1 < index && index < commandKeyNumber_MAXIMUM_NUMBER)
+        index = apiFindCommandKeywordIndex(setParameter[1], commandKeywords, commandKeyNumber_MAXIMUM_NUMBER);
+        if ( isKeywordIndex(index, commandKeyNumber_MAXIMUM_NUMBER) )
         {
             /* get current Command keyword */
             clearString(currentCommandKeyword,MAX_LENGTH_KEYWORD);

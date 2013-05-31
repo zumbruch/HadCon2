@@ -67,7 +67,12 @@ extern int16_t (*UART0_Send_Message_String_p)( char *, uint16_t );
 
 int8_t UART0_Send_Message_String_woLF( char *tmp_str, uint32_t maxSize );/* help function for the output of register contents in CPU */
 
-int Parse_Keyword( char string[] ); /* find matching command keyword and return its index*/
+int8_t apiFindCommandKeywordIndex(const char string[], PGM_P commandKeywords[], size_t commandMaximumIndex ); /* find matching command keyword and return its index*/
+
+static inline bool isKeywordIndex( int index, int maximumIndex )
+{
+	 return ( -1 < index && index < maximumIndex);
+}
 
 void Reset_SetParameter( void ); /* resets/clears all values of setParameter */
 

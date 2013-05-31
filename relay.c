@@ -149,16 +149,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
 
    if ( 0 > subCommandIndex )
    {
-      subCommandIndex = 0;
-      // find matching command keyword
-      while ( subCommandIndex < relayThresholdCommandKeyNumber_MAXIMUM_NUMBER )
-      {
-         if ( 0 == strncmp_P(setParameter[1], (const char*) ( pgm_read_word( &(relayThresholdCommandKeywords[subCommandIndex])) ), MAX_LENGTH_PARAMETER) )
-         {
-            break;
-         }
-         subCommandIndex++;
-      }
+      subCommandIndex = apiFindCommandKeywordIndex(setParameter[1], relayThresholdCommandKeywords, relayThresholdCommandKeyNumber_MAXIMUM_NUMBER);
    }
 
    /* TODO: relayThresholdMiscSubCommandsChooseFunction(ptr_uartStruct, index)*/
