@@ -2223,38 +2223,40 @@ void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartS
 
 uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLength)
 {
-    uint16_t index = 0;
+    uint16_t length = 0;
+    bool prefixSet = false;
 
     /* first check for strings, which stand for 0/1 */
     if ( isNumericalConstantZero( string ) || isNumericalConstantOne( string ) )
     {
-    	index = 1;
-    	printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length of \"%s\" is %i"), string, index);
+    	length = 1;
     }
     else
     {
     /* check if argument contains of digits */
     	if ( 0 == strncasecmp_P( string, PSTR("0x"),2) )
     	{
-    		index = 2;
+    		length = 2;
+    		prefixSet = true;
     	}
 
     	/* calculate length of argument and check if all of them are hex numbers */
-    	while (index < maxLength && isxdigit(string[index])) {index++;}
-    	printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length is %i"), index);
+    	while (length < maxLength && isxdigit(string[length])) {length++;}
 
     	/* check if numeric value is not separated from next word nor isn't followed by '\0', so it isn't a number, */
-    	if (index+1 < maxLength)
+    	if (length+1 < maxLength)
     	{
-    		if   ( ! ( isspace(string[index+1]) || ('\0' == string[index+1] ) ) )
+    		if   ( ! ( isspace(string[length+1]) || ('\0' == string[length+1] ) ) )
     		{
-    			printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length 0 - value is followed by non-space character ASCII: %i, '%c'"), string[index+1], string[index+1]);
-    			index = 0;
+    			printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length 0 - value is followed by non-space character ASCII: %i, '%c'"), string[length+1], string[length+1]);
+    			length = 0;
     		}
     	}
     }
 
-    return index;
+    if (prefixSet) {length -= 2;}
+    printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length of \"%s\" is %i"), string, length);
+   	return length;
 }
 
 /*
@@ -2379,35 +2381,38 @@ int8_t getUnsignedNumericValueFromParameterString(const char string[], uint64_t 
 		return -1;
 	}
 
-    /* T,F,t,f,H,L : T(RUE)/F(ALSE) */
-    if ( isNumericalConstantOne( string ) )
+    if ( isNumericArgument(string, MAX_LENGTH_PARAMETER))
     {
-    	*ptr_value = TRUE;
-    }
-    else if ( isNumericalConstantZero( string ) )
-    {
-    	*ptr_value = FALSE;
-    }
-    else if ( isNumericArgument(string, MAX_LENGTH_PARAMETER) )
-	{
-    	/* unsigned long */
-    	if ( 8 < getNumberOfHexDigits(string, MAX_LENGTH_PARAMETER) )
+    	/* T,F,t,f,H,L : T(RUE)/F(ALSE) */
+    	if ( isNumericalConstantOne( string ) )
     	{
-    		*ptr_value = strtoul(string, NULL, 16);
+    		*ptr_value = TRUE;
+    	}
+    	else if ( isNumericalConstantZero( string ) )
+    	{
+    		*ptr_value = FALSE;
     	}
     	else
     	{
-    		/* unsigned long long */
-    		/* lower 8 digits, i.e. 32 bits */
-    		*ptr_value = strtoul(&string[strlen(string) - 8], NULL, 16);
+    		/* unsigned long */
+    		if ( 8 >= getNumberOfHexDigits(string, MAX_LENGTH_PARAMETER) )
+    		{
+    			*ptr_value = strtoul(string, NULL, 16);
+    		}
+    		else
+    		{
+    			/* unsigned long long */
+    			/* lower 8 digits, i.e. 32 bits */
+    			*ptr_value = strtoul(&string[strlen(string) - 8], NULL, 16);
 
-    		/* remaining higher digits*/
+    			/* remaining higher digits*/
 
-    		char string2[19] = "";
-    		strncpy(string2, string, strlen(string) - 8 );
-    		*ptr_value += (((uint64_t)strtoul(string2, NULL, 16)) << 32);
+    			char string2[19] = "";
+    			strncpy(string2, string, strlen(string) - 8 );
+    			*ptr_value += (((uint64_t)strtoul(string2, NULL, 16)) << 32);
+    		}
     	}
-	}
+    }
 	else
 	{
 		CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("command argument position (\"%s\") not a numeric value"), string);
