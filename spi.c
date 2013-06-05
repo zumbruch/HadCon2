@@ -101,7 +101,12 @@ uint8_t spiAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNum
 
 }
 
+<<<<<<< HEAD
 uint8_t spiRemoveChipSelect(uint8_t chipSelectNumber)
+=======
+/* TODO: byte order ergänzen */
+void spi_write_without_cs(uint8_t *ptr_data, uint8_t data_length)
+>>>>>>> continued merge FB / PZ
 {
 	if ( CHIP_MAXIMUM <= chipSelectNumber )
 	{
@@ -153,24 +158,43 @@ void spiInit(void) {
 
 void spiWriteWithoutChipSelect(uint8_t data)
 {
+<<<<<<< HEAD
   SPDR = data;
   while( ! (SPSR & (1<<SPIF) ) );
 }
 
 
 void spiWriteAndReadWithoutChipSelect(uint8_t byteOrder)
+=======
+  spi_set_chosen_chipSelect(SPI_SET, chipSelect);
+  spi_write_without_cs(ptr_data, data_length);
+  spi_set_chosen_chipSelect(SPI_RELEASE, chipSelect);
+}
+
+
+void spi_write_and_read_with_cs(uint8_t *ptr_tx_data, uint8_t data_length, uint8_t *ptr_rx_data, uint8_t chipSelect)
+>>>>>>> continued merge FB / PZ
 {
   uint16_t i;
   if(SPI_MSBYTE_FIRST == byteOrder)
     {
+<<<<<<< HEAD
       i = 0;
       while( i < spiWriteData.length )
+=======
+      spi_set_chosen_chipSelect(SPI_SET, chipSelect);
+      for( i=0 ; i<data_length ; i++ )
+>>>>>>> continued merge FB / PZ
 	{
 	  spiWriteWithoutChipSelect(spiWriteData.data[i]);
 	  spiReadData.data[i] = spiReadByte();
 	  spiReadData.length++;
 	  i++;
 	}
+<<<<<<< HEAD
+=======
+      spi_set_chosen_chipSelect(SPI_RELEASE, chipSelect);
+>>>>>>> continued merge FB / PZ
     }
   else
     {
@@ -198,11 +222,16 @@ uint8_t spiReadByte(void)
   return SPDR;
 }
 
+<<<<<<< HEAD
 void spiReleaseAllChipSelectLines(void)
+=======
+void spi_set_chosen_chipSelect(uint8_t new_status, uint8_t chipSelect)
+>>>>>>> continued merge FB / PZ
 {
   uint8_t i;
   for( i = 0 ; i < 8 ; i++ )
     {
+<<<<<<< HEAD
       if( spiChipSelectArray[i].isUsed )
       	{
 	  *(spiChipSelectArray[i].ptrPort) |= ( 1 << (spiChipSelectArray[i].pinNumber) );
@@ -329,3 +358,34 @@ void spiEnable(bool enable)
   
 /*   spiPurgeReadData(); */
 /* } */
+=======
+    case CHIP1:
+      if( SPI_SET == new_status )
+	{
+	  PORTB &= ~(1<<PB0); // selecting chip by putting the chip select line low
+	}
+      else
+	{
+	  PORTB |= (1<<PB0);
+	}
+      break;
+    case CHIP2:
+      break;
+    case CHIP3:
+      break;
+    default:
+      break;
+    }
+}
+
+
+void spi_purge_write_data(void)
+{
+	spiWriteData.length = 0;
+}
+
+void spi_purge_read_data(void)
+{
+	spiReadData.length = 0;
+}
+>>>>>>> continued merge FB / PZ
