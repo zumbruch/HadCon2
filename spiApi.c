@@ -748,7 +748,7 @@ int8_t spiAddNumericStringToByteArray(const char string[])
 						/* 0x000000000000000	.. 0xFFFFFFFFFFFFFFFF*/
 						/* ... */
 #warning TODO add case add leading 0 at end for odd number of digits
-						spi_add_write_data( 0xFF & (value >> (8 * byteIndex)) );
+						spiAddWriteData( 0xFF & (value >> (8 * byteIndex)) );
 
 						//						data->data[data->length] = 0xFF & (value >> (8 * byteIndex));
 						//						data->length++;
@@ -797,7 +797,7 @@ int8_t spiAddNumericStringToByteArray(const char string[])
 						charIndex+=2;
 						printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__,
 								(const char*) ( filename ), PSTR("strtoul '%s'"), byte);
-						spi_add_write_data( strtoul(byte, NULL, 16) );
+						spiAddWriteData( strtoul(byte, NULL, 16) );
 						printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ),
 								PSTR("data[%i]=%x"), spiWriteData.length - 1, spiWriteData.data[spiWriteData.length -1]);
 						//spiAddNumericStringToByteArray(&byte[0], data);
