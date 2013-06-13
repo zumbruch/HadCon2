@@ -8,6 +8,7 @@
 #ifndef SPIAPI_H_
 #define SPIAPI_H_
 
+#include <stdbool.h>
 #include "api.h"
 #include "api_define.h"
 #include "api_global.h"
@@ -64,18 +65,35 @@ enum spiApiCommandKeyNumber
 	spiApiCommandKeyNumber_TRANSMIT_BYTE_ORDER,
 	spiApiCommandKeyNumber_COMPLETE_BYTE,
 	spiApiCommandKeyNumber_RESET,
+	spiApiCommandKeyNumber_TRANSMIT_REPORT,
 	spiApiCommandKeyNumber_MAXIMUM_NUMBER
 
 };
 
 enum spiApiCommandResults
 {
-	spiApiCommandResult_SUCCESS_WITH_OUTPUT 		= 0,
-	spiApiCommandResult_SUCCESS_WITHOUT_OUTPUT 	= 1,
-	spiApiCommandResult_FAILURE 					= 100,
-	spiApiCommandResult_FAILURE_NOT_A_SUB_COMMAND 	= 110,
-	spiApiCommandResult_FAILURE_QUIET 				= 120
+	spiApiCommandResult_SUCCESS_WITH_OUTPUT 			= 0,
+	spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT,
+	spiApiCommandResult_SUCCESS_WITH_OUTPUT_ELSEWHERE,
+	spiApiCommandResult_FAILURE 						= 100,
+	spiApiCommandResult_FAILURE_NOT_A_SUB_COMMAND,
+	spiApiCommandResult_FAILURE_QUIET,
+	spiApiCommandResult_MAXIMUM_INDEX
 };
+
+typedef struct spiApiConfig
+{
+	uint8_t transmitByteOrder; /* MSB first 0 / LSB !0 */
+	uint8_t byteCompletion;    /* MSB (0xf == 0x0f) / LSB (0xf == 0xf0) */
+	bool reportTransmit;    /* show write buffer content on transmit*/
+	bool csWriteAutoEnable; /* enable Automatic CS setting on write*/
+	uint8_t csExternalSelectMask;      /* selection of pins to set when sending, subset of available cs channels */
+	spiConfigUnion spiConfiguraton; /* hardware configuration */
+	bool hardwareInit;
+} spiApiConfig;
+
+extern spiApiConfig spiApiConfiguration;
+extern spiApiConfig* ptr_spiApiConfiguration;
 
 void spiApi(struct uartStruct *ptr_uartStruct);
 void spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandIndex, uint8_t parameterIndex);
@@ -101,7 +119,7 @@ uint8_t spiApiSubCommandRead(void);
 
 uint8_t spiApiSubCommandWrite(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex);
 uint8_t spiApiSubCommandAdd(struct uartStruct *ptr_uartStruct);
-uint8_t spiApiSubCommandCs(struct uartStruct *ptr_uartStruct);
+uint8_t spiApiSubCommandCsStatus(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsBar(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsSelectMask(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsPins(struct uartStruct *ptr_uartStruct);
@@ -119,7 +137,9 @@ uint8_t spiApiSubCommandSpeedDivider(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandDoubleSpeed(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandTransmitByteOrder(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCompleteByte(struct uartStruct *ptr_uartStruct);
+uint8_t spiApiSubCommandTransmitReport(struct uartStruct *ptr_uartStruct);
 
+void spiApiGetChipSelectStatus(uint8_t mask);
 
 #define max(a,b) \
   ({ __typeof__ (a) _a = (a); \
