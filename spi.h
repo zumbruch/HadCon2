@@ -136,9 +136,9 @@ void spiEnable(bool enable);
 
 // adds a chipselect line on the passed port and pin number e.g. (&PORTB, PB0, CHIPSELECT0)
 // by default PORTB PB0 is active as CHIPSELECT0 by default when spi is initialized and enabled
-void spiAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNumber, uint8_t chipSelectNumber);
+uint8_t spiAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNumber, uint8_t chipSelectNumber);
 // removes the chipselect line and sets corresponding pin as input pin
-void spiRemoveChipSelect(uint8_t chipSelectNumber);
+uint8_t spiRemoveChipSelect(uint8_t chipSelectNumber);
 // returns one byte showing used status of the chipselect array. if bit0 is set so chipselect0 in the array is in use
 uint8_t getChipSelectArrayStatus(void);
 
