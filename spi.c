@@ -11,6 +11,8 @@
 #include "spi.h"
 #include <avr/io.h>
 #include <stdbool.h>
+#include "api_define.h"
+#include <avr/iocanxx.h>
 
 // struct arrays for storing data to transmit and received data
 spiByteDataArray spiWriteData;
@@ -172,11 +174,19 @@ void spiWriteAndReadWithoutChipSelect(uint8_t byteOrder)
 }
 
 
+<<<<<<< HEAD
 void spi_write_and_read_with_cs(uint8_t *ptr_tx_data, uint8_t data_length, uint8_t *ptr_rx_data, uint8_t chipSelect)
 >>>>>>> continued merge FB / PZ
 {
   uint16_t i;
   if(SPI_MSBYTE_FIRST == byteOrder)
+=======
+void spi_write_and_read_with_cs(void)
+{
+#if 0
+  uint8_t i;
+  if( NULL != ptr_rx_data )
+>>>>>>> debugging spi.c/h
     {
 <<<<<<< HEAD
       i = 0;
@@ -207,6 +217,7 @@ void spi_write_and_read_with_cs(uint8_t *ptr_tx_data, uint8_t data_length, uint8
 	  i++;
 	}
     }
+<<<<<<< HEAD
  
 }
 
@@ -215,6 +226,9 @@ void spiWriteAndReadWithChipSelect(uint8_t byteOrder, uint8_t externalChipSelect
   spiSetChosenChipSelect(externalChipSelectMask);
   spiWriteAndReadWithoutChipSelect(byteOrder);
   spiReleaseChosenChipSelect(externalChipSelectMask);
+=======
+#endif
+>>>>>>> debugging spi.c/h
 }
 
 uint8_t spiReadByte(void)

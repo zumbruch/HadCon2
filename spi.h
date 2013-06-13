@@ -60,7 +60,7 @@ enum spi_chips
 
 typedef struct spiPinStruct
 {
-	uint8_t register;
+	uint8_t registerAdress;
 	uint8_t pinNumber;
 } spiPin;
 
@@ -83,16 +83,15 @@ void spi_write_and_read_without_cs(void);
 void set_control(uint16_t);
 uint16_t get_control(void);
 
-uint16_t spi_add_write_data(uint8_t value);
 void spi_purge_write_data(void);
-void spi_purge_read_data(void)
+void spi_purge_read_data(void);
 
 void spiWrite(void);
 void spiRead(void);
 void spiInit(void);
 void spiEnable(void);
 
-static inline uint16_t spi_add_write_data(uint8_t value)
+inline uint16_t spi_add_write_data(uint8_t value)
 {
 	spiWriteData.data[spiWriteData.length] = value;
 	spiWriteData.length++;
