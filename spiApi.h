@@ -15,66 +15,66 @@
 #include "api_debug.h"
 #include "spi.h"
 
-extern const char* spiCommandKeywords[] PROGMEM;
-enum spiCommandKeyNumber
+extern const char* spiApiCommandKeywords[] PROGMEM;
+enum spiApiCommandKeyNumber
 {
-	spiCommandKeyNumber_ADD= 0,
-	spiCommandKeyNumber_A  ,
-	spiCommandKeyNumber_CONTROL_BITS,
-	spiCommandKeyNumber_C,
-	spiCommandKeyNumber_PURGE,
-	spiCommandKeyNumber_P,
-	spiCommandKeyNumber_READ,
-	spiCommandKeyNumber_R,
-	spiCommandKeyNumber_STATUS,
-	spiCommandKeyNumber_S,
-	spiCommandKeyNumber_TRANSMIT,
-	spiCommandKeyNumber_T,
-	spiCommandKeyNumber_WRITE,
-	spiCommandKeyNumber_W,
+	spiApiCommandKeyNumber_ADD= 0,
+	spiApiCommandKeyNumber_A  ,
+	spiApiCommandKeyNumber_CONTROL_BITS,
+	spiApiCommandKeyNumber_C,
+	spiApiCommandKeyNumber_PURGE,
+	spiApiCommandKeyNumber_P,
+	spiApiCommandKeyNumber_READ,
+	spiApiCommandKeyNumber_R,
+	spiApiCommandKeyNumber_STATUS,
+	spiApiCommandKeyNumber_S,
+	spiApiCommandKeyNumber_TRANSMIT,
+	spiApiCommandKeyNumber_T,
+	spiApiCommandKeyNumber_WRITE,
+	spiApiCommandKeyNumber_W,
 
-	spiCommandKeyNumber_PURGE_WRITE_BUFFER,
-	spiCommandKeyNumber_PW,
-	spiCommandKeyNumber_PURGE_READ_BUFFER,
-	spiCommandKeyNumber_PR,
-	spiCommandKeyNumber_SHOW_WRITE_BUFFER,
-	spiCommandKeyNumber_SW,
-	spiCommandKeyNumber_SHOW_READ_BUFFER,
-	spiCommandKeyNumber_SR,
+	spiApiCommandKeyNumber_PURGE_WRITE_BUFFER,
+	spiApiCommandKeyNumber_PW,
+	spiApiCommandKeyNumber_PURGE_READ_BUFFER,
+	spiApiCommandKeyNumber_PR,
+	spiApiCommandKeyNumber_SHOW_WRITE_BUFFER,
+	spiApiCommandKeyNumber_SW,
+	spiApiCommandKeyNumber_SHOW_READ_BUFFER,
+	spiApiCommandKeyNumber_SR,
 
-	spiCommandKeyNumber_CS,
-	spiCommandKeyNumber_CS_BAR,
-	spiCommandKeyNumber_CSB,
-	spiCommandKeyNumber_CS_SET,
-	spiCommandKeyNumber_CSS,
-	spiCommandKeyNumber_CS_RELEASE,
-	spiCommandKeyNumber_CSR,
-	spiCommandKeyNumber_CS_SELECT_MASK,
-	spiCommandKeyNumber_CS_PINS,
-	spiCommandKeyNumber_CS_AUTO_ENABLE,
+	spiApiCommandKeyNumber_CS,
+	spiApiCommandKeyNumber_CS_BAR,
+	spiApiCommandKeyNumber_CSB,
+	spiApiCommandKeyNumber_CS_SET,
+	spiApiCommandKeyNumber_CSS,
+	spiApiCommandKeyNumber_CS_RELEASE,
+	spiApiCommandKeyNumber_CSR,
+	spiApiCommandKeyNumber_CS_SELECT_MASK,
+	spiApiCommandKeyNumber_CS_PINS,
+	spiApiCommandKeyNumber_CS_AUTO_ENABLE,
 
-	spiCommandKeyNumber_SPI_ENABLE,
-	spiCommandKeyNumber_DATA_ORDER,
-	spiCommandKeyNumber_MASTER,
-	spiCommandKeyNumber_CLOCK_POLARITY,
-	spiCommandKeyNumber_CLOCK_PHASE,
-	spiCommandKeyNumber_SPEED,
-	spiCommandKeyNumber_SPEED_DIVIDER,
-	spiCommandKeyNumber_DOUBLE_SPEED,
-	spiCommandKeyNumber_TRANSMIT_BYTE_ORDER,
-	spiCommandKeyNumber_COMPLETE_BYTE,
-	spiCommandKeyNumber_RESET,
-	spiCommandKeyNumber_MAXIMUM_NUMBER
+	spiApiCommandKeyNumber_SPI_ENABLE,
+	spiApiCommandKeyNumber_DATA_ORDER,
+	spiApiCommandKeyNumber_MASTER,
+	spiApiCommandKeyNumber_CLOCK_POLARITY,
+	spiApiCommandKeyNumber_CLOCK_PHASE,
+	spiApiCommandKeyNumber_SPEED,
+	spiApiCommandKeyNumber_SPEED_DIVIDER,
+	spiApiCommandKeyNumber_DOUBLE_SPEED,
+	spiApiCommandKeyNumber_TRANSMIT_BYTE_ORDER,
+	spiApiCommandKeyNumber_COMPLETE_BYTE,
+	spiApiCommandKeyNumber_RESET,
+	spiApiCommandKeyNumber_MAXIMUM_NUMBER
 
 };
 
-enum spiCommandResults
+enum spiApiCommandResults
 {
-	spiCommandResult_SUCCESS_WITH_OUTPUT 		= 0,
-	spiCommandResult_SUCCESS_WITHOUT_OUTPUT 	= 1,
-	spiCommandResult_FAILURE 					= 100,
-	spiCommandResult_FAILURE_NOT_A_SUB_COMMAND 	= 110,
-	spiCommandResult_FAILURE_QUIET 				= 120
+	spiApiCommandResult_SUCCESS_WITH_OUTPUT 		= 0,
+	spiApiCommandResult_SUCCESS_WITHOUT_OUTPUT 	= 1,
+	spiApiCommandResult_FAILURE 					= 100,
+	spiApiCommandResult_FAILURE_NOT_A_SUB_COMMAND 	= 110,
+	spiApiCommandResult_FAILURE_QUIET 				= 120
 };
 
 void spiApi(struct uartStruct *ptr_uartStruct);
