@@ -120,7 +120,7 @@ uint8_t spiApiSubCommandRead(void);
 uint8_t spiApiSubCommandWrite(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex);
 uint8_t spiApiSubCommandAdd(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsStatus(struct uartStruct *ptr_uartStruct);
-uint8_t spiApiSubCommandCsBar(struct uartStruct *ptr_uartStruct);
+uint8_t spiApiSubCommandCsBarStatus(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsSelectMask(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsPins(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsAutoEnable(struct uartStruct *ptr_uartStruct);
@@ -139,7 +139,9 @@ uint8_t spiApiSubCommandTransmitByteOrder(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCompleteByte(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandTransmitReport(struct uartStruct *ptr_uartStruct);
 
-void spiApiGetChipSelectStatus(uint8_t mask);
+void spiApiGetChipSelectStatus(uint8_t mask, bool invert);
+uint8_t spiApiCsStatus(struct uartStruct *ptr_uartStruct, bool invert);
+uint8_t spiApiCsSetCsRelease( bool set );
 
 #define max(a,b) \
   ({ __typeof__ (a) _a = (a); \

@@ -195,7 +195,7 @@ void spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandInde
 		case spiApiCommandKeyNumber_CS_BAR:
 		case spiApiCommandKeyNumber_CSB:
 			/* same as cs but inverse logic*/
-			result = spiApiSubCommandCsBar(ptr_uartStruct);
+			result = spiApiSubCommandCsBarStatus(ptr_uartStruct);
 			break;
 		case spiApiCommandKeyNumber_CS_SET:
 		case spiApiCommandKeyNumber_CSS:
@@ -471,18 +471,25 @@ uint8_t spiApiSubCommandRead(void)
 	}
 }
 
-void spiApiGetChipSelectStatus(uint8_t mask)
+void spiApiGetChipSelectStatus(uint8_t mask, bool invert)
 {
+	bool status;
 	uint8_t activeMask = getChipSelectArrayStatus();
 	for (int chipSelectIndex = 0; chipSelectIndex < CHIP_MAXIMUM; ++chipSelectIndex)
 	{
-		if (activeMask & (0x1 << chipSelectIndex))
+		if (mask & (0x1 << chipSelectIndex))
 		{
 			if (activeMask & (0x1 << chipSelectIndex))
 			{
-				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:%i "), uart_message_string, chipSelectIndex + 1,
-						9);
-				//spiGetCsStatus(chipSelectIndex));
+				//status = spiGetCsStatus(chipSelectIndex) > 0;
+				status = (chipSelectIndex+1)%2 > 0; /*dummy*/
+				if (invert)
+				{
+					status ^= 0x1;
+				}
+				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:%i "), uart_message_string,
+						chipSelectIndex + 1,
+						status);
 #warning TODO: getCsStatus
 			}
 			else
@@ -497,9 +504,18 @@ void spiApiGetChipSelectStatus(uint8_t mask)
  * *** commands with optional arguments
  */
 
-uint8_t spiApiSubCommandCsStatus(struct uartStruct *ptr_uartStruct) /*optional external mask*/
+uint8_t spiApiSubCommandCsStatus(struct uartStruct *ptr_uartStruct)
 {
-	// printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*)  ( filename ), (const char*) (empty));
+	return spiApiCsStatus(ptr_uartStruct, false);
+}
+
+uint8_t spiApiSubCommandCsBarStatus(struct uartStruct *ptr_uartStruct)
+{
+	return spiApiCsStatus(ptr_uartStruct, true);
+}
+
+uint8_t spiApiCsStatus(struct uartStruct *ptr_uartStruct, bool invert) /*optional external mask*/
+{
 	uint64_t value = 0;
 	int16_t nArgumentArgs =  0;
 	nArgumentArgs = ptr_uartStruct->number_of_arguments - 1;
@@ -508,7 +524,7 @@ uint8_t spiApiSubCommandCsStatus(struct uartStruct *ptr_uartStruct) /*optional e
 	{
 		case 0: /* read */
 		{
-			spiApiGetChipSelectStatus(0xFF);
+			spiApiGetChipSelectStatus(0xFF, invert);
 			return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
 		}
 		break;
@@ -525,56 +541,118 @@ uint8_t spiApiSubCommandCsStatus(struct uartStruct *ptr_uartStruct) /*optional e
 			}
 			else
 			{
-				spiApiGetChipSelectStatus(0xFF & value);
+				spiApiGetChipSelectStatus(0xFF & value, invert);
 				return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
 			}
 		break;
 	}
-	return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
-}
-
-uint8_t spiApiSubCommandCsBar(struct uartStruct *ptr_uartStruct) /*optional external mask*/
-{
-	// printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*)  ( filename ), (const char*) (empty));
-	int16_t nArgumentArgs =  0;
-	nArgumentArgs = ptr_uartStruct->number_of_arguments - 1;
 
 	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
 }
 
 uint8_t spiApiSubCommandCsSet(void) /*optional external mask*/
 {
-	int16_t nArgumentArgs =  0;
-	nArgumentArgs = ptr_uartStruct->number_of_arguments - 1;
-
-	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+	return spiApiCsSetCsRelease( true );
 }
 
 uint8_t spiApiSubCommandCsRelease(void) /*optional external mask*/
 {
+	return spiApiCsSetCsRelease( false );
+}
+
+uint8_t spiApiCsSetCsRelease( bool set )
+{
+	uint64_t inputValue = 0;
 	int16_t nArgumentArgs =  0;
 	nArgumentArgs = ptr_uartStruct->number_of_arguments - 1;
+	uint8_t outputValue = 0;
+
+	switch (nArgumentArgs)
+	{
+		case 0: /* set all active within configuration's mask */
+			outputValue = 0xFF & spiApiConfiguration.csExternalSelectMask;
+		break;
+		case 1: /*set all active within mask*/
+		default:
+			if ( 0 != getUnsignedNumericValueFromParameterIndex(2, &inputValue))
+			{
+				return spiApiCommandResult_FAILURE_QUIET;
+			}
+			else if (inputValue > 0xFF )
+			{
+				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
+				return spiApiCommandResult_FAILURE_QUIET;
+			}
+			else
+			{
+				outputValue = (0xFF & (0xFF & inputValue));
+			}
+
+			break;
+	}
+
+	if ( set )
+	{
+		spiSetChosenChipSelect(outputValue);
+	}
+	else
+	{
+		spiReleaseChosenChipSelect(outputValue);
+	}
 
 	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+
 }
 
 uint8_t spiApiSubCommandCsSelectMask(struct uartStruct *ptr_uartStruct)
 {
-	// printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*)  ( filename ), (const char*) (empty));
-	int16_t nArgumentArgs =  0;
-	nArgumentArgs = ptr_uartStruct->number_of_arguments - 1;
-
-	return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
+#if 0
+	spiApiReadWrite1ByteValue(ptr_uartStruct, )
 }
 
-uint8_t spiApiSubCommandCsPins(struct uartStruct *ptr_uartStruct)
+uint8_t spiApiReadWrite1ByteValue(struct uartStruct *ptr_uartStruct, )
 {
-	// printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*)  ( filename ), (const char*) (empty));
+#endif
+
+	uint64_t inputValue = 0;
 	int16_t nArgumentArgs =  0;
 	nArgumentArgs = ptr_uartStruct->number_of_arguments - 1;
 
+	switch (nArgumentArgs)
+	{
+		case 0: /*read*/
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%X"), uart_message_string, spiApiConfiguration.csExternalSelectMask);
+			return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
+		break;
+		case 1: /*write*/
+		default:
+			if ( 0 != getUnsignedNumericValueFromParameterIndex(2, &inputValue))
+			{
+				return spiApiCommandResult_FAILURE_QUIET;
+			}
+			else if (inputValue > 0xFF )
+			{
+				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
+				return spiApiCommandResult_FAILURE_QUIET;
+			}
+			else
+			{
+				/* set */
+				spiApiConfiguration.csExternalSelectMask = 0xFF & inputValue;
+				/* report by recursive call */
+				ptr_uartStruct->number_of_arguments = 1;
+				spiApiSubCommandCsSelectMask(ptr_uartStruct);
+				ptr_uartStruct->number_of_arguments = nArgumentArgs + 1;
+
+				return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
+			}
+
+			break;
+	}
+
 	return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
 }
+
 
 uint8_t spiApiSubCommandCsAutoEnable(struct uartStruct *ptr_uartStruct)
 {
@@ -593,6 +671,16 @@ uint8_t spiApiSubCommandTransmitReport(struct uartStruct *ptr_uartStruct)
 
 	return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
 }
+
+uint8_t spiApiSubCommandCsPins(struct uartStruct *ptr_uartStruct)
+{
+	// printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*)  ( filename ), (const char*) (empty));
+	int16_t nArgumentArgs =  0;
+	nArgumentArgs = ptr_uartStruct->number_of_arguments - 1;
+
+	return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
+}
+
 
 uint8_t spiApiSubCommandShowWriteBuffer(struct uartStruct *ptr_uartStruct)
 {
