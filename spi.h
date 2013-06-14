@@ -24,7 +24,7 @@
  * newConfig = spiGetConfiguration(); // get old configuration
  * newConfig.bits.bSpi2x = 1; // sets bSpi2x bit for double speed operation
  * newConfig.data = 0xXXXX // for accessing the whole 16 bits at once. be careful because you can easily influence the master- and enable bit!
- * spiSetConfiguration(newConfig); // set the new configration
+ * spiSetConfiguration(newConfig); // set the new configuration
  *-------------------------------------------------
  *
  * Add a new chipselect line to the chipSelectArray:
@@ -45,10 +45,10 @@
  * curreentInternalMask = spiGetInternalChipSelectMask(); // returns one byte, if(bit0) -> chipselect0 is masked, if(bit1) -> chipselect1 is masked, etc...
  *-------------------------------------------------
  *
- * Manual influencion of the chipselect lines:
+ * Manual influence of the chipselect lines:
  *--------------------------------------------
- * spiReleaseAllChipSelectLines(); // releases all useable chipselect lines
- * // suppose CS0 to CS3 are internally masked and useable present in the chipSelectArray
+ * spiReleaseAllChipSelectLines(); // releases all usable chipselect lines
+ * // suppose CS0 to CS3 are internally masked and usable present in the chipSelectArray
  * spiSetChosenChipSelect(SPI_MASK_ALL_CHIPSELECTS); // all internally masked chipselects will be set to active
  * spiReleaseChosenChipSelect( (1<<CHIPSELECT3) | (1<<CHIPSELECT0) ); // only CS0 and CS3 are released, CS1 and CS2 are not influenced
  *-------------------------------------------------
@@ -59,7 +59,7 @@
  * spiSetChosenChipSelect( 1 << CHIPSELECT0 ); // set CHIPSELECT0 (PORTB0) active
  * spiWriteWithoutChipSelect( dataValue );  // clock out 8 bit dataValue
  * receivedByte = spiReadByte();
- * spiReleaseChoseChipSelect( 1 << CHIPSELECT0 ); // release CHIPSELECT0
+ * spiReleaseChosenChipSelect( 1 << CHIPSELECT0 ); // release CHIPSELECT0
  *
  */
 
@@ -153,9 +153,9 @@ uint8_t spiGetInternalChipSelectMask(void);
 
 // set all chipselect lines in chipSelectArray to high
 void spiReleaseAllChipSelectLines(void);
-// set all chipselectlines to high which are masked by internal mask & external mask(external = 0xff/SPI_MASK_ALL_CHIPSELECTS for all internal masked chipselects)
+// set all chipselect lines to high which are masked by internal mask & external mask(external = 0xff/SPI_MASK_ALL_CHIPSELECTS for all internal masked chipselects)
 void spiReleaseChosenChipSelect(uint8_t externalChipSelectMask);
-// set chipselectlines low which are masked by internal mask & external mask(external mask = 0xff/SPI_MASK_ALL_CHIPSELECTS for all internal masked chipselects)
+// set chipselect lines low which are masked by internal mask & external mask(external mask = 0xff/SPI_MASK_ALL_CHIPSELECTS for all internal masked chipselects)
 void spiSetChosenChipSelect(uint8_t externalChipSelectMask);
 
 
