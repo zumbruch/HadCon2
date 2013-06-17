@@ -1,0 +1,662 @@
+one_wire_dualSwitch.c 92:                   printDebug_p(debugLevelEventDebug, debugSystemOWIDualSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS write all: 0x%x, pointer (%p)" ), ptr_owiStruct->value, ptr_owiStruct->ptr_value);
+one_wire_octalSwitch.c 87:                   printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, PSTR(__FILE__), PSTR("OW8S write all: 0x%x, pointer (%p)" ), ptr_owiStruct->value, ptr_owiStruct->ptr_value);
+PSTR("00") spiApi.c 737
+PSTR("0") spiApi.c 140
+PSTR("0x") api.c 2219
+PSTR("0x%x") api.c 2396
+PSTR(">64 bit") spiApi.c 734
+PSTR("") adc.c 65
+PSTR("address is:0x%x") twi_master.c 337
+PSTR("ALIV --- alive --- %i") main.c 241
+PSTR("--- alive (line:%i) --- %i ") api.c 2062
+PSTR("all begin %i") one_wire_api_settings.c 50
+PSTR("all end %i") one_wire_api_settings.c 60
+PSTR("alternatives: NULL ... returning") api.c 1700
+PSTR(" and readback matches") read_write_register.c 76
+PSTR(" \"") api.c 1720
+PSTR("\"") api.c 1722
+PSTR(" \"") api.c 1727
+PSTR(" *** ") api.c 1780
+PSTR(" ") api.c 1812
+PSTR("(") api.c 1815
+PSTR(", ") api.c 1824
+PSTR(") ") api.c 1831
+PSTR(" ") api.c 2113
+PSTR(" ") api.c 2116
+PSTR(" ") api.c 2175
+PSTR("apiDebug:invalid command") api_debug.c 129
+PSTR("apiDebug:invalid command") api_debug.c 148
+PSTR("apiDebugSubCommands:invalid argument") api_debug.c 209
+PSTR(" ") api_help.c 299
+PSTR(" ") api_help.c 316
+PSTR(" ") api_help.c 638
+PSTR(" : ") api_help.c 654
+PSTR(" ") api_help.c 671
+PSTR(" ") api_help.c 676
+PSTR("API Parsing failed") api.c 837
+PSTR("- ") api_show.c 248
+PSTR("argument %i is an ID: %s") one_wire.c 764
+PSTR("argument %i is NOT an ID") one_wire.c 771
+PSTR("argument parsing failed") twi_master.c 99
+PSTR("begin") one_wire_adc.c 934
+PSTR("begin") one_wire_api_settings.c 43
+PSTR("begin") one_wire_temperature.c 917
+PSTR("Brown Out Reset") api_show.c 265
+PSTR("bus: checkBusAndDeviceActivityMasks failed") one_wire.c 1151
+PSTR("bus: %i (0x%x), search loop total: %i 1/bus: %i ID: %s") one_wire.c 169
+PSTR("bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)") one_wire_adc.c 606
+PSTR("bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)") one_wire.c 89
+PSTR("bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)") one_wire.c 94
+PSTR("bus: %i ADCs: NONE (pin pattern 0x%x owiAdcMask 0x%x)") one_wire_adc.c 611
+PSTR("bus: %i ADCs: some (pin pattern 0x%x owiAdcMask 0x%x)") one_wire_adc.c 616
+PSTR("bus %i call: ReadADCchannels") one_wire.c 427
+PSTR("bus: %i combining 0x%x to common set of pins 0x%x)") one_wire_adc.c 622
+PSTR("bus: %i combining 0x%x to common set of pins 0x%x)") one_wire.c 1156
+PSTR("bus: %i differs (pin pattern 0x%x owiBusMask 0x%x)") one_wire_adc.c 601
+PSTR("bus %i doesn't match owiBusMask (0x%x)") one_wire.c 407
+PSTR("bus: %i found %i valid devices, within %i trials") one_wire.c 177
+PSTR("bus: %i (Mask:0x%x) - OWI CRC check failure, skipping current id: %s") one_wire.c 146
+PSTR("bus: %i no Device present (pin pattern 0x%x)") one_wire_adc.c 662
+PSTR("bus: %i passive (pin pattern 0x%x owiBusMask 0x%x)") one_wire.c 84
+PSTR("bus %i: returned %i") one_wire.c 431
+PSTR("bus: %i some devices present (pin pattern 0x%x)") one_wire_adc.c 667
+PSTR("bus: mixed sensors, max. t_conv: %f (pins 0x%x)") one_wire_temperature.c 747
+PSTR("bus mode: %S, bus state %S, changed: %S") can.c 205
+PSTR("bus: only DS18B20, adopting max. t_conv to: %i ms (pins 0x%x)") one_wire_temperature.c 741
+PSTR("bus: owiDeviceMask = 0x%x") one_wire.c 1145
+PSTR("bus_pattern: 0x%x sending command, mask, readout byte") one_wire_adc.c 785
+PSTR("bus_pattern: 0x%x starting conversion sequence") one_wire_adc.c 704
+PSTR("bus_pattern %x : returned %i") one_wire.c 443
+PSTR("bus state %S") can.c 1558
+PSTR("bus state %S") can.c 1569
+PSTR("call Communication_Error") api_show.c 109
+PSTR("call: FindFamilyDevicesAndAccessValues") one_wire_adc.c 248
+PSTR("call: FindFamilyDevicesAndGetValues family code: %x") one_wire_temperature.c 169
+PSTR("call showMem for: %s") api_show.c 87
+PSTR("CAN bit timing failed") can.c 891
+PSTR(" ") can.c 472
+PSTR("CAN canReady %i received -> ErrorHandling") main.c 293
+PSTR("CAN canReady %i received") main.c 284
+PSTR("CAN canReady %i reset to %i") main.c 301
+PSTR("CAN error handling: general status") can.c 1229
+PSTR("CAN error handling: mob status") can.c 1225
+PSTR("CANGIT: 0x%x") can.c 1148
+PSTR("CANGIT: 0x%x") can.c 1154
+PSTR("CANGIT: 0x%x") can.c 1160
+PSTR("CANGIT: 0x%x") can.c 1166
+PSTR("canShowMObError: bit index: %i") can.c 1189
+PSTR("CAN %s") main.c 266
+PSTR("CAN Timer Overrun received") main.c 319
+PSTR("CAN TIMER OVR %s") main.c 310
+PSTR("channel %i failed") relay.c 176
+PSTR("channel %i failed") relay.c 197
+PSTR("channel %i failed") relay.c 214
+PSTR("channel index %i") adc.c 91
+PSTR("checkBusAndDeviceActivityMasks bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)") one_wire.c 1093
+PSTR("checkBusAndDeviceActivityMasks bus: %i Devices: NONE (pin pattern 0x%x owiDeviceMask 0x%x)") one_wire.c 1102
+PSTR("checkBusAndDeviceActivityMasks bus: %i Devices: some (pin pattern 0x%x owiDeviceMask 0x%x)") one_wire.c 1111
+PSTR("checkBusAndDeviceActivityMasks bus: %i differs (pin pattern 0x%x owiBusMask 0x%x)") one_wire.c 1084
+PSTR("checkBusAndDeviceActivityMasks bus: %i passed all criteria)") one_wire.c 1117
+PSTR("Choose_Function: call finished") api.c 1281
+PSTR("coming from: %S, try to set bus state back to %S") can.c 223
+PSTR("command argument position %i (\"%s\") api.c 2267
+PSTR("command argument position (\"%s\") api.c 2401
+PSTR("command failed") spiApi.c 311
+PSTR("conversion done") one_wire_temperature.c 885
+PSTR("CRC16 check reached max trials (%i) on send byte") one_wire_adc.c 842
+PSTR("CRC16 check send byte failed - computed 0x%x != received 0x%x") one_wire.c 1324
+PSTR("CRC16 check send byte failed - trial no. %i, computed 0x%x != received 0x%x") one_wire_adc.c 834
+PSTR("crc16 checksum 3 bytes 0x%x ?") one_wire_adc.c 820
+PSTR("crc16 checksum 3 bytes 0x%x ?") one_wire_adc.c 822
+PSTR("crc16 checksum 4 bytes 0x%x ?") one_wire_adc.c 821
+PSTR("crc16 checksum 4 bytes 0x%x ?") one_wire_adc.c 823
+PSTR("CRC16 computing inputs:") one_wire.c 1303
+PSTR("CRC16 computing no %i: 0x%x") one_wire.c 1356
+PSTR("data[%i]=%x") spiApi.c 723
+PSTR("data[%i]=%x") spiApi.c 769
+PSTR("DEBUG") api.c 1811
+PSTR("device DS2405 not supported any more") one_wire_simpleSwitch.c 59
+PSTR("devices detected") one_wire.c 104
+PSTR("disabled: ") jtag.c 166
+PSTR("disabling JTAG not ALLOWED") jtag.c 64
+PSTR(" done") one_wire_temperature.c 477
+PSTR(" done") one_wire_temperature.c 499
+PSTR("end") one_wire_adc.c 258
+PSTR("end") one_wire_api_settings.c 82
+PSTR("end") one_wire_temperature.c 967
+PSTR("entered twiMaster") twi_master.c 94
+PSTR("entering canShowGeneralStatusError") can.c 1120
+PSTR("entering 'Read from Slave'") twi_master.c 393
+PSTR("entering 'Write to Slave'") twi_master.c 335
+PSTR("error accessing ADC channel %i") adc.c 159
+PSTR("Error reading %s") one_wire.c 685
+PSTR("even") spiApi.c 756
+PSTR("External Reset") api_show.c 268
+PSTR("FALSE") api.c 2339
+PSTR("FALSE") jtag.c 167
+PSTR(" (FALSE)") one_wire_api_settings.c 119
+PSTR("FALSE") one_wire_temperature.c 273
+PSTR("FALSE") one_wire_temperature.c 277
+PSTR(" FALSE") one_wire_temperature.c 324
+PSTR(" FALSE") one_wire_temperature.c 364
+PSTR("FALSE") relay.c 223
+PSTR("FALSE") relay.c 227
+PSTR("FALSE") relay.c 247
+PSTR("FALSE") relay.c 251
+PSTR("FALSE") relay.c 255
+PSTR("FALSE") relay.c 259
+PSTR("FALSE") relay.c 263
+PSTR("FALSE") relay.c 324
+PSTR("F") api.c 2338
+PSTR("fcn:FindFamilyDevicesAndGetValues: 1st argument is NULL ... skipping") one_wire.c 355
+PSTR("fcn:FindFamilyDevicesAndGetValues: selected device index (arg 4) is out of range ... skipping") one_wire.c 382
+PSTR("fcn:owiFindFamilyDevicesAndGetValues: error while searching for id's index ... skipping") one_wire.c 375
+PSTR("fcn:%s: wrong input source:%i exceeds max. of %i\n") relay.c 563
+PSTR("final common pins: 0x%x") one_wire_adc.c 629
+PSTR("final common pins: 0x%x") one_wire.c 1161
+PSTR("find index of command keyword: %s") api.c 1125
+PSTR("finished (Timeout: current = 0x%x, all = 0x%x)") one_wire_temperature.c 841
+PSTR("following all default error messages:") api_show.c 215
+PSTR("found %i arguments ") api.c 927
+PSTR("found %i devices") one_wire.c 192
+PSTR("found %i temp devices") one_wire_temperature.c 255
+PSTR("getNumericValueFromParameter: wrong input parameters") api.c 2261
+PSTR("getUnsignedNumericValueFromParameterString: NULL input parameters") api.c 2362
+PSTR("going to read from twi/i2c") twi_master.c 111
+PSTR("going to set ports for JTAG from: PING:0x%x, PORTG:0x%x") api.c 2002
+PSTR("going to switch JTAG off - status: PING:0x%x, PORTG:0x%x") jtag.c 126
+PSTR("going to switch JTAG on - status: PING:0x%x, PORTG:0x%x") jtag.c 141
+PSTR("going to write to twi/i2c") twi_master.c 116
+PSTR("H") api.c 2314
+PSTR("having changed ports for JTAG to: PING:0x%x, PORTG:0x%x") api.c 2007
+PSTR("having switched JTAG off - status: PING:0x%x, PORTG:0x%x") jtag.c 130
+PSTR("having switched JTAG on - status: PING:0x%x, PORTG:0x%x") jtag.c 145
+PSTR("HIGH") api.c 2315
+PSTR("high NULL pointer") relay.c 720
+PSTR(" ignore conv. response: ") one_wire_temperature.c 534
+PSTR("ignoring TX calls for max. %.1f s") can.c 266
+PSTR("ignoring TX calls for max. %.1f s, no further notification") can.c 258
+PSTR("init 1-wire ADCs: failed to set: OUTPUT CONTROL, RESOLUTION") one_wire_adc.c 404
+PSTR("init 1-wire ADCs: failed to set: POR, ALARM ENABLE, INPUT RANGE") one_wire_adc.c 409
+PSTR("init 1-wire ADCs: failed to set: VCC_CONTROL_BYTE") one_wire_adc.c 418
+PSTR("inital call needs twice a conversion") one_wire_adc.c 585
+PSTR("init byte '%s'") spiApi.c 739
+PSTR("init finished") api.c 2037
+PSTR("Init") relay.c 528
+PSTR("input: '%s' maxLength %i") api.c 2206
+PSTR("invalid address") waveform_generator_registers.c 139
+PSTR("invalid argument index") one_wire.c 739
+PSTR("invalid argument") one_wire_temperature.c 549
+PSTR("invalid arguments") one_wire_adc.c 186
+PSTR("invalid arguments") one_wire_temperature.c 209
+PSTR("invalid argument") waveform_generator_registers.c 90
+PSTR("invalid channel argument") relay.c 710
+PSTR("invalid channel argument") relay.c 863
+PSTR("invalid channel number [0-7]") relay.c 1075
+PSTR("invalid channel number [0-7]") relay.c 1091
+PSTR("invalid channel number, enabled JTAG allows ch 0-3") relay.c 1064
+PSTR("invalid channel number, enabled JTAG allows ch 0-3") relay.c 1199
+PSTR("invalid channel number, enabled JTAG allows ch 0-3") relay.c 1357
+PSTR("invalid channel number") relay.c 1208
+PSTR("invalid command argument") api_debug.c 231
+PSTR("invalid command argument") api_debug.c 259
+PSTR("invalid command argument") relay.c 1380
+PSTR("invalid command argument") relay.c 332
+PSTR("invalid command argument") relay.c 403
+PSTR("invalid command argument") relay.c 452
+PSTR("invalid command argument") relay.c 893
+PSTR("invalid command argument") relay.c 924
+PSTR("invalid family code, exceeding limits [0,0xFF]") one_wire.c 232
+PSTR("invalid family code %i") one_wire.c 230
+PSTR("invalid number of arguments") adc.c 74
+PSTR("invalid number of arguments") jtag.c 182
+PSTR("invalid number of arguments") one_wire.c 992
+PSTR("invalid number of arguments") one_wire_temperature.c 304
+PSTR("invalid number of arguments") one_wire_temperature.c 344
+PSTR("invalid number of arguments") one_wire_temperature.c 385
+PSTR("invalid number of arguments") one_wire_temperature.c 415
+PSTR("invalid number of arguments") one_wire_temperature.c 461
+PSTR("invalid number of arguments") one_wire_temperature.c 512
+PSTR("invalid number of arguments") relay.c 470
+PSTR("invalid pointer (NULL)") relay.c 1346
+PSTR("isNumericalConstantOne: NULL input") api.c 2307
+PSTR("isNumericalConstantOne: NULL input") api.c 2334
+PSTR("ISR (%i): CANIT_vect occurred, canReady: %i ---  BEGIN of ISR SREG=%x") can.c 1427
+PSTR("ISR (%i): CANIT_vect occurred, canReady: %i") can.c 1455
+PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, MOb (%i) error occurred, setting canReady to %i") can.c 1449
+PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, TXOK received") can.c 1476
+PSTR("ISR (%i): CANIT_vect occurred, MOb (%i), CANCDMOB: 0x%x") can.c 1458
+PSTR("ISR (%i): CANIT_vect occurred, MOb (%i), CANCDMOB: 0x%x") can.c 1464
+PSTR("ISR (%i): CANIT_vect occurred, MOb (%i) error occurred, CANSTMOB before/after acknowledge: 0x%x/0x%x,") can.c 1445
+PSTR("(%i us)") can.c 389
+PSTR("(%i us)") can.c 425
+PSTR("JTAG Reset") api_show.c 262
+PSTR("keywordIndex of %s is %i") api.c 754
+PSTR("keyword %s doesn't match") api.c 1139
+PSTR("keyword %s matches, index %s ") api.c 1134
+PSTR("L") api.c 2340
+PSTR("leaving 'Read from Slave'") twi_master.c 412
+PSTR("leaving twiMaster") twi_master.c 125
+PSTR("leaving 'Write to Slave'") twi_master.c 351
+PSTR("length 0 - value is followed by non-space character ASCII: %i, '%c'") api.c 2233
+PSTR("length of \"%s\" is %i") api.c 2240
+PSTR("LOW") api.c 2341
+PSTR("low NULL pointer") relay.c 715
+PSTR("-------------------------") main.c 398
+PSTR("make conversion finished (owiAdcTimeoutMask = 0x%x)") one_wire_adc.c 675
+PSTR("message %s") one_wire.c 82
+PSTR("misc temp commands keyword %s matches") one_wire_temperature.c 247
+PSTR("MOb#: %i CANSTMOB: 0x%x") can.c 1212
+PSTR("no. bytes/digits %i %i") spiApi.c 695
+PSTR("no") can.c 208
+PSTR("no_device_is_connected_to_the_bus") one_wire.c 181
+PSTR("no Device present (pin pattern 0x%x)") one_wire.c 1196
+PSTR("no Device present (pin pattern 0x%x)") one_wire_temperature.c 752
+PSTR("no matching ID found") one_wire.c 370
+PSTR("no matching ID was found") one_wire_adc.c 255
+PSTR("no matching ID was found") one_wire_temperature.c 176
+PSTR("no sub cmd/value") spiApi.c 106
+PSTR("no supported 1-wire temperature device present") one_wire_temperature.c 181
+PSTR("no supported 1-wire temperature device present") one_wire_temperature.c 486
+PSTR("no supported 1-wire temperature device present") one_wire_temperature.c 508
+PSTR("not a sub command") spiApi.c 304
+PSTR("no temp sensors at all") one_wire_temperature.c 700
+PSTR(" --- not implemented ") api_help.c 658
+PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination") can.c 830
+PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination") can.c 877
+PSTR("not supported CAN Baudrate (%i) / CPU freq. (%i) combination") can.c 884
+PSTR("NULL pointer received") spiApi.c 647
+PSTR("NULL pointer received") spiApi.c 682
+PSTR("number of arguments: %i") one_wire.c 848
+PSTR("number of arguments %i") twi_master.c 134
+PSTR("number of string elements found: %i") api.c 744
+PSTR("numeric length of argument '%s' is %i") one_wire.c 745
+PSTR("odd") spiApi.c 749
+PSTR("OK") spiApi.c 295
+PSTR("") one_wire_adc.c 581
+PSTR("") one_wire.c 213
+PSTR(":") one_wire_temperature.c 313
+PSTR(":") one_wire_temperature.c 353
+PSTR(" ") one_wire_temperature.c 497
+PSTR("") one_wire_temperature.c 675
+PSTR("overlapping with channel inputs") relay.c 1364
+PSTR("OW8S read all") one_wire_octalSwitch.c 74
+PSTR("OW8S read ID") one_wire_octalSwitch.c 81
+PSTR("OW detect presence busy time out") OWISWBitFunctions.c 454
+PSTR("OWDS read all") one_wire_dualSwitch.c 79
+PSTR("OWDS read ID") one_wire_dualSwitch.c 86
+PSTR("OWDS write ID: 0x%x pointer (%p)") one_wire_dualSwitch.c 108
+PSTR("OWDS write ID: 0x%x pointer (%p)") one_wire_octalSwitch.c 103
+PSTR("OWI ADC Conversion Error id: %s (bus_pattern 0x%x)") one_wire_adc.c 946
+PSTR("OWI ADC Conversion failed (bus_pattern: 0x%x)") one_wire_adc.c 876
+PSTR("OWI ADC Conversion failed (bus_pattern: 0x%x)") one_wire_adc.c 890
+PSTR("OWI ADC Conversion failed (id: %s)") one_wire_adc.c 900
+PSTR("OWI ADC Conversion timeout (bus_pattern: 0x%x") one_wire_adc.c 887
+PSTR("OWI ADC Conversion timeout (id: %s") one_wire_adc.c 897
+PSTR("OWI Adc Conversion timeout (>%i ms) (id: %s)") one_wire_adc.c 898
+PSTR("OWI Adc Conversion timeout (>%i ms) on bus_mask (0x%x)") one_wire_adc.c 888
+PSTR("owiApiFlag:invalid argument") one_wire_api_settings.c 112
+PSTR("owiApi:invalid argument") one_wire_api_settings.c 75
+PSTR("owi bus mask didn't match") one_wire.c 674
+PSTR("OWI CRC check internal failure") one_wire.c 150
+PSTR("OWI CRC check passed") one_wire.c 142
+PSTR("OWI Dual Switch write value timeout") one_wire_dualSwitch.c 241
+PSTR("OWI_Init() doesn't support HADCON_VERSION %i") OWISWBitFunctions.c 145
+PSTR("OWI_Init(): missing I2C support") OWISWBitFunctions.c 135
+PSTR("OWI_Init()") OWISWBitFunctions.c 128
+PSTR("OWI Octal Switch write value timeout") one_wire_octalSwitch.c 234
+PSTR("OWI Temperature Conversion timeout (>%i ms, %s, bus_pattern 0x%x vs. mask: 0x%x)") one_wire_temperature.c 929
+PSTR("OWI Temperature Conversion timeout") one_wire_temperature.c 893
+PSTR("OW read bit busy time out") OWISWBitFunctions.c 350
+PSTR("parasitic conversion done") one_wire_temperature.c 783
+PSTR("parasitic conversion ") one_wire_temperature.c 771
+PSTR("parasitic devices NONE on pins 0x%x ") one_wire.c 1272
+PSTR("parasitic devices SOME on pins 0x%x ") one_wire.c 1259
+PSTR("para string to byte array") spiApi.c 659
+PSTR("para to byte array") spiApi.c 640
+PSTR("parsing failed") spiApi.c 111
+PSTR("parsing UartStruct") twi_master.c 131
+PSTR("passive (bus pattern 0x%x owiBusMask 0x%x)") one_wire_adc.c 938
+PSTR("passive (bus pattern 0x%x owiBusMask 0x%x)") one_wire_temperature.c 921
+PSTR("pin number [0-7]") relay.c 1106
+PSTR("pin number [0-7]") relay.c 1121
+PSTR("Power On Reset") api_show.c 271
+PSTR("preparation of send message: id %x mask %x RTR %x length %x") can.c 273
+PSTR("READ ACCESS") one_wire.c 423
+PSTR("read success") twi_master.c 403
+PSTR("read/write success") twi_master.c 420
+PSTR("recursive call of show with parameter \"%s\" (%p)") api_show.c 66
+PSTR("recursive call of %s with parameter \"%s\" (%p)") one_wire_api_settings.c 56
+PSTR("RECV HELP *** all response: RECV SHOW command_key1 ... ") api_show.c 180
+PSTR("RECV HELP ***               ...               ... ") api_show.c 182
+PSTR("RECV HELP ***    ") api_show.c 192
+PSTR("RECV HELP *** cmd response: RECV SHOW command_key") api_show.c 186
+PSTR("RECV HELP ***     command : SHOW [command_key]") api_show.c 178
+PSTR("RECV HELP ***               RECV SHOW command_keyN ... ") api_show.c 184
+PSTR("RECV HELP *** SHOW available command_keys") api_show.c 188
+PSTR("RECV HELP *** show (internal) settings") api_show.c 176
+PSTR("RECV PING mechanism is %s") api.c 2049
+PSTR("- ") relay.c 201
+PSTR("- ") relay.c 218
+PSTR("relay enable: %i - thr valid: %i") main.c 395
+PSTR("Relay Init Failed") api.c 1953
+PSTR("Relays enable and valid") main.c 382
+PSTR("Relays") main.c 378
+PSTR("resetting CAN send parameters") can.c 404
+PSTR("retrieved data and end") one_wire_adc.c 1089
+PSTR("'RLTH invalid input port for external polarity") relay.c 510
+PSTR("%s0x%lx") api_debug.c 190
+PSTR("%s0x%lx") api_debug.c 386
+PSTR("%s0x%x") relay.c 316
+PSTR("%s0x%x") relay.c 320
+PSTR("%s0x%x") relay.c 328
+PSTR("%s%4i") api.c 1818
+PSTR("%s (%4i, %s): %s: thresholds high [0x%x] <= low [0x%x] ... disabling") relay.c 621
+PSTR("%s (%4i, %s): %s: undefined state ... disabling") relay.c 635
+PSTR("%s (%4i, %s): unknown state") relay.c 837
+PSTR("%s all response: %s --- ... ") api_help.c 358
+PSTR("%s all response: %s command_key1 ... ") api_help.c 375
+PSTR("%s and readback does not match (%x)") read_write_register.c 82
+PSTR("%s\" ---") api.c 1734
+PSTR("%s ") api_help.c 104
+PSTR("%s            ...") api_help.c 158
+PSTR("%s                ...") api_help.c 170
+PSTR("%s    ") api_help.c 180
+PSTR("%s           ...") api_help.c 212
+PSTR("%s           ...") api_help.c 242
+PSTR("%s    ") api_help.c 286
+PSTR("%s    ") api_help.c 294
+PSTR("%s    ") api_help.c 305
+PSTR("%s    ") api_help.c 312
+PSTR("%s    ") api_help.c 366
+PSTR("%s               ...               ... ") api_help.c 377
+PSTR("%s    ") api_help.c 387
+PSTR("%s    ") api_help.c 426
+PSTR("%s    ") api_help.c 447
+PSTR("%s              [...]              ... ") api_help.c 462
+PSTR("%s    ") api_help.c 470
+PSTR("%s    ") api_help.c 514
+PSTR("%s---") api_help.c 557
+PSTR("%s ") api_help.c 648
+PSTR("%s ") api_help.c 667
+PSTR("%s---") api_help.c 83
+PSTR("%s available commands are:") api_help.c 603
+PSTR("%s available debug levels are:") api_help.c 288
+PSTR("%s available masks are:") api_help.c 307
+PSTR("%sbus mask: ") one_wire.c 269
+PSTR("%s    case RTR 0") api_help.c 122
+PSTR("%s    case RTR 1") api_help.c 130
+PSTR("%s cmd response: %s *** ... ") api_help.c 360
+PSTR("%s cmd response: %s command_key") api_help.c 381
+PSTR("%s command keyword: %s [ID] on/off/toggle") api_help.c 222
+PSTR("%s command : OWRP") api_help.c 260
+PSTR("%s command read : %s [ID]") api_help.c 218
+PSTR("%s command : %s <1/0> <address> <data length> <data bytes1 ... 8>") help_twis.c 30
+PSTR("%s command      : %s [<ADC Channel>] ") api_help.c 204
+PSTR("%s command : %s ") api_help.c 248
+PSTR("%s command : %s [???]]") api_help.c 342
+PSTR("%s command : %s [???]") api_help.c 453
+PSTR("%s command : %s") api_help.c 477
+PSTR("%s command : %s [???]") api_help.c 487
+PSTR("%s command : %s [???]") api_help.c 493
+PSTR("%s command : %s [???]") api_help.c 499
+PSTR("%s command : %s [???]") api_help.c 506
+PSTR("%s command : %s [???]") api_help.c 521
+PSTR("%s command : %s [???]") api_help.c 527
+PSTR("%s command : %s <bus mask>") api_help.c 254
+PSTR("%s command : %s <byte> [<pin_mask>]") api_help.c 433
+PSTR("%s       command      : %s CAN-Message-ID ID-Range 0 <Number of data bytes> Data0 ... Data7]") api_help.c 124
+PSTR("%s       command      : %s CAN-Message-ID ID-Range 1 <Number of requested data bytes>]") api_help.c 132
+PSTR("%s command : %s CAN-Message-ID ID-Range") api_help.c 141
+PSTR("%s command : %s CAN-Message-ID ID-Range") api_help.c 148
+PSTR("%s       command      : %s CAN-Message-ID ID-Range [RTR <Number of data bytes> Data0 ... Data7] ") api_help.c 120
+PSTR("%s command : %s [CMD]") api_help.c 356
+PSTR("%s command : %s [command_key]") api_help.c 373
+PSTR("%s command : %s [command_key_word]<") api_help.c 458
+PSTR("%s command : %s <command_key_word> [arguments] ") api_help.c 439
+PSTR("%s command : %s <command_key_word> [<pin_mask> [arguments ...]] ") api_help.c 418
+PSTR("%s command : %s [<Family Code>]") api_help.c 238
+PSTR("%s command  : %s [ID]") api_help.c 154
+PSTR("%s command : %s [ID]") api_help.c 234
+PSTR("%s command : %s [ID [flag_conv] | <command_keyword> [arguments] ] ") api_help.c 166
+PSTR("%s command : %s [ID [flag_conv [flag_init]]]") api_help.c 208
+PSTR("%s command : %s ID <pin_mask>") api_help.c 394
+PSTR("%s command : %s <ID> - reads single switch") api_help.c 535
+PSTR("%s command : %s <ID> <value> - writes <value> to single switch") api_help.c 539
+PSTR("%s command : %s [keyword [value[s]]]") api_help.c 266
+PSTR("%s command : %s [keyword [value[s]]]") api_help.c 272
+PSTR("%s command : %s [level]") api_help.c 326
+PSTR("%s command : %s [level [mask]]") api_help.c 280
+PSTR("%s command : %s [mask]") api_help.c 334
+PSTR("%s command : %s [<pin_mask>]") api_help.c 400
+PSTR("%s command : %s [<pin_mask>]") api_help.c 412
+PSTR("%s command : %s <pin_mask> <delay> <timeout: N (times delay)> ") api_help.c 406
+PSTR("%s command : %s - reads all switches and shows the IDs") api_help.c 533
+PSTR("%s command      : %s Register") api_help.c 196
+PSTR("%s command      : %s Register [Value] ") api_help.c 187
+PSTR("%s command : %s <value> - writes <value> to all switches") api_help.c 537
+PSTR("%s command write: %s [ID] value") api_help.c 220
+PSTR("%s        [DEBG >=%i]  : %s CAN-Message-ID \"%s\"") api_help.c 128
+PSTR("%s DEBUG") waveform_generator_registers.c 66
+PSTR("%sDelay1 LSB is written") waveform_generator_registers.c 113
+PSTR("%sDelay1 MIDDLE is written") waveform_generator_registers.c 106
+PSTR("%sDelay1 MSB is written") waveform_generator_registers.c 99
+PSTR("%sDelay2 LSB is written") waveform_generator_registers.c 134
+PSTR("%sDelay2 MIDDLE is written") waveform_generator_registers.c 127
+PSTR("%sDelay2 MSB is written") waveform_generator_registers.c 120
+PSTR("second argument sets init_flag to: %i ") one_wire.c 925
+PSTR("second argument sets init_flag to: %i ") one_wire.c 946
+PSTR("selecting mob 0 (no RTR)") can.c 279
+PSTR("selecting mob 1 (RTR)") can.c 285
+PSTR("%selements: %#x (%#i)") spiApi.c 818
+PSTR("send w/o RTR: timeout") can.c 390
+PSTR("send w/ RTR: timeout") can.c 426
+PSTR("setCanBitTiming: bit rate pre scaler calculated: %i") can.c 610
+PSTR("setCanBitTiming: bit rate pre scaler (%i) auto corrected phase 1/2: %i/%i") can.c 681
+PSTR("setCanBitTiming: bit rate pre scaler (%i) forbids multiple sample points") can.c 672
+PSTR("setCanBitTiming: bit rate pre scaler (%i) forbids sync jump width (%i) > 0") can.c 664
+PSTR("setCanBitTiming: bit rate pre scaler (%i) out of [%i,%i]") can.c 648
+PSTR("setCanBitTiming: no. of Time Quanta calculated: %i") can.c 625
+PSTR("setCanBitTiming: no. of Time Quanta (%i) and bit rate scaler (%i) are both (un)set") can.c 579
+PSTR("setCanBitTiming: no. of Time Quanta (%i) out of [8,25]") can.c 635
+PSTR("setCanBitTiming: no. of Time Quanta (%i) out of [8,25]") can.c 638
+PSTR("setCanBitTiming: phase segment 1 (%i TQ) out of [%i,%i]") can.c 732
+PSTR("setCanBitTiming: phase segment 2 (%i TQ) out of [%i,%i]") can.c 742
+PSTR("setCanBitTiming: propagation time segment (%i TQ) out of [%i,%i]") can.c 723
+PSTR("setCanBitTiming: register CANBT1/2/3: %x / %x / %x") can.c 699
+PSTR("setCanBitTiming: sync jump width (%i TQ) out of [%i,%i]") can.c 755
+PSTR("setParameter[%i]: \"%s\"") spiApi.c 606
+PSTR("%sfound %i devices") one_wire.c 282
+PSTR("%s get response: %s level ") api_help.c 330
+PSTR("%s get response: %s level mask") api_help.c 284
+PSTR("%s get response: %s mask") api_help.c 338
+PSTR("show all begin %i") api_show.c 60
+PSTR("show all end %i") api_show.c 70
+PSTR("show begin") api_show.c 52
+PSTR("show end") api_show.c 122
+PSTR("show:invalid argument") api_show.c 111
+PSTR("show:invalid argument") api_show.c 143
+PSTR("SHOW messages") api_show.c 221
+PSTR("%s%i (0x%x)") one_wire_temperature.c 400
+PSTR("%s%i:0x%x ") relay.c 200
+PSTR("%s%i:0x%x ") relay.c 217
+PSTR("%s %i ") api.c 1743
+PSTR("%s %i ") api.c 1747
+PSTR("%s %i ") api.c 1751
+PSTR("%s %i ") api.c 1755
+PSTR("%s %i ") api.c 1759
+PSTR("%s %i ") api.c 1763
+PSTR("%s %i ") api.c 1776
+PSTR("%s%i") api_debug.c 343
+PSTR("%s%i") api_show.c 150
+PSTR("%s%i") api_show.c 296
+PSTR("%sID: %s") one_wire.c 271
+PSTR("%s%i %lx") api_debug.c 295
+PSTR("%s init micro controller") api_help.c 230
+PSTR("%s%i") one_wire_api_settings.c 118
+PSTR("%s%i ") one_wire_temperature.c 430
+PSTR("%s--- %i seconds to reset (via watchdog)") api.c 2412
+PSTR("%s%i %s") relay.c 184
+PSTR("%s (MCUSR: 0x%x)") api_show.c 279
+PSTR("%sNONE on pins 0x%x (pulled HIGH within %i ms)") one_wire.c 1266
+PSTR("%s -OK-") twi_master.c 375
+PSTR("some devices present (pin pattern 0x%x)") one_wire.c 1201
+PSTR("some devices present (pin pattern 0x%x)") one_wire_temperature.c 758
+PSTR("%s one wire ???") api_help.c 352
+PSTR("%s  originally ment to read the pressure in the bus") api_help.c 162
+PSTR("%sparasitic devices ") one_wire.c 1244
+PSTR("%spin%i:0x%x ") relay.c 179
+PSTR("%sPSEUDORANDOM TIME PULSE(100ns) WAVEFORM OUTPUT") waveform_generator_registers.c 87
+PSTR("%sPSEUDORANDOM WAVEFORM OUTPUT") waveform_generator_registers.c 75
+PSTR("%sPULSE WAVEFORM OUTPUT") waveform_generator_registers.c 83
+PSTR("%s(re)init of system") api.c 2426
+PSTR("%s reset micro controller waiting %i s (via watchdog") api_help.c 226
+PSTR("%sRESET STATUS") waveform_generator_registers.c 71
+PSTR("%s response: ALIV ") api_help.c 250
+PSTR("%s response: ") api_help.c 143
+PSTR("%s response: ") api_help.c 150
+PSTR("%s response: ... ") api_help.c 256
+PSTR("%s response [ID]: %s ID1 value1") api_help.c 168
+PSTR("%s response <keyword>: %s command_key [<corresponding answer/acknowledge>]") api_help.c 174
+PSTR("%s       response     : <nothing> ") api_help.c 126
+PSTR("%s       response  now: %s CAN_Mob CAN-Message-ID CAN-Length [Data0 ... Data7] ") api_help.c 134
+PSTR("%s response now : %s the value %x has been written in Register ") api_help.c 189
+PSTR("%s response now : %s the value %x has been written in Register ") api_help.c 198
+PSTR("%s response  (read \"1\") help_twis.c 36
+PSTR("%s response: %s <acknowledge> ") api_help.c 396
+PSTR("%s response: %s [???] ") api_help.c 455
+PSTR("%s response: %s [???] ") api_help.c 489
+PSTR("%s response: %s [???] ") api_help.c 495
+PSTR("%s response: %s [???] ") api_help.c 501
+PSTR("%s response: %s [???] ") api_help.c 508
+PSTR("%s response: %s [???] ") api_help.c 523
+PSTR("%s response: %s [???] ") api_help.c 529
+PSTR("%s response: %s <bit mask of used channels> ") api_help.c 402
+PSTR("%s response: %s bus mask: 0x<bus mask> ID: <owi ID>") api_help.c 240
+PSTR("%s response: %s bus mask: 0x<bus mask> ID :<owi ID>") api_help.c 244
+PSTR("%s response: %s <byte> <acknowledge> ") api_help.c 435
+PSTR("%s response: %s command_key [<corresponding answer/acknowledge>]") api_help.c 420
+PSTR("%s response: %s command_key [<corresponding answer/acknowledge>]") api_help.c 441
+PSTR("%s response: %s [command_key_word] <value> ") api_help.c 460
+PSTR("%s response: %s [command_key_word] <value> ") api_help.c 464
+PSTR("%s response: %s <count of delays, timeout: c<=0> ") api_help.c 408
+PSTR("%s response: %s <current state of switch>") api_help.c 541
+PSTR("%s response : %s ID1 description1 status1") api_help.c 156
+PSTR("%s response: %s ID1 value1.1 ... value1.n") api_help.c 210
+PSTR("%s response: %s %s keyword value[s] ") api_help.c 268
+PSTR("%s response: %s %s keyword value[s] ") api_help.c 274
+PSTR("%s response: %s %s pins 0xXX have been pulled HIGH within XX ms") api_help.c 346
+PSTR("%s response: %s %s pins 0xXX have/has parasitic devices") api_help.c 344
+PSTR("%s response: %s value ") api_help.c 262
+PSTR("%s response: %s <value> ") api_help.c 414
+PSTR("%s response: %s <Version> ") api_help.c 479
+PSTR("%s       response TODO: %s CAN-Message-ID CAN-Length [Data0 ... Data7] ") api_help.c 136
+PSTR("%s response TODO: %s Register Value ") api_help.c 200
+PSTR("%s response TODO: %s Register Value (OldValue) ") api_help.c 191
+PSTR("%s response (write \"0\") help_twis.c 33
+PSTR("%s %s ") api_help.c 100
+PSTR("%s%s ***") api_help.c 98
+PSTR("%s %s available command_keys") api_help.c 176
+PSTR("%s %s available command_keys") api_help.c 362
+PSTR("%s %s available command_keys") api_help.c 383
+PSTR("%s %s available command_keys") api_help.c 422
+PSTR("%s %s available command_keys") api_help.c 443
+PSTR("%s %s available command_keys") api_help.c 466
+PSTR("%s %s available command_keys") api_help.c 510
+PSTR("%s               %s command_keyN ... ") api_help.c 379
+PSTR("%s set response: ...") api_help.c 282
+PSTR("%s set response: ...") api_help.c 328
+PSTR("%s set response: ...") api_help.c 336
+PSTR("%s            %s IDX descriptionX statusX ") api_help.c 160
+PSTR("%s           %s IDx valueX.1 ... valueX.n ") api_help.c 214
+PSTR("%s                %s IDx valueX ") api_help.c 172
+PSTR("%sSOME on pins 0x%x ") one_wire.c 1253
+PSTR("%s") spiApi.c 728
+PSTR("%s") spiApi.c 784
+PSTR("%sSQUARE WAVEFORM OUTPUT") waveform_generator_registers.c 79
+PSTR("%s%s%s") api.c 1731
+PSTR("%s%s %s %s") api_version.c 26
+PSTR("%S%S%S") spiApi.c 629
+PSTR("%s %s --- unknown command") api_help.c 546
+PSTR("%s %s --- unknown command") api_help.c 580
+PSTR("%s %s --- unknown sub command") api_help.c 573
+PSTR("starting conversion sequence") one_wire_temperature.c 759
+PSTR("starting main (after init)") main.c 228
+PSTR("strtoul '%s'") spiApi.c 766
+PSTR("%s TWI / I2C access (dummy name) ") help_twis.c 27
+PSTR("%s value '%i' out of range [9,..,12]") one_wire_temperature.c 449
+PSTR("%s%x") api_debug.c 185
+PSTR("%s %x") can.c 459
+PSTR("%s %x") can.c 477
+PSTR("%s %x") one_wire.c 598
+PSTR("%s%x") relay.c 231
+PSTR("%s%x") relay.c 235
+PSTR("%s%x") relay.c 239
+PSTR("%s%x") relay.c 243
+PSTR("%s%x") relay.c 267
+PSTR("%s%x") relay.c 271
+PSTR("%s%x") twi_master.c 361
+PSTR("%s%x: value %x has been written") read_write_register.c 71
+PSTR("%s%x %x") adc.c 169
+PSTR("%s %x %x") can.c 474
+PSTR("%s%x %x Control Register ") waveform_generator_registers.c 235
+PSTR("%s%x %x Delay1 LSB ") waveform_generator_registers.c 215
+PSTR("%s%x %x Delay1 MIDDLE ") waveform_generator_registers.c 210
+PSTR("%s%x %x Delay1 MSB ") waveform_generator_registers.c 205
+PSTR("%s%x %x Delay2 LSB ") waveform_generator_registers.c 230
+PSTR("%s%x %x Delay2 MIDDLE ") waveform_generator_registers.c 225
+PSTR("%s%x %x Delay2 MSB ") waveform_generator_registers.c 220
+PSTR("%s%x %x") read_write_register.c 120
+PSTR("%s %x %x %x") can.c 456
+PSTR(" system (re)started by: ") api_show.c 253
+PSTR("SYST watch dog incarnation no.: ") api_show.c 293
+PSTR("T") api.c 2312
+PSTR(" \t") api_help.c 674
+PSTR("TEC: %i REC: %i CANGIT: 0x%x") can.c 1142
+PSTR("TEC: %i REC: %i CANGST: 0x%x") can.c 1126
+PSTR("TEC: %i REC: %i CANGST: 0x%x") can.c 1134
+PSTR("Timeout") adc.c 228
+PSTR("timer0AScheduler %s") main.c 363
+PSTR("timer0A %s") main.c 353
+PSTR("timer0 %s") main.c 326
+PSTR("timer1 %s") main.c 336
+PSTR("too few arguments (%i) %i") twi_master.c 142
+PSTR("too few arguments") waveform_generator_registers.c 34
+PSTR("too many bytes to add") spiApi.c 777
+PSTR("TRUE") api.c 2313
+PSTR("UART %s") main.c 251
+PSTR("UART string received:%s") api.c 735
+PSTR("undefined bus state") can.c 360
+PSTR("unknown help mode") api_help.c 627
+PSTR("(unknown internal CAN status error %i)") can.c 1233
+PSTR("unknown reset reason") api_show.c 275
+PSTR("unknown TWI error condition") twi_master.c 435
+PSTR("unused mem now %i ") api_show.c 59
+PSTR("valid family code %i") one_wire.c 237
+PSTR("value %#08lx%08lx") spiApi.c 704
+PSTR("value %i") adc.c 162
+PSTR("value = %i") adc.c 242
+PSTR("value out of bounds [1,8]") relay.c 1133
+PSTR("value out of bounds [A,F]") relay.c 1156
+PSTR("waited %i times a delay of %i ms") one_wire_adc.c 865
+PSTR("waited %i times a delay of") one_wire_temperature.c 875
+PSTR("waiting for conversion") one_wire_temperature.c 796
+PSTR("waiting for send message to finish") can.c 346
+PSTR("waiting the remaining %i times") one_wire_temperature.c 881
+PSTR("Watchdog Reset") api_show.c 259
+PSTR("WRITE ACCESS") one_wire.c 496
+PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping") one_wire_dualSwitch.c 100
+PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping") one_wire_dualSwitch.c 116
+PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping") one_wire_octalSwitch.c 110
+PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping") one_wire_octalSwitch.c 95
+PSTR("write argument: invalid arguments") one_wire_dualSwitch.c 122
+PSTR("write argument: invalid arguments") one_wire_octalSwitch.c 116
+PSTR("write argument: too many arguments") one_wire_adc.c 192
+PSTR("write argument: too many arguments") one_wire_dualSwitch.c 127
+PSTR("write argument: too many arguments") one_wire_octalSwitch.c 121
+PSTR("write argument: too many arguments") one_wire_temperature.c 215
+PSTR("write success") twi_master.c 343
+PSTR("writing to ADC memory address: 0x%x \tdata: 0x%x") one_wire_adc.c 461
+PSTR("wrong error index ... returning") api.c 1692
+PSTR("wrong error type %i... returning") api.c 1766
+PSTR("wrong register address") waveform_generator_registers.c 248

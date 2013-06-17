@@ -243,7 +243,7 @@ int main( void )
 #warning TODO make it switchable, up-to-now disabled
  	   // watchdog
  	   wdt_enable(WDTO_2S);
- 	   wdt_disable();
+ 	   //wdt_disable();
 
 #warning think of using ATOMIC_BLOCK() from util/atomic.h
 

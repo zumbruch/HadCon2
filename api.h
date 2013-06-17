@@ -173,6 +173,7 @@ enum se_index
    SERIAL_ERROR_arguments_have_invalid_type,
    SERIAL_ERROR_arguments_exceed_boundaries,
    SERIAL_ERROR_too_many_arguments,
+   SERIAL_ERROR_too_few_arguments,
    SERIAL_ERROR_MAXIMUM_INDEX
 };
 

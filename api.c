@@ -55,6 +55,7 @@
 #include "api_global.h"
 #include "api.h"
 
+static const char filename[] PROGMEM = __FILE__;
 
 #warning TODO: combine responseKeyword and other responses error into one set of responses
 
@@ -242,7 +243,7 @@ static const uint8_t commandImplementation22   PROGMEM = TRUE;
 static const char commandKeyword23[]           PROGMEM = "JTAG"; /*get/set JTAG availability*/
 static const char commandSyntax23[]            PROGMEM = "[0|1]";
 static const char commandSyntaxAlternative23[] PROGMEM = "";
-static const char commandShortDescription23[]  PROGMEM = "set/get JTAG availability";
+static const char commandShortDescription23[]  PROGMEM = "set/get JTAG availability, switch off/enable 4 more ADC channels";
 static const uint8_t commandImplementation23   PROGMEM = TRUE;
 
 // index: 24
@@ -557,7 +558,7 @@ static const char se00[] PROGMEM = "no valid command name";
 static const char se01[] PROGMEM = "ID is too long";
 static const char se02[] PROGMEM = "mask is too long";
 static const char se03[] PROGMEM = "RTR is too long";
-static const char se04[] PROGMEM = "length is  too long";
+static const char se04[] PROGMEM = "length is too long";
 static const char se05[] PROGMEM = "data 0 is too long";
 static const char se06[] PROGMEM = "data 1 is too long";
 static const char se07[] PROGMEM = "data 2 is too long";
@@ -586,10 +587,11 @@ static const char se29[] PROGMEM = "second value is too long";
 static const char se30[] PROGMEM = "arguments have invalid type";
 static const char se31[] PROGMEM = "argument(s) exceed(s) allowed boundary";
 static const char se32[] PROGMEM = "too many arguments";
+static const char se33[] PROGMEM = "too few arguments";
 
 const char *serial_error[] PROGMEM = {
 		se00, se01, se02, se03, se04, se05, se06, se07, se08, se09, se10, se11, se12, se13, se14, se15, se16, se17, se18,
-		se19, se20, se21, se22, se23, se24, se25, se26, se27, se28, se29, se30, se31, se32 };
+		se19, se20, se21, se22, se23, se24, se25, se26, se27, se28, se29, se30, se31, se32, se33 };
 
 static const char ge00[] PROGMEM = "init for timer0 failed";
 static const char ge01[] PROGMEM = "init for timer0A failed";
@@ -1129,39 +1131,17 @@ int8_t apiFindCommandKeywordIndex(const char string[], PGM_P keywords[], size_t 
 	{
 		if ( 0 == strncmp_P(string, (const char*) ( pgm_read_word( &(keywords[keywordIndex])) ), MAX_LENGTH_PARAMETER) )
 		{
- 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches "), string);
+ 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches, index %s "), string, keywordIndex);
 			return keywordIndex;
 		}
         else
         {
-         	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), string);
+         	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), string);
 			keywordIndex++;
         }
 	}
 
-
 	return -1;
-
-	//	static int8_t keywordNumber;
-	//
-	//	if (NULL == string ) {return -99;} /* NULL pointer */
-	//	if (STRING_END == string[0]) {return -99;} /* empty string */
-	//
-	// 	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("Parse_Keyword %s"), string);
-	//	for ( keywordNumber = 0; keywordNumber < commandKeyNumber_MAXIMUM_NUMBER ; keywordNumber++ )
-	//	{
-	//		if ( 0 == strncmp_P(&string[0], (const char*) (pgm_read_word( &(commandKeywords[keywordNumber]))), MAX_LENGTH_PARAMETER) )
-	//		{
-	// 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches "), string);
-	//			return keywordNumber;
-	//		}
-	//        else
-	//          {
-	//         	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), string);
-	//          }
-	//
-	//	}
-	//	return -1;
 }
 
 
@@ -2223,6 +2203,8 @@ void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartS
 
 uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLength)
 {
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("input: '%s' maxLength %i"), string, maxLength);
+
     uint16_t length = 0;
     bool prefixSet = false;
 
@@ -2248,14 +2230,17 @@ uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLength)
     	{
     		if   ( ! ( isspace(string[length+1]) || ('\0' == string[length+1] ) ) )
     		{
-    			printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length 0 - value is followed by non-space character ASCII: %i, '%c'"), string[length+1], string[length+1]);
+    			printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("not a number - value followed by non-space character: %i, '%c'"), string[length+1], string[length+1]);
     			length = 0;
     		}
     	}
     }
 
-    if (prefixSet) {length -= 2;}
-    printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length of \"%s\" is %i"), string, length);
+	if (prefixSet)
+	{
+		length -= 2;
+	}
+	printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length of \"%s\" is %i"), string, length);
    	return length;
 }
 
@@ -2411,6 +2396,7 @@ int8_t getUnsignedNumericValueFromParameterString(const char string[], uint64_t 
     			strncpy(string2, string, strlen(string) - 8 );
     			*ptr_value += (((uint64_t)strtoul(string2, NULL, 16)) << 32);
     		}
+    		printDebug_p(debugLevelEventDebugVerbose, debugSystemApiMisc, __LINE__, (const char*)  ( filename ), PSTR("0x%x"), *ptr_value);
     	}
     }
 	else
@@ -2502,6 +2488,10 @@ uint8_t initUartStruct(struct uartStruct *ptr_myUartStruct)
 
 void startMessage(void)
 {
+	clearString(uart_message_string, BUFFER_SIZE);
+	strncat_P(uart_message_string, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_SYST])) ), BUFFER_SIZE - 1);
+	UART0_Send_Message_String_p(NULL,0);
+
 	showResetSource(TRUE);
 
 	version();
