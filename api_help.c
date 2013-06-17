@@ -502,6 +502,7 @@ void help(struct uartStruct *ptr_uartStruct)
 						UART0_Send_Message_String_p(NULL,0);
 						break;
 #endif
+#if 0
 					case commandKeyNumber_SPI: /* command (dummy name) */
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [???]"), message, currentCommandKeyword );
 						UART0_Send_Message_String_p(NULL,0);
@@ -516,6 +517,7 @@ void help(struct uartStruct *ptr_uartStruct)
 							UART0_Send_Message_String_p(NULL,0);
 						}
 						break;
+#endif
 #if 0
 						case commandKeyNumber_GNWR: /* command (dummy name) */
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s command : %s [???]"), message, currentCommandKeyword );
