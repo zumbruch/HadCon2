@@ -1956,6 +1956,10 @@ void Initialization( void )
 	   }
    }
 
+   // SPI
+   spiInit();
+   spiEnable(true);
+
 # warning remove it
 //PORTG |= (1<<PG2);
 
