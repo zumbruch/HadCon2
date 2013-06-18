@@ -11,6 +11,7 @@
 #include "spi.h"
 #include <avr/io.h>
 #include <stdbool.h>
+#include <util/delay.h>
 
 // struct arrays for storing data to transmit and received data
 spiByteDataArray spiWriteData;
@@ -151,22 +152,33 @@ void spiInit(void) {
 }
 
 
-void spiWriteWithoutChipSelect(uint8_t data)
+uint8_t spiWriteWithoutChipSelect(uint8_t data)
 {
+  volatile uint8_t counter = 0;
   SPDR = data;
-  while( ! (SPSR & (1<<SPIF) ) );
+  while( ( ! (SPSR & (1<<SPIF) ) ) && (counter < SPI_MAX_WAIT_COUNT) )
+    {
+      counter++;
+    }
+  if(counter >= SPI_MAX_WAIT_COUNT)
+    {
+      return 10; // write fail
+    }
+  return 0; // write succeed
+
 }
 
 
-void spiWriteAndReadWithoutChipSelect(uint8_t byteOrder)
+uint8_t spiWriteAndReadWithoutChipSelect(uint8_t byteOrder)
 {
   uint16_t i;
+  uint8_t returnValue = 0;
   if(SPI_MSBYTE_FIRST == byteOrder)
     {
       i = 0;
-      while( i < spiWriteData.length )
+      while( ( i < spiWriteData.length ) && !returnValue )
 	{
-	  spiWriteWithoutChipSelect(spiWriteData.data[i]);
+	  returnValue = spiWriteWithoutChipSelect(spiWriteData.data[i]);
 	  spiReadData.data[i] = spiReadByte();
 	  spiReadData.length++;
 	  i++;
@@ -175,22 +187,24 @@ void spiWriteAndReadWithoutChipSelect(uint8_t byteOrder)
   else
     {
       i = 1;
-      while( i <= spiWriteData.length )
+      while( ( i <= spiWriteData.length ) && !returnValue )
 	{
-	  spiWriteWithoutChipSelect(spiWriteData.data[spiWriteData.length - i]);
+	  returnValue = spiWriteWithoutChipSelect(spiWriteData.data[spiWriteData.length - i]);
 	  spiReadData.data[spiWriteData.length - i] = spiReadByte();
 	  spiReadData.length++;
 	  i++;
 	}
     }
- 
+  return returnValue;
 }
 
-void spiWriteAndReadWithChipSelect(uint8_t byteOrder, uint8_t externalChipSelectMask)
+uint8_t spiWriteAndReadWithChipSelect(uint8_t byteOrder, uint8_t externalChipSelectMask)
 {
+  uint8_t returnValue = 0;
   spiSetChosenChipSelect(externalChipSelectMask);
-  spiWriteAndReadWithoutChipSelect(byteOrder);
+  returnValue = spiWriteAndReadWithoutChipSelect(byteOrder);
   spiReleaseChosenChipSelect(externalChipSelectMask);
+  return returnValue;
 }
 
 uint8_t spiReadByte(void)
@@ -289,43 +303,90 @@ void spiEnable(bool enable)
       SPCR &= ~(1<<SPE);
     }
 }
+
+
+uint8_t spiGetCurrentChipSelectBarStatus(void)
+{
+  uint8_t currentChipSelectBarStatus = 0;
+  uint8_t i;
+  for( i = CHIPSELECT0 ; i < CHIP_MAXIMUM ; i++ )
+    {
+      if( spiChipSelectArray[i].isUsed )
+	{
+    	  // PINA address 0x00
+    	  // DDRA address 0x01
+    	  // PORTA address 0x02
+	  // decrement address by two (now pointing to DDRx) and set the appropriate bit to one
+	  // pin becomes an output pin
+	  if( *(spiChipSelectArray[i].ptrPort-2) & ( 1 << spiChipSelectArray[i].pinNumber ) )
+	    {
+	      currentChipSelectBarStatus |= ( 1 << i );
+	    }
+	}
+    }
+  return currentChipSelectBarStatus;
+}
+
+spiPin * spiGetCurrentChipSelectArray(void)
+{
+  return spiChipSelectArray;
+}
+
+volatile uint8_t * spiGetPortFromChipSelect(uint8_t chipSelectNumber)
+{
+  return spiChipSelectArray[chipSelectNumber].ptrPort;
+}
+
+uint8_t spiGetPinFromChipSelect(uint8_t chipSelectNumber)
+{
+  return spiChipSelectArray[chipSelectNumber].pinNumber;
+}
+
+#ifdef FB_SPI_TEST
+// for testing purposes
+void spiTest(void)
+{
+
+  spiConfigUnion newConfig;
+  newConfig = spiGetConfiguration();
+
+  newConfig.bits.bSpi2x = 0;
+  newConfig.bits.bSpr = 3;
+  spiSetConfiguration(newConfig);
+
+
+  spiAddChipSelect(&PORTE, PE6, CHIPSELECT1);
+  spiSetChipSelectInMask(CHIPSELECT1);
+
+  spiPurgeWriteData();
+
+  spiAddWriteData((spiStandardConfiguration.data) & 0x00FF);
+  spiAddWriteData( ((spiStandardConfiguration.data) >> 8) & 0x00FF);
+
+  spiAddWriteData( (spiGetConfiguration().data) & 0x00FF);
+  spiAddWriteData( ((spiGetConfiguration().data) >> 8) & 0x00FF);
+
+  spiAddWriteData( getChipSelectArrayStatus() );
+
+  spiAddWriteData( spiGetInternalChipSelectMask() );
+
+  spiWriteAndReadWithChipSelect(SPI_MSBYTE_FIRST, SPI_MASK_ALL_CHIPSELECTS);
+
+  spiWriteData.data[0] = spiGetReadData().data[0];
+  spiWriteData.data[1] = spiGetReadData().data[1];
+  spiWriteData.data[2] = spiGetPinFromChipSelect(CHIPSELECT0);
+  spiWriteData.data[3] = (uint8_t)spiGetPortFromChipSelect(CHIPSELECT0);
+  spiWriteData.data[4] = spiGetCurrentChipSelectBarStatus();
+  spiWriteData.data[5] = (uint8_t)spiGetCurrentChipSelectArray()[1].ptrPort;
+  spiWriteData.data[6] = (uint8_t)spiGetCurrentChipSelectArray()[0].ptrPort;
+
+  spiWriteData.length = spiGetReadData().length + 1;
+
+  newConfig.bits.bSpi2x = 1;
+  spiSetConfiguration(newConfig);
+
+  spiWriteAndReadWithChipSelect(SPI_MSBYTE_FIRST, SPI_MASK_ALL_CHIPSELECTS);
   
-/* // for testing purposes */
-/* void spiTest(void) */
-/* { */
-
-/*   spiConfigUnion newConfig; */
-/*   newConfig = spiGetConfiguration(); */
-
-/*   newConfig.bits.bSpi2x = 0; */
-/*   spiSetConfiguration(newConfig); */
-
-/*   spiPurgeWriteData(); */
-
-/*   spiAddWriteData((spiStandardConfiguration.data) & 0x00FF); */
-/*   spiAddWriteData( ((spiStandardConfiguration.data) >> 8) & 0x00FF); */
-
-/*   spiAddWriteData( (spiGetConfiguration().data) & 0x00FF); */
-/*   spiAddWriteData( ((spiGetConfiguration().data) >> 8) & 0x00FF); */
-
-/*   spiAddWriteData( getChipSelectArrayStatus() ); */
-
-/*   spiAddWriteData( spiGetInternalChipSelectMask() ); */
-
-/*   spiWriteAndReadWithChipSelect(SPI_MSBYTE_FIRST, SPI_MASK_ALL_CHIPSELECTS); */
-
-/*   spiWriteData.data[0] = spiGetReadData().data[0]; */
-/*   spiWriteData.data[1] = spiGetReadData().data[1]; */
-/*   spiWriteData.data[2] = spiGetReadData().data[2]; */
-/*   spiWriteData.data[3] = 0x55; */
-/*   spiWriteData.data[4] = spiGetReadData().data[4]; */
-/*   spiWriteData.data[5] = spiGetReadData().data[5]; */
-/*   spiWriteData.length = spiGetReadData().length; */
-
-/*   newConfig.bits.bSpi2x = 1; */
-/*   spiSetConfiguration(newConfig); */
-
-/*   spiWriteAndReadWithChipSelect(SPI_MSBYTE_FIRST, SPI_MASK_ALL_CHIPSELECTS); */
-  
-/*   spiPurgeReadData(); */
-/* } */
+  spiPurgeReadData();
+}
+#endif
