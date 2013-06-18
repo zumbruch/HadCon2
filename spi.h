@@ -68,6 +68,7 @@
 #define SPI_H_
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define SPI_SET true
 #define SPI_RELEASE false
@@ -212,12 +213,6 @@ volatile uint8_t * spiGetPortFromChipSelect(uint8_t chipSelectNumber);
 
 // returns the pin number of one chipselect
 uint8_t spiGetPinFromChipSelect(uint8_t chipSelectNumber);
-
-
-
-
-// for testing purposes
-void spiTest(void);
 
 
 #endif /* SPI_H_ */

@@ -42,6 +42,9 @@
 #include "OWIBitFunctions.h"
 
 #include "twi_master.h"
+#ifdef TESTING_ENABLE
+#include "testing.h"
+#endif
 
 char currentCommandKeyword[MAX_LENGTH_KEYWORD];/*variable to store command keyword e.g. "SEND"*/
 char currentResponseKeyword[MAX_LENGTH_KEYWORD];/*variable to store response keyword e.g. "RECV"*/
@@ -231,7 +234,12 @@ int main( void )
 
    startMessage();
 
-	// main endless loop
+#ifdef TESTING_ENABLE
+   // Testing
+   testingOneShot();
+#endif
+
+   // main endless loop
    uint32_t mainLoopIndex = 0;
 
    while ( 1 )
@@ -395,6 +403,12 @@ int main( void )
 		   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemRELAY, __LINE__, PSTR(__FILE__), PSTR("relay enable: %i - thr valid: %i"),
 				        relayThresholdEnable_flag, relayThresholdAllThresholdsValid);
 	   }
+
+#ifdef TESTING_ENABLE
+	   // Testing
+	   testingPeriodic();
+#endif
+
 	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__), PSTR("-------------------------"));
    }// END of while
 

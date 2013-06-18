@@ -108,7 +108,13 @@ SRC += help_twis.c
 SRC += waveform_generator_registers.c
 SRC += spi.c
 SRC += spiApi.c
+ifdef TESTING_ENABLE
+SRC += testing.c
+ifdef FB_SPI_TEST
+SRC += spiTest.c
+endif
 
+endif
 
 # List C++ source files here. (C dependencies are automatically generated.)
 CPPSRC = 

@@ -54,6 +54,10 @@
 #include "api_define.h"
 #include "api_global.h"
 #include "api.h"
+#ifdef TESTING_ENABLE
+#include "testing.h"
+#endif
+
 
 static const char filename[] PROGMEM = __FILE__;
 
@@ -1959,6 +1963,11 @@ void Initialization( void )
    // SPI
    spiInit();
    spiEnable(true);
+
+#ifdef TESTING_ENABLE
+   // Testing
+   testingInit();
+#endif
 
 # warning remove it
 //PORTG |= (1<<PG2);
