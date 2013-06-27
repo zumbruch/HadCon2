@@ -33,6 +33,8 @@ enum spiApiCommandKeyNumber
 	spiApiCommandKeyNumber_T,
 	spiApiCommandKeyNumber_WRITE,
 	spiApiCommandKeyNumber_W,
+	spiApiCommandKeyNumber_WRITE_BUFFER,
+	spiApiCommandKeyNumber_WB,
 
 	spiApiCommandKeyNumber_PURGE_WRITE_BUFFER,
 	spiApiCommandKeyNumber_PW,
@@ -52,7 +54,6 @@ enum spiApiCommandKeyNumber
 	spiApiCommandKeyNumber_CSR,
 	spiApiCommandKeyNumber_CS_SELECT_MASK,
 	spiApiCommandKeyNumber_CS_PINS,
-	spiApiCommandKeyNumber_CS_AUTO_ENABLE,
 
 	spiApiCommandKeyNumber_SPI_ENABLE,
 	spiApiCommandKeyNumber_DATA_ORDER,
@@ -66,6 +67,8 @@ enum spiApiCommandKeyNumber
 	spiApiCommandKeyNumber_COMPLETE_BYTE,
 	spiApiCommandKeyNumber_RESET,
 	spiApiCommandKeyNumber_TRANSMIT_REPORT,
+	spiApiCommandKeyNumber_AUTO_PURGE_WRITE_BUFFER,
+	spiApiCommandKeyNumber_AUTO_PURGE_READ_BUFFER,
 	spiApiCommandKeyNumber_MAXIMUM_NUMBER
 
 };
@@ -81,14 +84,42 @@ enum spiApiCommandResults
 	spiApiCommandResult_MAXIMUM_INDEX
 };
 
+enum spiApiVarTypes
+{
+	apiVarType_BOOL,
+	apiVarType_BOOL_TrueFalse,
+	//spiApiVarType_BOOL_OnOff,
+	apiVarType_BOOL_HighLow,
+	apiVarType_UINT8,
+	apiVarType_UINT16,
+	apiVarType_UINT32,
+	apiVarType_UINT64,
+	spiApiVarType_MAXIMUM_INDEX,
+};
+
+enum spiApiTransmitByteOrders
+{
+	spiApiTransmitByteOrder_MSB = SPI_MSBYTE_FIRST,
+	spiApiTransmitByteOrder_LSB = SPI_LSBYTE_FIRST,
+	spiApiTransmitByteOrder_MAXIMUM_INDEX
+};
+
+enum spiApiByteCompletions
+{
+	spiApiByteCompletion_LEADING,
+	spiApiByteCompletion_TRAILING,
+	spiApiByteCompletion_MAXIMUM_INDEX
+};
+
 typedef struct spiApiConfig
 {
 	uint8_t transmitByteOrder; /* MSB first 0 / LSB !0 */
 	uint8_t byteCompletion;    /* MSB (0xf == 0x0f) / LSB (0xf == 0xf0) */
 	bool reportTransmit;    /* show write buffer content on transmit*/
-	bool csWriteAutoEnable; /* enable Automatic CS setting on write*/
-	uint8_t csExternalSelectMask;      /* selection of pins to set when sending, subset of available cs channels */
-	spiConfigUnion spiConfiguraton; /* hardware configuration */
+	uint8_t csExternalSelectMask;     /* selection of pins to set when sending, subset of available cs channels */
+	bool autoPurgeWriteBuffer;        /* auto purge write buffer at the end of write commands */
+	bool autoPurgeReadBuffer;         /* auto purge read buffer  at the beginning of write commands */
+	spiConfigUnion spiConfiguration;   /* hardware configuration */
 	bool hardwareInit;
 } spiApiConfig;
 
@@ -97,6 +128,11 @@ extern spiApiConfig* ptr_spiApiConfiguration;
 
 void spiApi(struct uartStruct *ptr_uartStruct);
 void spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandIndex, uint8_t parameterIndex);
+void spiApiSubCommandsFooter( uint16_t result );
+void spiApiShowStatus( uint8_t status[], uint8_t size );
+void spiApiShowStatusSpeed(void);
+
+
 
 size_t spiApiFillWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex);
 size_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex);
@@ -109,6 +145,7 @@ uint8_t spiApiShowWriteBufferContent(struct uartStruct *ptr_uartStruct, uint16_t
 /**/
 uint8_t spiApiSubCommandShowStatus(void);
 uint8_t spiApiSubCommandTransmit(void);
+uint8_t spiApiSubCommandWriteBuffer(void);
 uint8_t spiApiSubCommandPurge(void);
 uint8_t spiApiSubCommandReset(void);
 uint8_t spiApiSubCommandPurgeWriteBuffer(void);
@@ -123,7 +160,6 @@ uint8_t spiApiSubCommandCsStatus(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsBarStatus(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsSelectMask(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsPins(struct uartStruct *ptr_uartStruct);
-uint8_t spiApiSubCommandCsAutoEnable(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandShowWriteBuffer(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandShowReadBuffer(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandControlBits(struct uartStruct *ptr_uartStruct);
@@ -138,10 +174,14 @@ uint8_t spiApiSubCommandDoubleSpeed(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandTransmitByteOrder(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCompleteByte(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandTransmitReport(struct uartStruct *ptr_uartStruct);
+uint8_t spiApiSubCommandAutoPurgeReadBuffer(struct uartStruct *ptr_uartStruct);
+uint8_t spiApiSubCommandAutoPurgeWriteBuffer(struct uartStruct *ptr_uartStruct);
 
-void spiApiGetChipSelectStatus(uint8_t mask, bool invert);
+uint8_t apiShowOrSetValue(struct uartStruct *ptr_uartStruct, void *value, uint8_t type, uint64_t min, uint64_t max);
+
+void spiApiShowChipSelectStatus(uint8_t mask, bool invert);
 uint8_t spiApiCsStatus(struct uartStruct *ptr_uartStruct, bool invert);
-uint8_t spiApiCsSetCsRelease( bool set );
+uint8_t spiApiCsSetOrCsRelease( bool set );
 
 #define max(a,b) \
   ({ __typeof__ (a) _a = (a); \
