@@ -173,6 +173,12 @@ uint8_t spiWriteAndReadWithoutChipSelect(uint8_t byteOrder)
 {
   uint16_t i;
   uint8_t returnValue = 0;
+
+  if( (spiWriteData.length + spiReadData.length) > (MAX_LENGTH_COMMAND >> 1) )
+    {
+      return 20; // not enough space in readbuffer
+    }
+
   if(SPI_MSBYTE_FIRST == byteOrder)
     {
       i = 0;
@@ -180,7 +186,7 @@ uint8_t spiWriteAndReadWithoutChipSelect(uint8_t byteOrder)
 	{
 	  returnValue = spiWriteWithoutChipSelect(spiWriteData.data[i]);
 	  spiReadData.data[i] = spiReadByte();
-	  spiReadData.length++;
+    	  spiReadData.length++;
 	  i++;
 	}
     }
