@@ -57,7 +57,7 @@ static const char spiApiCommandKeyword28[] PROGMEM = "css";
 static const char spiApiCommandKeyword29[] PROGMEM = "cs_release";    	     	/* releases cs, optionally only for <cs mask>*/
 static const char spiApiCommandKeyword30[] PROGMEM = "csr";
 static const char spiApiCommandKeyword31[] PROGMEM = "cs_select_mask";	   		/* chip select output pin byte mask */
-static const char spiApiCommandKeyword32[] PROGMEM = "cs_pins";       	   		/* set hardware addresses of multiple CS outputs*/
+static const char spiApiCommandKeyword32[] PROGMEM = "cs_pins";       	   		/* set/get hardware addresses of multiple CS outputs*/
 static const char spiApiCommandKeyword33[] PROGMEM = "spi_enable";				/* get/set enable SPI*/
 static const char spiApiCommandKeyword34[] PROGMEM = "data_order";         		/* get/set bit endianess*/
 static const char spiApiCommandKeyword35[] PROGMEM = "master";             		/* get/set master mode*/
@@ -85,22 +85,31 @@ const char* spiApiCommandKeywords[] PROGMEM = {
 		spiApiCommandKeyword40, spiApiCommandKeyword41, spiApiCommandKeyword42, spiApiCommandKeyword43, spiApiCommandKeyword44,
 		spiApiCommandKeyword45, spiApiCommandKeyword46 };
 
-/* initial configuration*/
-spiApiConfig spiApiConfiguration = {
-		.transmitByteOrder    = spiApiTransmitByteOrder_MSB,
-		.byteCompletion       = SPI_MSBYTE_FIRST,
-		.reportTransmit       = false,
-		.csExternalSelectMask = 0xFF,
-		.autoPurgeReadBuffer  = true,
-		.autoPurgeWriteBuffer = false,
-		.hardwareInit         = false,
-		.spiConfiguration.data = 0x0
-};
+spiApiConfig spiApiConfiguration;
+bool spiApiInitialized = false;
+
+void spiApiInit(void)
+{
+	/* initial configuration*/
+	spiApiConfiguration.transmitByteOrder    = spiApiTransmitByteOrder_MSB;
+	spiApiConfiguration.byteCompletion       = SPI_MSBYTE_FIRST;
+	spiApiConfiguration.reportTransmit       = false;
+	spiApiConfiguration.csExternalSelectMask = 0xFF;
+	spiApiConfiguration.autoPurgeReadBuffer  = true;
+	spiApiConfiguration.autoPurgeWriteBuffer = false;
+	spiApiConfiguration.hardwareInit         = false;
+	spiApiConfiguration.spiConfiguration     = spiGetConfiguration();
+}
 
 spiApiConfig *ptr_spiApiConfiguration = &spiApiConfiguration;
 
 void spiApi(struct uartStruct *ptr_uartStruct)
 {
+	if (!spiApiInitialized )
+	{
+		spiApiInit();
+		spiApiInitialized = true;
+	}
 
 	switch(ptr_uartStruct->number_of_arguments)
 	{
@@ -284,7 +293,7 @@ void spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandInde
 				if (1 < ptr_uartStruct->number_of_arguments)
 				{
 					spiApiShowStatusSpeed();
-					result = spiApiCommandResult_SUCCESS_WITH_OUTPUT_ELSEWHERE;
+					result = spiApiCommandResult_SUCCESS_QUIET;
 				}
 			}
 			break;
@@ -296,7 +305,7 @@ void spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandInde
 				if (1 < ptr_uartStruct->number_of_arguments)
 				{
 					spiApiShowStatusSpeed();
-					result = spiApiCommandResult_SUCCESS_WITH_OUTPUT_ELSEWHERE;
+					result = spiApiCommandResult_SUCCESS_QUIET;
 				}
 			}
 			break;
@@ -354,7 +363,7 @@ void spiApiSubCommandsFooter( uint16_t result )
 		case spiApiCommandResult_FAILURE_NOT_A_SUB_COMMAND:
 			CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("not a sub command"));
 			break;
-		case spiApiCommandResult_SUCCESS_WITH_OUTPUT_ELSEWHERE:
+		case spiApiCommandResult_SUCCESS_QUIET:
 		case spiApiCommandResult_FAILURE_QUIET:
 			clearString(uart_message_string, BUFFER_SIZE);
 			/* printouts elsewhere generated */
@@ -395,7 +404,7 @@ uint8_t spiApiSubCommandWrite(struct uartStruct *ptr_uartStruct, uint16_t parame
 			if ( true == spiApiConfiguration.reportTransmit )
 			{
 				spiApiSubCommandShowWriteBuffer(ptr_uartStruct);
-				result = spiApiCommandResult_SUCCESS_WITH_OUTPUT_ELSEWHERE;
+				result = spiApiCommandResult_SUCCESS_QUIET;
 			}
 			else
 			{
@@ -472,7 +481,7 @@ uint8_t spiApiSubCommandShowStatus(void)
 
 
 	spiApiShowStatus( status, sizeof(status) );
-	return spiApiCommandResult_SUCCESS_WITH_OUTPUT_ELSEWHERE;
+	return spiApiCommandResult_SUCCESS_QUIET;
 }
 
 void spiApiShowStatus( uint8_t status[], uint8_t size )
@@ -488,6 +497,7 @@ void spiApiShowStatus( uint8_t status[], uint8_t size )
 	ptr_uartStruct->number_of_arguments = nArguments;
 
 }
+
 void spiApiShowStatusSpeed(void)
 {
 	uint8_t list[] = {
@@ -508,7 +518,7 @@ uint8_t spiApiSubCommandTransmit(void)
 	if ( true == spiApiConfiguration.reportTransmit )
 	{
 		spiApiSubCommandShowWriteBuffer(ptr_uartStruct);
-		return spiApiCommandResult_SUCCESS_WITH_OUTPUT_ELSEWHERE;
+		return spiApiCommandResult_SUCCESS_QUIET;
 	}
 	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
 }
@@ -556,7 +566,7 @@ uint8_t spiApiSubCommandWriteBuffer(void)
 		if ( true == spiApiConfiguration.reportTransmit )
 		{
 			spiApiSubCommandShowWriteBuffer(ptr_uartStruct);
-			result = spiApiCommandResult_SUCCESS_WITH_OUTPUT_ELSEWHERE;
+			result = spiApiCommandResult_SUCCESS_QUIET;
 		}
 		else
 		{
@@ -575,6 +585,7 @@ uint8_t spiApiSubCommandWriteBuffer(void)
 uint8_t spiApiSubCommandReset(void)
 {
 	spiInit();
+	spiApiInit();
 	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
 }
 
@@ -607,35 +618,6 @@ uint8_t spiApiSubCommandRead(void)
 	else
 	{
 		return spiApiShowBufferContent( ptr_uartStruct, &spiReadData,  1, spiApiCommandKeyNumber_READ);
-	}
-}
-
-void spiApiShowChipSelectStatus(uint8_t mask, bool invert)
-{
-	bool status;
-	uint8_t activeMask = getChipSelectArrayStatus();
-	for (int chipSelectIndex = 0; chipSelectIndex < CHIP_MAXIMUM; ++chipSelectIndex)
-	{
-		if (mask & (0x1 << chipSelectIndex))
-		{
-			if (activeMask & (0x1 << chipSelectIndex))
-			{
-				//status = spiGetCsStatus(chipSelectIndex) > 0;
-				status = (chipSelectIndex+1)%2 > 0; /*dummy*/
-				if (invert)
-				{
-					status ^= 0x1;
-				}
-				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:%i "), uart_message_string,
-						chipSelectIndex + 1,
-						status);
-#warning TODO: getCsStatus
-			}
-			else
-			{
-				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:- "), uart_message_string, chipSelectIndex + 1);
-			}
-		}
 	}
 }
 
@@ -688,6 +670,36 @@ uint8_t spiApiCsStatus(struct uartStruct *ptr_uartStruct, bool invert) /*optiona
 
 	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
 }
+
+void spiApiShowChipSelectStatus(uint8_t mask, bool invert)
+{
+	bool status = 0;
+	uint8_t statusArray = spiGetCurrentChipSelectBarStatus();
+	uint8_t activeMask = getChipSelectArrayStatus();
+	for (int chipSelectIndex = 0; chipSelectIndex < CHIP_MAXIMUM; ++chipSelectIndex)
+	{
+		if (mask & (0x1 << chipSelectIndex))
+		{
+			if (activeMask & (0x1 << chipSelectIndex))
+			{
+				status = ((statusArray & (0x1 << chipSelectIndex)) != 0 );
+				//status = (chipSelectIndex+1)%2 > 0; /*dummy*/
+				if (!invert)
+				{
+					status ^= 0x1;
+				}
+				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:%i "), uart_message_string,
+						chipSelectIndex + 1,
+						status);
+			}
+			else
+			{
+				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:- "), uart_message_string, chipSelectIndex + 1);
+			}
+		}
+	}
+}
+
 
 uint8_t spiApiSubCommandCsSet(void)
 {
@@ -784,118 +796,118 @@ uint8_t spiApiSubCommandCsSelectMask(struct uartStruct *ptr_uartStruct)
 	return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
 }
 
-#warning TODO: move to api.c and generalize it (output string, parameter)
-uint8_t apiShowOrSetValue(struct uartStruct *ptr_uartStruct, void *value, uint8_t type, uint64_t min, uint64_t max)
-{
-	uint64_t inputValue = 0;
-	int16_t nArgumentArgs =  0;
-	nArgumentArgs = ptr_uartStruct->number_of_arguments - 1;
-	uint8_t result = 0;
-	switch (nArgumentArgs)
-	{
-		case 0: /*print*/
-			result = spiApiCommandResult_SUCCESS_WITH_OUTPUT;
-			switch( type )
-			{
-				//				case apiVarType_BOOL_OnOff:
-				//					strncat_P(uart_message_string, *((bool*)value)?PSTR("ON"):PSTR("OFF"), BUFFER_SIZE - 1);
-				//					break;
-				case apiVarType_BOOL_TrueFalse:
-					strncat_P(uart_message_string, *((bool*)value)?PSTR("TRUE"):PSTR("FALSE"), BUFFER_SIZE - 1);
-					break;
-				case apiVarType_BOOL_HighLow:
-					strncat_P(uart_message_string, *((bool*)value)?PSTR("HIGH"):PSTR("LOW"), BUFFER_SIZE - 1);
-					break;
-				case apiVarType_BOOL:
-					snprintf_P(uart_message_string, BUFFER_SIZE - 1, stringHex , uart_message_string, *((bool*)value));
-					break;
-				case apiVarType_UINT8:
-					snprintf_P(uart_message_string, BUFFER_SIZE - 1, stringHex , uart_message_string, *((uint8_t*)value));
-					break;
-				case apiVarType_UINT16:
-					snprintf_P(uart_message_string, BUFFER_SIZE - 1, stringHex , uart_message_string, *((uint16_t*)value));
-					break;
-				case apiVarType_UINT32:
-					snprintf_P(uart_message_string, BUFFER_SIZE - 1, stringHex , uart_message_string, *((uint32_t*)value));
-					break;
-				case apiVarType_UINT64:
-					snprintf_P(uart_message_string, BUFFER_SIZE - 1, stringHex , uart_message_string, *((uint64_t*)value));
-					break;
-				default:
-					CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
-					result = spiApiCommandResult_FAILURE_QUIET;
-				break;
-			}
-			break;
-		case 1: /*write*/
-		default:
-			if ( 0 != getUnsignedNumericValueFromParameterIndex(2, &inputValue))
-			{
-				result = spiApiCommandResult_FAILURE_QUIET;
-				break;
-			}
-			if (min > inputValue || max < inputValue)
-			{
-				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
-				result = spiApiCommandResult_FAILURE_QUIET;
-				break;
-			}
-			/* set */
-			switch( type )
-			{
-				//case spiApiVarType_BOOL_OnOff:
-				case apiVarType_BOOL_TrueFalse:
-				case apiVarType_BOOL_HighLow:
-				case apiVarType_BOOL:
-					*((bool*)value) = (bool) (inputValue != 0);
-					break;
-				case apiVarType_UINT8:
-					*((uint8_t*)value) = UINT8_MAX & inputValue;
-					break;
-				case apiVarType_UINT16:
-					*((uint16_t*)value) = UINT16_MAX & inputValue;
-					break;
-				case apiVarType_UINT32:
-					*((uint32_t*)value) = UINT32_MAX & inputValue;
-					break;
-				case apiVarType_UINT64:
-					*((uint64_t*)value) = UINT64_MAX & inputValue;
-					break;
-				default:
-					CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
-					result = spiApiCommandResult_FAILURE_QUIET;
-					break;
-			}
-
-			/* report by recursive call */
-			ptr_uartStruct->number_of_arguments = 1;
-			apiShowOrSetValue(ptr_uartStruct, value, type, min, max);
-			ptr_uartStruct->number_of_arguments = nArgumentArgs + 1;
-
-			result = spiApiCommandResult_SUCCESS_WITH_OUTPUT;
-
-			break;
-	}
-	return result;
-}
-
 uint8_t spiApiSubCommandAutoPurgeReadBuffer(struct uartStruct *ptr_uartStruct)
 {
-	return apiShowOrSetValue(ptr_uartStruct, &(spiApiConfiguration.autoPurgeReadBuffer), apiVarType_BOOL_TrueFalse, 0, 0xFF);
+	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.autoPurgeReadBuffer), apiVarType_BOOL_TrueFalse, 0, 0xFF, true, NULL);
 }
 
 uint8_t spiApiSubCommandAutoPurgeWriteBuffer(struct uartStruct *ptr_uartStruct)
 {
-	return apiShowOrSetValue(ptr_uartStruct, &(spiApiConfiguration.autoPurgeWriteBuffer), apiVarType_BOOL_TrueFalse, 0, 0xFF);
+	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.autoPurgeWriteBuffer), apiVarType_BOOL_TrueFalse, 0, 0xFF, true, NULL);
 }
 
 uint8_t spiApiSubCommandTransmitReport(struct uartStruct *ptr_uartStruct)
 {
-	return apiShowOrSetValue(ptr_uartStruct, &(spiApiConfiguration.reportTransmit), apiVarType_BOOL_TrueFalse, 0, 0xFF);
+	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.reportTransmit), apiVarType_BOOL_TrueFalse, 0, 0xFF, true, NULL);
 }
 
 uint8_t spiApiSubCommandCsPins(struct uartStruct *ptr_uartStruct)
 {
+	/*set/get hardware addresses of multiple CS outputs*/
+
+	uint8_t channelIndex = 0;
+    uint16_t result = 0;
+	switch (ptr_uartStruct->number_of_arguments - 1)
+	{
+		case 0: /*read*/
+			return spiApiShowChipSelectAddress(-1);
+		break;
+		case 1: /*write*/
+		default:
+			result = apiAssignParameterToValue(2,  &(channelIndex), apiVarType_UINT8, 1, 0x8);
+			if ( result < spiApiCommandResult_FAILURE )
+			{
+				result = spiApiShowChipSelectAddress(channelIndex);
+			}
+			break;
+	}
+
+	return result;
+}
+
+
+/* uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex)
+ *
+ * 	-1		: 	all
+ * 	1 ... 8 :	selected
+ * 	else 	:	error
+ */
+uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex)
+{
+	if (0 == chipSelectIndex || 8 < chipSelectIndex)
+	{
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
+		return spiApiCommandResult_FAILURE_QUIET;
+	}
+
+	uint8_t activeMask = getChipSelectArrayStatus();
+	for (int index = 0; index < CHIP_MAXIMUM; ++index)
+	{
+		if ( 0 < chipSelectIndex && index != chipSelectIndex -1 )
+		{
+			continue;
+		}
+
+		if ( 0 < chipSelectIndex || (activeMask & (0x1 << index)))
+		{
+			uint16_t portPointer = (uint16_t) spiGetPortFromChipSelect(index);
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:"), uart_message_string, index + 1);
+
+			switch(portPointer)
+			{
+				case (int) &PORTA:
+				case (int) &PORTB:
+				case (int) &PORTC:
+				case (int) &PORTD:
+				case (int) &PORTE:
+				case (int) &PORTF:
+				case (int) &PORTG:
+				{
+					snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sPORT"), uart_message_string);
+					switch(portPointer)
+					{
+						case (int) &PORTA:
+								strncat_P(uart_message_string, PSTR("A"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PORTB:
+								strncat_P(uart_message_string, PSTR("B"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PORTC:
+								strncat_P(uart_message_string, PSTR("C"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PORTD:
+								strncat_P(uart_message_string, PSTR("D"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PORTE:
+								strncat_P(uart_message_string, PSTR("E"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PORTF:
+								strncat_P(uart_message_string, PSTR("F"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PORTG:
+								strncat_P(uart_message_string, PSTR("G"), BUFFER_SIZE - 1);
+						break;
+					}
+				}
+				break;
+				default:
+					snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:%#02x"), uart_message_string, portPointer);
+					break;
+			}
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s,%x,%x "), uart_message_string,
+					spiGetPinFromChipSelect(index), (spiGetCurrentChipSelectArray())[index].isUsed );
+		}
+	}
 	return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
 }
 
@@ -915,7 +927,7 @@ uint8_t spiApiSubCommandControlBits(struct uartStruct *ptr_uartStruct)
 {
 	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
 
-	uint8_t result = apiShowOrSetValue(ptr_uartStruct, &(spiApiConfiguration.spiConfiguration.data), apiVarType_UINT16, 0, 0x1FF);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.spiConfiguration.data), apiVarType_UINT16, 0, 0x1FF, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -932,7 +944,7 @@ uint8_t spiApiSubCommandSpiEnable(struct uartStruct *ptr_uartStruct)
 	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
 	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bSpe;
 
-	uint8_t result = apiShowOrSetValue(ptr_uartStruct, &bits, apiVarType_UINT8, 0, 0x1);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -950,7 +962,7 @@ uint8_t spiApiSubCommandDataOrder(struct uartStruct *ptr_uartStruct)
 	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
 	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bDord;
 
-	uint8_t result = apiShowOrSetValue(ptr_uartStruct, &bits, apiVarType_UINT8, 0, 0x1);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -968,7 +980,7 @@ uint8_t spiApiSubCommandMaster(struct uartStruct *ptr_uartStruct)
 	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
 	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bMstr;
 
-	uint8_t result = apiShowOrSetValue(ptr_uartStruct, &bits, apiVarType_UINT8, 0, 0x1);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -986,7 +998,7 @@ uint8_t spiApiSubCommandClockPolarity(struct uartStruct *ptr_uartStruct)
 	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
 	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bCpol;
 
-	uint8_t result = apiShowOrSetValue(ptr_uartStruct, &bits, apiVarType_UINT8, 0, 0x1);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -1004,7 +1016,7 @@ uint8_t spiApiSubCommandClockPhase(struct uartStruct *ptr_uartStruct)
 	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
 	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bCpha;
 
-	uint8_t result = apiShowOrSetValue(ptr_uartStruct, &bits, apiVarType_UINT8, 0, 0x1);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -1022,7 +1034,7 @@ uint8_t spiApiSubCommandSpeed(struct uartStruct *ptr_uartStruct)
 	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
 	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bSpr;
 
-	uint8_t result = apiShowOrSetValue(ptr_uartStruct, &bits, apiVarType_UINT8, 0, 0x3);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x3, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -1070,7 +1082,7 @@ uint8_t spiApiSubCommandSpeedDivider(struct uartStruct *ptr_uartStruct)
 			break;
 	}
 
-	uint8_t result = apiShowOrSetValue(ptr_uartStruct, &divider, apiVarType_UINT8, 0, 0x80);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &divider, apiVarType_UINT8, 0, 0x80, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -1114,7 +1126,7 @@ uint8_t spiApiSubCommandSpeedDivider(struct uartStruct *ptr_uartStruct)
 					shift = 7;
 					break;
 				default:
-					CommunicationError(ERRA, SERIAL_ERROR_argument_has_invalid_type, true, NULL);
+					CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type, true, NULL);
 					result = spiApiCommandResult_FAILURE_QUIET;
 					break;
 			}
@@ -1136,7 +1148,7 @@ uint8_t spiApiSubCommandDoubleSpeed(struct uartStruct *ptr_uartStruct)
 	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
 	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bSpi2x;
 
-	uint8_t result = apiShowOrSetValue(ptr_uartStruct, &bits, apiVarType_UINT8, 0, 0x1);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -1150,10 +1162,10 @@ uint8_t spiApiSubCommandDoubleSpeed(struct uartStruct *ptr_uartStruct)
 }
 
 
-/*internal settings*/
+/*spi api settings*/
 uint8_t spiApiSubCommandTransmitByteOrder(struct uartStruct *ptr_uartStruct)
 {
-	uint8_t result = apiShowOrSetValue(ptr_uartStruct, &(spiApiConfiguration.transmitByteOrder), apiVarType_UINT8, 0, 0x1);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.transmitByteOrder), apiVarType_UINT8, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -1178,7 +1190,7 @@ uint8_t spiApiSubCommandTransmitByteOrder(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandCompleteByte(struct uartStruct *ptr_uartStruct)
 {
-	uint8_t result = apiShowOrSetValue(ptr_uartStruct, &(spiApiConfiguration.byteCompletion), apiVarType_UINT8, 0, 0x1);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.byteCompletion), apiVarType_UINT8, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -1495,6 +1507,117 @@ uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataAr
 		}
 	}
 
-	return spiApiCommandResult_SUCCESS_WITH_OUTPUT_ELSEWHERE;
+	return spiApiCommandResult_SUCCESS_QUIET;
 }
 
+
+uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max, bool report, char* message)
+{
+	if ( NULL == message)
+	{
+		message = uart_message_string;
+	}
+	switch (nArgumentArgs)
+	{
+		case 0: /*print*/
+			return apiShowValue(message, value, type );
+			break;
+		case 1: /*write*/
+		default:
+			/* take second parameter, i.e. first argument to sub command and fill it into value*/
+
+			if ( spiApiCommandResult_FAILURE > apiAssignParameterToValue(2, value, type, min, max) )
+			{
+				if (report)
+				{
+					/* report by recursive call */
+					apiShowValue(message, value, type );
+					return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
+				}
+			}
+
+			break;
+	}
+	return spiApiCommandResult_SUCCESS_QUIET;
+}
+
+uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max)
+{
+#warning integrate type casting into getUnsignedNumericValueFromParameterIndex(parameterIndex, &inputValue))
+	uint64_t inputValue = 0;
+
+	if ( 0 != getUnsignedNumericValueFromParameterIndex(parameterIndex, &inputValue))
+	{
+		return spiApiCommandResult_FAILURE_QUIET;
+	}
+	if (min > inputValue || max < inputValue)
+	{
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
+		return spiApiCommandResult_FAILURE_QUIET;
+	}
+	/* set */
+	switch( type )
+	{
+		//case spiApiVarType_BOOL_OnOff:
+		case apiVarType_BOOL_TrueFalse:
+		case apiVarType_BOOL_HighLow:
+		case apiVarType_BOOL:
+			*((bool*)value) = (bool) (inputValue != 0);
+			break;
+		case apiVarType_UINT8:
+			*((uint8_t*)value) = UINT8_MAX & inputValue;
+			break;
+		case apiVarType_UINT16:
+			*((uint16_t*)value) = UINT16_MAX & inputValue;
+			break;
+		case apiVarType_UINT32:
+			*((uint32_t*)value) = UINT32_MAX & inputValue;
+			break;
+		case apiVarType_UINT64:
+			*((uint64_t*)value) = UINT64_MAX & inputValue;
+			break;
+		default:
+			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
+			return spiApiCommandResult_FAILURE_QUIET;
+			break;
+	}
+
+	return spiApiCommandResult_SUCCESS_QUIET;
+}
+
+uint8_t apiShowValue(char *string, void *value, uint8_t type )
+{
+	switch( type )
+	{
+		//				case apiVarType_BOOL_OnOff:
+		//					strncat_P(string, *((bool*)value)?PSTR("ON"):PSTR("OFF"), BUFFER_SIZE - 1);
+		//					break;
+		case apiVarType_BOOL_TrueFalse:
+			strncat_P(string, *((bool*)value)?PSTR("TRUE"):PSTR("FALSE"), BUFFER_SIZE - 1);
+			break;
+		case apiVarType_BOOL_HighLow:
+			strncat_P(string, *((bool*)value)?PSTR("HIGH"):PSTR("LOW"), BUFFER_SIZE - 1);
+			break;
+		case apiVarType_BOOL:
+			snprintf_P(string, BUFFER_SIZE - 1, stringHex , string, *((bool*)value));
+			break;
+		case apiVarType_UINT8:
+			snprintf_P(string, BUFFER_SIZE - 1, stringHex , string, *((uint8_t*)value));
+			break;
+		case apiVarType_UINT16:
+			snprintf_P(string, BUFFER_SIZE - 1, stringHex , string, *((uint16_t*)value));
+			break;
+		case apiVarType_UINT32:
+			snprintf_P(string, BUFFER_SIZE - 1, stringHex , string, *((uint32_t*)value));
+			break;
+		case apiVarType_UINT64:
+			snprintf_P(string, BUFFER_SIZE - 1, stringHex , string, *((uint64_t*)value));
+			break;
+		default:
+			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
+			return spiApiCommandResult_FAILURE_QUIET;
+			break;
+	}
+	return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
+
+}

@@ -16,6 +16,7 @@
 #include "api_debug.h"
 #include "spi.h"
 
+
 extern const char* spiApiCommandKeywords[] PROGMEM;
 enum spiApiCommandKeyNumber
 {
@@ -77,7 +78,7 @@ enum spiApiCommandResults
 {
 	spiApiCommandResult_SUCCESS_WITH_OUTPUT 			= 0,
 	spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT,
-	spiApiCommandResult_SUCCESS_WITH_OUTPUT_ELSEWHERE,
+	spiApiCommandResult_SUCCESS_QUIET,
 	spiApiCommandResult_FAILURE 						= 100,
 	spiApiCommandResult_FAILURE_NOT_A_SUB_COMMAND,
 	spiApiCommandResult_FAILURE_QUIET,
@@ -133,7 +134,7 @@ void spiApiShowStatus( uint8_t status[], uint8_t size );
 void spiApiShowStatusSpeed(void);
 
 
-
+void spiApiInit(void);
 size_t spiApiFillWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex);
 size_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex);
 int8_t spiAddNumericParameterToByteArray(const char string[], uint8_t index);
@@ -177,8 +178,11 @@ uint8_t spiApiSubCommandTransmitReport(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandAutoPurgeReadBuffer(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandAutoPurgeWriteBuffer(struct uartStruct *ptr_uartStruct);
 
-uint8_t apiShowOrSetValue(struct uartStruct *ptr_uartStruct, void *value, uint8_t type, uint64_t min, uint64_t max);
+uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max, bool report, char* message);
+uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max);
+uint8_t apiShowValue(char *string, void *value, uint8_t type );
 
+uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex);
 void spiApiShowChipSelectStatus(uint8_t mask, bool invert);
 uint8_t spiApiCsStatus(struct uartStruct *ptr_uartStruct, bool invert);
 uint8_t spiApiCsSetOrCsRelease( bool set );
