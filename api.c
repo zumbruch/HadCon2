@@ -1135,7 +1135,7 @@ int8_t apiFindCommandKeywordIndex(const char string[], PGM_P keywords[], size_t 
 	{
 		if ( 0 == strncmp_P(string, (const char*) ( pgm_read_word( &(keywords[keywordIndex])) ), MAX_LENGTH_PARAMETER) )
 		{
- 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches, index %s "), string, keywordIndex);
+ 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches, index %i "), string, keywordIndex);
 			return keywordIndex;
 		}
         else
@@ -2243,7 +2243,7 @@ uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLength)
     	{
     		if   ( ! ( isspace(string[length+1]) || ('\0' == string[length+1] ) ) )
     		{
-    			printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("not a number - value followed by non-space character: %i, '%c'"), string[length+1], string[length+1]);
+    			printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("not a number - value followed by non-space character: %i, '%c'"), string[length+1], string[length+1]);
     			length = 0;
     		}
     	}
@@ -2253,7 +2253,7 @@ uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLength)
 	{
 		length -= 2;
 	}
-	printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length of \"%s\" is %i"), string, length);
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length of \"%s\" is %i"), string, length);
    	return length;
 }
 
