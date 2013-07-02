@@ -118,7 +118,7 @@ enum spiChipSelects
 	CHIPSELECT5,
 	CHIPSELECT6,
 	CHIPSELECT7,
-	CHIP_MAXIMUM
+	CHIPSELECT_MAXIMUM
 };
 
 typedef struct spiPinStruct

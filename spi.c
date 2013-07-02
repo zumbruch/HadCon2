@@ -13,6 +13,12 @@
 #include <stdbool.h>
 #include <util/delay.h>
 
+/*eclipse specific setting, not used during build process*/
+#ifndef __AVR_AT90CAN128__
+#include <avr/iocan128.h>
+#endif
+
+
 // struct arrays for storing data to transmit and received data
 spiByteDataArray spiWriteData;
 spiByteDataArray spiReadData;
@@ -30,7 +36,7 @@ spiConfigUnion spiStandardConfiguration = { .bits.bSpr   = 0,
 					    .bits.bSpif  = 0  };
 
 // initial configuration for chipselectarray -> all chipselects are unused
-spiPin spiChipSelectArray[CHIP_MAXIMUM] = { { 0 , 0 , false  },
+spiPin spiChipSelectArray[CHIPSELECT_MAXIMUM] = { { 0 , 0 , false  },
 					    { 0 , 0 , false  },
 					    { 0 , 0 , false  },
 					    { 0 , 0 , false  },
@@ -44,7 +50,7 @@ uint8_t spiInternalChipSelectMask = 0;
 uint8_t getChipSelectArrayStatus(void)
 {
   uint8_t status = 0, i = 0;
-  for( i = CHIPSELECT0 ; i < CHIP_MAXIMUM; i++)
+  for( i = CHIPSELECT0 ; i < CHIPSELECT_MAXIMUM; i++)
     {
       if( spiChipSelectArray[i].isUsed )
 	{
@@ -58,10 +64,10 @@ uint8_t spiAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNum
 {
   uint8_t i;
 
-  if ( CHIP_MAXIMUM <= chipSelectNumber )
+  if ( CHIPSELECT_MAXIMUM <= chipSelectNumber )
   {
 	  /* cs number exceeds range */
-	  //CommunicationError
+	  CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
 	  return 30;
   }
   if( !spiChipSelectArray[chipSelectNumber].isUsed && (ptrCurrentPort > (uint8_t *)1))
@@ -88,12 +94,14 @@ uint8_t spiAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNum
     {
 	  if( spiChipSelectArray[chipSelectNumber].isUsed)
 	  {
-		// Warning - chipSelectNumber already in use
+	    // chipSelectNumber already in use
+	  	  CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("chipSelect #%i already in use"), chipSelectNumber+1);
 		  return 10;
 	  }
 	  if( ptrCurrentPort <= (uint8_t *)1)
 	  {
-		// Warning invalid port address
+	      // invalid port address
+		  CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
 		  return 20;
 	  }
     }
@@ -104,10 +112,10 @@ uint8_t spiAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNum
 
 uint8_t spiRemoveChipSelect(uint8_t chipSelectNumber)
 {
-	if ( CHIP_MAXIMUM <= chipSelectNumber )
+	if ( CHIPSELECT_MAXIMUM <= chipSelectNumber )
 	{
 		/* cs number exceeds range */
-		//CommunicationError
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
 		return 1;
 	}
 	else
@@ -137,7 +145,7 @@ void spiInit(void) {
   SPCR = (spiStandardConfiguration.data & 0x00FF);
   SPSR = ((spiStandardConfiguration.data >> 8) & 0x00FF);
 
-  for( i = CHIPSELECT0 ; i < CHIP_MAXIMUM ; i++)
+  for( i = CHIPSELECT0 ; i < CHIPSELECT_MAXIMUM ; i++)
     {
       spiRemoveChipSelect(i);
     }
@@ -315,7 +323,7 @@ uint8_t spiGetCurrentChipSelectBarStatus(void)
 {
   uint8_t currentChipSelectBarStatus = 0;
   uint8_t i;
-  for( i = CHIPSELECT0 ; i < CHIP_MAXIMUM ; i++ )
+  for( i = CHIPSELECT0 ; i < CHIPSELECT_MAXIMUM ; i++ )
     {
       if( spiChipSelectArray[i].isUsed )
 	{
