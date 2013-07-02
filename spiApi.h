@@ -55,6 +55,11 @@ enum spiApiCommandKeyNumber
 	spiApiCommandKeyNumber_CSR,
 	spiApiCommandKeyNumber_CS_SELECT_MASK,
 	spiApiCommandKeyNumber_CS_PINS,
+	spiApiCommandKeyNumber_CS_ADD_PIN,
+	spiApiCommandKeyNumber_CSAP,
+	spiApiCommandKeyNumber_CS_REMOVE_PIN,
+	spiApiCommandKeyNumber_CSRP,
+
 
 	spiApiCommandKeyNumber_SPI_ENABLE,
 	spiApiCommandKeyNumber_DATA_ORDER,
@@ -89,12 +94,13 @@ enum spiApiVarTypes
 {
 	apiVarType_BOOL,
 	apiVarType_BOOL_TrueFalse,
-	//spiApiVarType_BOOL_OnOff,
+	apiVarType_BOOL_OnOff,
 	apiVarType_BOOL_HighLow,
 	apiVarType_UINT8,
 	apiVarType_UINT16,
 	apiVarType_UINT32,
 	apiVarType_UINT64,
+	apiVarType_UINTPTR,
 	spiApiVarType_MAXIMUM_INDEX,
 };
 
@@ -177,10 +183,12 @@ uint8_t spiApiSubCommandCompleteByte(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandTransmitReport(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandAutoPurgeReadBuffer(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandAutoPurgeWriteBuffer(struct uartStruct *ptr_uartStruct);
+uint8_t spiApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct);
+uint8_t spiApiSubCommandCsRemovePin(struct uartStruct *ptr_uartStruct);
 
-uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max, bool report, char* message);
+uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max, bool report, char message[]);
 uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max);
-uint8_t apiShowValue(char *string, void *value, uint8_t type );
+uint8_t apiShowValue(char string[], void *value, uint8_t type );
 
 uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex);
 void spiApiShowChipSelectStatus(uint8_t mask, bool invert);

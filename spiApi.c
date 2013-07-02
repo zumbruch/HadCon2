@@ -10,20 +10,29 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <avr/io.h>
 #include "api_global.h"
 #include "api_define.h"
 #include "api.h"
 #include "spiApi.h"
 #include "spi.h"
 
-static const char filename[] PROGMEM = __FILE__;
-static const char dots[] PROGMEM = "...";
-static const char empty[] PROGMEM = "";
-static const char stringHex[] PROGMEM = "%s%X";
-#warning TODO: optimize memory management of big data array
+/*eclipse specific setting, not used during build process*/
+#ifndef __AVR_AT90CAN128__
+#include <avr/iocan128.h>
+#endif
+
+static const char filename[] 		PROGMEM = __FILE__;
+static const char dots[] 			PROGMEM = "...";
+//static const char empty[] 		PROGMEM = "";
+static const char stringBigHex[]   	PROGMEM = "%s%X";
+//static const char stringHex[]    	PROGMEM = "%s%x";
+static const char port[]           	PROGMEM = "PORT";
+static const char stringKommaHex[] 	PROGMEM = "%s,%x";
+
 static char byte[3]= "00";
 
-#warning TODO: remove abbrev and replace by first match, requieres priority ordering, and option in keyword lookup
+#warning TODO: remove abbrev and replace by first match, requires priority ordering, and option in keyword lookup
 
 static const char spiApiCommandKeyword00[] PROGMEM = "add"; 					/* add <args> to write buffer*/
 static const char spiApiCommandKeyword01[] PROGMEM = "a";
@@ -58,20 +67,24 @@ static const char spiApiCommandKeyword29[] PROGMEM = "cs_release";    	     	/* 
 static const char spiApiCommandKeyword30[] PROGMEM = "csr";
 static const char spiApiCommandKeyword31[] PROGMEM = "cs_select_mask";	   		/* chip select output pin byte mask */
 static const char spiApiCommandKeyword32[] PROGMEM = "cs_pins";       	   		/* set/get hardware addresses of multiple CS outputs*/
-static const char spiApiCommandKeyword33[] PROGMEM = "spi_enable";				/* get/set enable SPI*/
-static const char spiApiCommandKeyword34[] PROGMEM = "data_order";         		/* get/set bit endianess*/
-static const char spiApiCommandKeyword35[] PROGMEM = "master";             		/* get/set master mode*/
-static const char spiApiCommandKeyword36[] PROGMEM = "clock_polarity";     		/* get/set clock polarity*/
-static const char spiApiCommandKeyword37[] PROGMEM = "clock_phase";        		/* get/set clock phase*/
-static const char spiApiCommandKeyword38[] PROGMEM = "speed";              		/* get/set speed */
-static const char spiApiCommandKeyword39[] PROGMEM = "speed_divider";      		/* get/set speed divider*/
-static const char spiApiCommandKeyword40[] PROGMEM = "double_speed";       		/* get/set double speed*/
-static const char spiApiCommandKeyword41[] PROGMEM = "transmit_byte_order";		/* MSB/LSB, big endian */
-static const char spiApiCommandKeyword42[] PROGMEM = "complete_byte";      		/* completing byte by zero at the end or the beginning, due to odd hex digit*/
-static const char spiApiCommandKeyword43[] PROGMEM = "reset";              		/* reset to default*/
-static const char spiApiCommandKeyword44[] PROGMEM = "transmit_report";    		/* report send bytes*/
-static const char spiApiCommandKeyword45[] PROGMEM = "auto_purge_write_buffer";	/* automatic purge of write buffer after write commands */
-static const char spiApiCommandKeyword46[] PROGMEM = "auto_purge_read_buffer";	/* automatic purge of read buffer before write commands */
+static const char spiApiCommandKeyword33[] PROGMEM = "cs_add_pin";  	      	/* set new cs address*/
+static const char spiApiCommandKeyword34[] PROGMEM = "csap";
+static const char spiApiCommandKeyword35[] PROGMEM = "cs_remove_pin";       	/* remove cs address*/
+static const char spiApiCommandKeyword36[] PROGMEM = "csrp";
+static const char spiApiCommandKeyword37[] PROGMEM = "spi_enable";				/* get/set enable SPI*/
+static const char spiApiCommandKeyword38[] PROGMEM = "data_order";         		/* get/set bit endianess*/
+static const char spiApiCommandKeyword39[] PROGMEM = "master";             		/* get/set master mode*/
+static const char spiApiCommandKeyword40[] PROGMEM = "clock_polarity";     		/* get/set clock polarity*/
+static const char spiApiCommandKeyword41[] PROGMEM = "clock_phase";        		/* get/set clock phase*/
+static const char spiApiCommandKeyword42[] PROGMEM = "speed";              		/* get/set speed */
+static const char spiApiCommandKeyword43[] PROGMEM = "speed_divider";      		/* get/set speed divider*/
+static const char spiApiCommandKeyword44[] PROGMEM = "double_speed";       		/* get/set double speed*/
+static const char spiApiCommandKeyword45[] PROGMEM = "transmit_byte_order";		/* MSB/LSB, big endian */
+static const char spiApiCommandKeyword46[] PROGMEM = "complete_byte";      		/* completing byte by zero at the end or the beginning, due to odd hex digit*/
+static const char spiApiCommandKeyword47[] PROGMEM = "reset";              		/* reset to default*/
+static const char spiApiCommandKeyword48[] PROGMEM = "transmit_report";    		/* report send bytes*/
+static const char spiApiCommandKeyword49[] PROGMEM = "auto_purge_write_buffer";	/* automatic purge of write buffer after write commands */
+static const char spiApiCommandKeyword50[] PROGMEM = "auto_purge_read_buffer";	/* automatic purge of read buffer before write commands */
 
 const char* spiApiCommandKeywords[] PROGMEM = {
         spiApiCommandKeyword00, spiApiCommandKeyword01, spiApiCommandKeyword02, spiApiCommandKeyword03, spiApiCommandKeyword04,
@@ -83,7 +96,8 @@ const char* spiApiCommandKeywords[] PROGMEM = {
 		spiApiCommandKeyword30, spiApiCommandKeyword31, spiApiCommandKeyword32, spiApiCommandKeyword33, spiApiCommandKeyword34,
 		spiApiCommandKeyword35, spiApiCommandKeyword36, spiApiCommandKeyword37, spiApiCommandKeyword38, spiApiCommandKeyword39,
 		spiApiCommandKeyword40, spiApiCommandKeyword41, spiApiCommandKeyword42, spiApiCommandKeyword43, spiApiCommandKeyword44,
-		spiApiCommandKeyword45, spiApiCommandKeyword46 };
+		spiApiCommandKeyword45, spiApiCommandKeyword46, spiApiCommandKeyword47, spiApiCommandKeyword48, spiApiCommandKeyword49,
+		spiApiCommandKeyword50 };
 
 spiApiConfig spiApiConfiguration;
 bool spiApiInitialized = false;
@@ -138,7 +152,7 @@ void spiApi(struct uartStruct *ptr_uartStruct)
 			}
 			else
 			{
-				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, true, PSTR("parsing failed"));
+				CommunicationError_p(ERRG, GENERAL_ERROR_invalid_argument, true, NULL);
 			}
 			break;
 		}
@@ -234,6 +248,16 @@ void spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandInde
 		case spiApiCommandKeyNumber_CS_PINS:
 			/* set hardware addresses of multiple CS outputs*/
 			result = spiApiSubCommandCsPins(ptr_uartStruct);
+			break;
+		case spiApiCommandKeyNumber_CS_ADD_PIN:
+		case spiApiCommandKeyNumber_CSAP:
+			/* set hardware addresses of multiple CS outputs*/
+			result = spiApiSubCommandCsAddPin(ptr_uartStruct);
+			break;
+		case spiApiCommandKeyNumber_CS_REMOVE_PIN:
+		case spiApiCommandKeyNumber_CSRP:
+			/* set hardware addresses of multiple CS outputs*/
+			result = spiApiSubCommandCsRemovePin(ptr_uartStruct);
 			break;
 		case spiApiCommandKeyNumber_PURGE:
 		case spiApiCommandKeyNumber_P:
@@ -429,7 +453,7 @@ uint8_t spiApiSubCommandAdd(struct uartStruct *ptr_uartStruct)
 {
 	if ( 1 == ptr_uartStruct->number_of_arguments)
 	{
-		/* SPI a - misinterpretation
+		/* SPI a - missinterpretation
 		 * overlap of hex number 'a' and the 'a' add command */
 		return spiApiSubCommandWrite(ptr_uartStruct, 1);
 	}
@@ -452,6 +476,7 @@ uint8_t spiApiSubCommandShowStatus(void)
 {
 	uint8_t status[] = {
 			spiApiCommandKeyNumber_CS,
+			spiApiCommandKeyNumber_CS_BAR,
 			spiApiCommandKeyNumber_CS_PINS,
 			spiApiCommandKeyNumber_CS_SELECT_MASK,
 
@@ -676,7 +701,7 @@ void spiApiShowChipSelectStatus(uint8_t mask, bool invert)
 	bool status = 0;
 	uint8_t statusArray = spiGetCurrentChipSelectBarStatus();
 	uint8_t activeMask = getChipSelectArrayStatus();
-	for (int chipSelectIndex = 0; chipSelectIndex < CHIP_MAXIMUM; ++chipSelectIndex)
+	for (int chipSelectIndex = 0; chipSelectIndex < CHIPSELECT_MAXIMUM; ++chipSelectIndex)
 	{
 		if (mask & (0x1 << chipSelectIndex))
 		{
@@ -764,7 +789,7 @@ uint8_t spiApiSubCommandCsSelectMask(struct uartStruct *ptr_uartStruct)
 	switch (nArgumentArgs)
 	{
 		case 0: /*read*/
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%X"), uart_message_string, spiApiConfiguration.csExternalSelectMask);
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, stringBigHex, uart_message_string, spiApiConfiguration.csExternalSelectMask);
 			return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
 		break;
 		case 1: /*write*/
@@ -819,10 +844,10 @@ uint8_t spiApiSubCommandCsPins(struct uartStruct *ptr_uartStruct)
     uint16_t result = 0;
 	switch (ptr_uartStruct->number_of_arguments - 1)
 	{
-		case 0: /*read*/
+		case 0: /*read all*/
 			return spiApiShowChipSelectAddress(-1);
 		break;
-		case 1: /*write*/
+		case 1: /*read one*/
 		default:
 			result = apiAssignParameterToValue(2,  &(channelIndex), apiVarType_UINT8, 1, 0x8);
 			if ( result < spiApiCommandResult_FAILURE )
@@ -831,7 +856,6 @@ uint8_t spiApiSubCommandCsPins(struct uartStruct *ptr_uartStruct)
 			}
 			break;
 	}
-
 	return result;
 }
 
@@ -851,7 +875,7 @@ uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex)
 	}
 
 	uint8_t activeMask = getChipSelectArrayStatus();
-	for (int index = 0; index < CHIP_MAXIMUM; ++index)
+	for (int index = 0; index < CHIPSELECT_MAXIMUM; ++index)
 	{
 		if ( 0 < chipSelectIndex && index != chipSelectIndex -1 )
 		{
@@ -860,10 +884,10 @@ uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex)
 
 		if ( 0 < chipSelectIndex || (activeMask & (0x1 << index)))
 		{
-			uint16_t portPointer = (uint16_t) spiGetPortFromChipSelect(index);
+			volatile uint8_t *portPointer = spiGetPortFromChipSelect(index);
 			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:"), uart_message_string, index + 1);
 
-			switch(portPointer)
+			switch((int) portPointer)
 			{
 				case (int) &PORTA:
 				case (int) &PORTB:
@@ -873,8 +897,8 @@ uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex)
 				case (int) &PORTF:
 				case (int) &PORTG:
 				{
-					snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sPORT"), uart_message_string);
-					switch(portPointer)
+					strncat_P(uart_message_string, port, BUFFER_SIZE - 1);
+					switch((int) portPointer)
 					{
 						case (int) &PORTA:
 								strncat_P(uart_message_string, PSTR("A"), BUFFER_SIZE - 1);
@@ -901,15 +925,26 @@ uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex)
 				}
 				break;
 				default:
-					snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:%#02x"), uart_message_string, portPointer);
+					snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%p"), uart_message_string, portPointer);
 					break;
 			}
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s,%x,%x "), uart_message_string,
-					spiGetPinFromChipSelect(index), (spiGetCurrentChipSelectArray())[index].isUsed );
+
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, stringKommaHex, uart_message_string,
+					spiGetPinFromChipSelect(index));
+
+			if ( chipSelectIndex > 0 )
+			{
+				strncat_P(uart_message_string, PSTR(","), BUFFER_SIZE - 1);
+				bool isUsed = (spiGetCurrentChipSelectArray())[index].isUsed;
+				apiShowValue(uart_message_string, &isUsed, apiVarType_BOOL_OnOff );
+//				apiShowValue(NULL, &((spiGetCurrentChipSelectArray())[index].isUsed), apiVarType_BOOL_OnOff );
+			}
+			strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1);
 		}
 	}
 	return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
 }
+
 
 uint8_t spiApiSubCommandShowWriteBuffer(struct uartStruct *ptr_uartStruct)
 {
@@ -1214,6 +1249,186 @@ uint8_t spiApiSubCommandCompleteByte(struct uartStruct *ptr_uartStruct)
 }
 
 
+uint8_t spiApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct)
+{
+	uint8_t chipSelectNumber = 0;
+	spiPin cs;
+    uint8_t result = 0;
+    uint8_t parameterIndex = 0;
+	switch (ptr_uartStruct->number_of_arguments - 1)
+	{
+		case 0:
+		case 1:
+			CommunicationError_p(ERRA, SERIAL_ERROR_too_few_arguments, true, NULL);
+			result = spiApiCommandResult_FAILURE_QUIET;
+			break;
+		case 2:
+		case 3: /*write*/
+		default:
+			/* 1st argument, either Address or string PORTA...G */
+			parameterIndex = 2;
+			if ( isNumericArgument(setParameter[parameterIndex], MAX_LENGTH_PARAMETER) )
+			{
+				result = apiAssignParameterToValue(parameterIndex, &(cs.ptrPort), apiVarType_UINTPTR, 0, 0xFF);
+			}
+			else
+			{
+				/* match "port/PORTx/X" ?*/
+				if (0 == strncasecmp_P(setParameter[parameterIndex], port, 3) && 5 == strlen(setParameter[parameterIndex]))
+				{
+					result = spiApiCommandResult_SUCCESS_QUIET;
+					switch(setParameter[parameterIndex][4])
+					{
+						case 'A':
+						case 'a':
+							cs.ptrPort = &PORTA;
+							break;
+						case 'B':
+						case 'b':
+							cs.ptrPort = &PORTB;
+							break;
+						case 'C':
+						case 'c':
+							cs.ptrPort = &PORTC;
+							break;
+						case 'D':
+						case 'd':
+							cs.ptrPort = &PORTD;
+							break;
+						case 'E':
+						case 'e':
+							cs.ptrPort = &PORTE;
+							break;
+						case 'F':
+						case 'f':
+							cs.ptrPort = &PORTF;
+							break;
+						case 'G':
+						case 'g':
+							cs.ptrPort = &PORTG;
+							break;
+						default:
+							CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type, true, NULL);
+							result = spiApiCommandResult_FAILURE_QUIET;
+							break;
+					}
+				}
+				else
+				{
+					CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type, true, NULL);
+					result = spiApiCommandResult_FAILURE_QUIET;
+					break;
+				}
+			}
+			if ( spiApiCommandResult_FAILURE <= result )
+			{
+				break;
+			}
+
+			/* 2nd argument, pin */
+			parameterIndex = 3;
+			result = apiAssignParameterToValue(parameterIndex, &(cs.pinNumber), apiVarType_UINT8, 1, 8);
+			if ( spiApiCommandResult_FAILURE <= result )
+			{
+				break;
+			}
+
+			/* optional 3rd argument, chipSelectNumber */
+			parameterIndex = 4;
+			if ( ptr_uartStruct->number_of_arguments -1 > 2)
+			{
+				result = apiAssignParameterToValue(parameterIndex, &chipSelectNumber, apiVarType_UINT8, 1, 8);
+				if ( spiApiCommandResult_FAILURE <= result )
+				{
+					break;
+				}
+			}
+			else
+			{
+				/* find open slot */
+				chipSelectNumber = CHIPSELECT0;
+				while (chipSelectNumber < CHIPSELECT_MAXIMUM)
+				{
+					if (false == (spiGetCurrentChipSelectArray()[chipSelectNumber]).isUsed)
+					{
+						break;
+					}
+					chipSelectNumber++;
+				}
+				if ( CHIPSELECT_MAXIMUM == chipSelectNumber)
+				{
+					CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("max #slots (%i) reached"), CHIPSELECT_MAXIMUM);
+					result = spiApiCommandResult_FAILURE_QUIET;
+					break;
+				}
+				/* increase to match software counting of cs [1, 8]*/
+				chipSelectNumber++;
+			}
+
+			/* check doubles */
+			for ( uint8_t slot  = CHIPSELECT0; slot < CHIPSELECT_MAXIMUM; slot++)
+			{
+				if (cs.pinNumber == (spiGetCurrentChipSelectArray()[slot]).pinNumber &&
+					cs.ptrPort == (spiGetCurrentChipSelectArray()[slot]).ptrPort )
+				{
+					CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("port/pin in use"));
+					result = spiApiCommandResult_FAILURE_QUIET;
+					break;
+				}
+			}
+			if ( spiApiCommandResult_FAILURE <= result )
+			{
+				break;
+			}
+
+			/*add cs*/
+			/* subtract -1 to match hardware counting of cs [0,7]*/
+			result = spiAddChipSelect(cs.ptrPort, cs.pinNumber, chipSelectNumber-1);
+			if ( 0 == result)
+			{
+				/* report */
+				spiApiShowStatus( ({ uint8_t list[] = { spiApiCommandKeyNumber_CS_PINS }; &list[0];}), 1);
+				result = spiApiCommandResult_SUCCESS_QUIET;
+			}
+			else
+			{
+				result = spiApiCommandResult_FAILURE_QUIET;
+			}
+			break;
+	}
+	return result;
+}
+
+uint8_t spiApiSubCommandCsRemovePin(struct uartStruct *ptr_uartStruct)
+{
+	uint8_t chipSelectNumber = 0;
+	switch (ptr_uartStruct->number_of_arguments - 1)
+	{
+		case 0: /*print*/
+			CommunicationError_p(ERRA, SERIAL_ERROR_too_few_arguments, true, NULL);
+			return spiApiCommandResult_FAILURE_QUIET;
+			break;
+		case 1: /*write*/
+		default:
+			/* take second parameter, i.e. first argument to sub command and fill it into value*/
+			if ( spiApiCommandResult_FAILURE > apiAssignParameterToValue(2, &chipSelectNumber, apiVarType_UINT8, 1, 8) )
+			{
+				if ( 0 == spiRemoveChipSelect(chipSelectNumber-1))
+				{
+					spiApiShowStatus( ({ uint8_t list[] = { spiApiCommandKeyNumber_CS_PINS }; &list[0];}), 1);
+					return spiApiCommandResult_SUCCESS_QUIET;
+				}
+				else
+				{
+					return spiApiCommandResult_FAILURE_QUIET;
+				}
+			}
+			break;
+	}
+	return spiApiCommandResult_SUCCESS_QUIET;
+}
+
+
 /* helpers */
 
 size_t spiApiFillWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterStartIndex)
@@ -1510,8 +1725,7 @@ uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataAr
 	return spiApiCommandResult_SUCCESS_QUIET;
 }
 
-
-uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max, bool report, char* message)
+uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max, bool report, char message[])
 {
 	if ( NULL == message)
 	{
@@ -1543,7 +1757,7 @@ uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameter
 
 uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max)
 {
-#warning integrate type casting into getUnsignedNumericValueFromParameterIndex(parameterIndex, &inputValue))
+#warning integrate type casting into getUnsignedNumericValueFromParameterIndex(parameterIndex, &inputValue)) ?
 	uint64_t inputValue = 0;
 
 	if ( 0 != getUnsignedNumericValueFromParameterIndex(parameterIndex, &inputValue))
@@ -1558,7 +1772,7 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 	/* set */
 	switch( type )
 	{
-		//case spiApiVarType_BOOL_OnOff:
+		case apiVarType_BOOL_OnOff:
 		case apiVarType_BOOL_TrueFalse:
 		case apiVarType_BOOL_HighLow:
 		case apiVarType_BOOL:
@@ -1576,6 +1790,9 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 		case apiVarType_UINT64:
 			*((uint64_t*)value) = UINT64_MAX & inputValue;
 			break;
+		case apiVarType_UINTPTR:
+			*((uintptr_t*)value) = UINTPTR_MAX & inputValue;
+			break;
 		default:
 			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
 			return spiApiCommandResult_FAILURE_QUIET;
@@ -1585,13 +1802,17 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 	return spiApiCommandResult_SUCCESS_QUIET;
 }
 
-uint8_t apiShowValue(char *string, void *value, uint8_t type )
+uint8_t apiShowValue(char string[], void *value, uint8_t type )
 {
+	if (NULL == string)
+	{
+		string = uart_message_string;
+	}
 	switch( type )
 	{
-		//				case apiVarType_BOOL_OnOff:
-		//					strncat_P(string, *((bool*)value)?PSTR("ON"):PSTR("OFF"), BUFFER_SIZE - 1);
-		//					break;
+		case apiVarType_BOOL_OnOff:
+			strncat_P(string, *((bool*)value)?PSTR("ON"):PSTR("OFF"), BUFFER_SIZE - 1);
+			break;
 		case apiVarType_BOOL_TrueFalse:
 			strncat_P(string, *((bool*)value)?PSTR("TRUE"):PSTR("FALSE"), BUFFER_SIZE - 1);
 			break;
@@ -1599,19 +1820,19 @@ uint8_t apiShowValue(char *string, void *value, uint8_t type )
 			strncat_P(string, *((bool*)value)?PSTR("HIGH"):PSTR("LOW"), BUFFER_SIZE - 1);
 			break;
 		case apiVarType_BOOL:
-			snprintf_P(string, BUFFER_SIZE - 1, stringHex , string, *((bool*)value));
+			snprintf_P(string, BUFFER_SIZE - 1, stringBigHex , string, *((bool*)value));
 			break;
 		case apiVarType_UINT8:
-			snprintf_P(string, BUFFER_SIZE - 1, stringHex , string, *((uint8_t*)value));
+			snprintf_P(string, BUFFER_SIZE - 1, stringBigHex , string, *((uint8_t*)value));
 			break;
 		case apiVarType_UINT16:
-			snprintf_P(string, BUFFER_SIZE - 1, stringHex , string, *((uint16_t*)value));
+			snprintf_P(string, BUFFER_SIZE - 1, stringBigHex , string, *((uint16_t*)value));
 			break;
 		case apiVarType_UINT32:
-			snprintf_P(string, BUFFER_SIZE - 1, stringHex , string, *((uint32_t*)value));
+			snprintf_P(string, BUFFER_SIZE - 1, stringBigHex , string, *((uint32_t*)value));
 			break;
 		case apiVarType_UINT64:
-			snprintf_P(string, BUFFER_SIZE - 1, stringHex , string, *((uint64_t*)value));
+			snprintf_P(string, BUFFER_SIZE - 1, stringBigHex , string, *((uint64_t*)value));
 			break;
 		default:
 			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
