@@ -736,7 +736,7 @@ void Process_Uart_Event(void)
     /* clear uartString, avoiding memset*/
     clearString(uartString, BUFFER_SIZE);
 
-    printDebug_p(debugLevelEventDebug, debugSystemUART, __LINE__, PSTR(__FILE__), PSTR("UART string received:%s"), decrypt_uartString);
+    printDebug_p(debugLevelEventDebug, debugSystemUART, __LINE__, filename, PSTR("UART string received:%s"), decrypt_uartString);
 
 
 	/* split uart string into its elements */
@@ -744,7 +744,7 @@ void Process_Uart_Event(void)
 	int8_t number_of_elements = -1;
 	number_of_elements = uartSplitUartString();
 
- 	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, PSTR(__FILE__),
+ 	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, filename,
  			PSTR("number of string elements found: %i"), number_of_elements);
 
 	if ( 0 < number_of_elements  )
@@ -755,7 +755,7 @@ void Process_Uart_Event(void)
 		/* Find matching command keyword */
 		ptr_uartStruct->commandKeywordIndex = apiFindCommandKeywordIndex(setParameter[0], commandKeywords, commandKeyNumber_MAXIMUM_NUMBER);
 
- 		printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keywordIndex of %s is %i"), setParameter[0], ptr_uartStruct->commandKeywordIndex);
+ 		printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, filename, PSTR("keywordIndex of %s is %i"), setParameter[0], ptr_uartStruct->commandKeywordIndex);
 
 		/* no matching keyword ?*/
 		if ( 0 > ptr_uartStruct->commandKeywordIndex )
@@ -928,7 +928,7 @@ int8_t uartSplitUartString( void )
 		//		}
 	}
 
- 	printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, PSTR(__FILE__), PSTR("found %i arguments "), parameterIndex-1);
+ 	printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, filename, PSTR("found %i arguments "), parameterIndex-1);
 
     clearString(decrypt_uartString, BUFFER_SIZE);
      /* "reset": decrypt_uartString[0] = '\0'; */
@@ -1126,21 +1126,21 @@ int8_t apiFindCommandKeywordIndex(const char string[], PGM_P keywords[], size_t 
 	if (NULL == keywords )        {return -99;} /* NULL pointer */
 	if (STRING_END == string[0] ) {return -99;} /* empty string */
 
- 	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("find index of command keyword: %s"), string);
+ 	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, filename, PSTR("get index of keyword: %s"), string);
 
 	// find matching command keyword
 
  	size_t keywordIndex = 0;
 	while ( keywordIndex < keywordMaximumIndex )
 	{
-		if ( 0 == strncmp_P(string, (const char*) ( pgm_read_word( &(keywords[keywordIndex])) ), MAX_LENGTH_PARAMETER) )
+		if ( 0 == strncasecmp_P(string, (const char*) ( pgm_read_word( &(keywords[keywordIndex])) ), MAX_LENGTH_PARAMETER) )
 		{
- 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches, index %i "), string, keywordIndex);
+ 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, filename, PSTR("keyword %s matches, index %i "), string, keywordIndex);
 			return keywordIndex;
 		}
         else
         {
-         	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), string);
+         	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, filename, PSTR("keyword %s doesn't match"), string);
 			keywordIndex++;
         }
 	}
@@ -1282,7 +1282,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		 * response  now: RECV CAN_Mob CAN-Message-ID CAN-Length [Data0 ... Data7] */
 		/* response TODO: RECV SEND CAN-Message-ID CAN-Length [Data0 ... Data7] */
 		canSendMessage(ptr_uartStruct); /* call function with name canSendMessage */
-		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("Choose_Function: call finished"));
+		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename, PSTR("Choose_Function: call finished"));
 		break;
 	case commandKeyNumber_SUBS:
 	case commandKeyNumber_CANS:
@@ -1693,7 +1693,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
           flag_UseOnlyAlternatives = TRUE;
           break;
        default:
-     	   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("wrong error index ... returning"));
+     	   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, filename, PSTR("wrong error index ... returning"));
           return 1; /*shouldn't happen*/
           break;
     }
@@ -1701,7 +1701,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
     /* check alternative pointer, return if empty*/
     if ( TRUE == flag_UseOnlyAlternatives && NULL == alternativeErrorMessage)
     {
-     	printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("alternatives: NULL ... returning"));
+     	printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, filename, PSTR("alternatives: NULL ... returning"));
     	return 1;
     }
 
@@ -1767,7 +1767,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
               snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
               break;
           default:
-         	  printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("wrong error type %i... returning"), errorType);
+         	  printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, filename, PSTR("wrong error type %i... returning"), errorType);
         	  return 1;
              break;
        }
@@ -2012,12 +2012,12 @@ void InitIOPorts( void )
 
 #if HADCON_VERSION == 2
    /* use port G as output with deactivated pullups for lower pins (3 LEDs and PG3 for JTAG pull-ups*/
-   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("going to set ports for JTAG from: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, filename, PSTR("going to set ports for JTAG from: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 
    DDRG  = (1 << DDG0)| (1 << DDG1)| (1 << DDG2)| (1 << DDG3) | (0 << DDG4);
    PORTG = (0 << PG0) | (0 << PG1) | (1 << PG2) | (1 << PG3)  | (1 << PG4);
 
-   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("having changed ports for JTAG to: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, filename, PSTR("having changed ports for JTAG to: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
 #endif
 
    /* enable ADC and set clock prescale factor to 64 (p.280)*/
@@ -2190,7 +2190,7 @@ void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartS
 }
 
 /*
- * getNumberOfHexDigits(const char *string, const uint16_t maxLenght)
+ * getNumberOfHexDigits(const char *string, const uint16_t maxLength)
  *
  * returns
  *	 		- number of hex digits of string,
@@ -2216,7 +2216,7 @@ void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartS
 
 uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLength)
 {
-	printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("input: '%s' maxLength %i"), string, maxLength);
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, filename, PSTR("input: '%s' maxLength %i"), string, maxLength);
 
     uint16_t length = 0;
     bool prefixSet = false;
@@ -2243,7 +2243,7 @@ uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLength)
     	{
     		if   ( ! ( isspace(string[length+1]) || ('\0' == string[length+1] ) ) )
     		{
-    			printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("not a number - value followed by non-space character: %i, '%c'"), string[length+1], string[length+1]);
+    			printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, filename, PSTR("not a number - value followed by non-space character: %i, '%c'"), string[length+1], string[length+1]);
     			length = 0;
     		}
     	}
@@ -2253,7 +2253,7 @@ uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLength)
 	{
 		length -= 2;
 	}
-	printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length of \"%s\" is %i"), string, length);
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, filename, PSTR("length of \"%s\" is %i"), string, length);
    	return length;
 }
 
@@ -2310,8 +2310,9 @@ bool isNumericArgument(const char string[], const uint16_t maxLength)
  *
  * returns true
  * 		if string matches case insensitively
- * 			T(RUE)
+ * 			TRUE, T not allowed due to ambiguity of 'F' with 0xF
  * 			H(IGH)
+ * 			ON
  * else
  * 		false
  * */
@@ -2325,8 +2326,9 @@ bool isNumericalConstantOne(const char string[])
 	}
 
 	return (
-    		( 0 == strcasecmp_P(string, PSTR("T")   )) ||
+    		//( 0 == strcasecmp_P(string, PSTR("T")   )) ||
     		( 0 == strcasecmp_P(string, PSTR("TRUE"))) ||
+    		( 0 == strcasecmp_P(string, PSTR("ON")  )) ||
     		( 0 == strcasecmp_P(string, PSTR("H")   )) ||
     		( 0 == strcasecmp_P(string, PSTR("HIGH")))
     );
@@ -2337,8 +2339,9 @@ bool isNumericalConstantOne(const char string[])
  *
  * returns true
  * 		if string matches case insensitively
- * 			F(ALSE)
+ * 			FALSE , F not allowed due to ambiguity with 0xF
  *	 		L(LOW)
+ *	 		OFF
  * else
  * 		false
  */
@@ -2351,8 +2354,9 @@ bool isNumericalConstantZero(const char string[])
 		return false;
 	}
     return (
-    		( 0 == strcasecmp_P(string, PSTR("F")   )) ||
+    		//( 0 == strcasecmp_P(string, PSTR("F")   )) ||
     		( 0 == strcasecmp_P(string, PSTR("FALSE"))) ||
+    		( 0 == strcasecmp_P(string, PSTR("OFF")  )) ||
     		( 0 == strcasecmp_P(string, PSTR("L")   )) ||
     		( 0 == strcasecmp_P(string, PSTR("LOW")))
     );
@@ -2381,7 +2385,10 @@ int8_t getUnsignedNumericValueFromParameterString(const char string[], uint64_t 
 
     if ( isNumericArgument(string, MAX_LENGTH_PARAMETER))
     {
-    	/* T,F,t,f,H,L : T(RUE)/F(ALSE) */
+
+    	#warning TODO: resolve ambiguity between shortcut "F" and Hex 0xF, by using varTypes?
+
+    	/* ON,OFF,H(IGH),L(OW) : TRUE/FALSE */
     	if ( isNumericalConstantOne( string ) )
     	{
     		*ptr_value = TRUE;
