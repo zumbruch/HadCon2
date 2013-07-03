@@ -885,14 +885,52 @@ uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex)
 
 uint8_t spiApiSubCommandShowWriteBuffer(struct uartStruct *ptr_uartStruct)
 {
-#warning TODO implement partial output with arguments
-	return spiApiShowBufferContent( ptr_uartStruct, &spiWriteData, 0, spiApiCommandKeyNumber_SHOW_WRITE_BUFFER);
+	return spiApiShowBuffer( ptr_uartStruct, &spiWriteData, spiApiCommandKeyNumber_SHOW_WRITE_BUFFER);
+}
+
+uint8_t spiApiShowBuffer(struct uartStruct *ptr_uartStruct, spiByteDataArray *buffer, int8_t subCommandKeywordIndex)
+{
+	bool revert = false;
+    uint16_t result = 0;
+    int16_t nBytes = 0;
+
+	switch (ptr_uartStruct->number_of_arguments - 1)
+	{
+		case 0: /*show all*/
+			nBytes = 0;
+		break;
+		case 1: /*read selected*/
+			result = apiAssignParameterToValue(2,  &(nBytes), apiVarType_UINT16, 0, INT16_MAX);
+			if ( spiApiCommandResult_FAILURE <= result)
+			{
+				return result;
+			}
+			break;
+		case 2: /*read selected, optionally inverted*/
+		default:
+			result = apiAssignParameterToValue(2,  &(nBytes), apiVarType_UINT16, 1, INT16_MAX);
+			if ( spiApiCommandResult_FAILURE <= result)
+			{
+				return result;
+			}
+			result = apiAssignParameterToValue(3,  &(revert), apiVarType_BOOL, 0, 0xFF);
+			if ( spiApiCommandResult_FAILURE <= result)
+			{
+				return result;
+			}
+			if (revert)
+			{
+				nBytes = 0 - nBytes;
+			}
+			break;
+	}
+
+	return spiApiShowBufferContent( ptr_uartStruct, buffer, nBytes, subCommandKeywordIndex);
 }
 
 uint8_t spiApiSubCommandShowReadBuffer(struct uartStruct *ptr_uartStruct)
 {
-#warning TODO implement partial output with arguments
-	return spiApiShowBufferContent( ptr_uartStruct, &spiReadData, 0, spiApiCommandKeyNumber_SHOW_READ_BUFFER);
+	return spiApiShowBuffer( ptr_uartStruct, &spiReadData, spiApiCommandKeyNumber_SHOW_READ_BUFFER);
 }
 
 uint8_t spiApiSubCommandControlBits(struct uartStruct *ptr_uartStruct)
@@ -1530,8 +1568,7 @@ uint8_t spiApiAddNumericStringToByteArray(const char string[])
 	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
 }
 
-/*
- * uint8_t spiApiShowBufferContent(spiByteDataArray *buffer, int16_t nBytes, int8_t commandKeywordIndex, int8_t subCommandKeywordIndex, PGM_P commandKeywords[])
+/* uint8_t spiApiShowBufferContent(spiByteDataArray *buffer, int16_t nBytes, int8_t commandKeywordIndex, int8_t subCommandKeywordIndex, PGM_P commandKeywords[])
  *
  * shows the content of the data in buffer
  * and prints out the corresponding caller's command and sub command keyword
@@ -1562,19 +1599,22 @@ uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataAr
 	if ( 0 < nBytes ) /* positive */
 	{
 		byteIndex = 0;
+		nBytes = min((int)(buffer->length), nBytes);
 	}
 	else if ( 0 > nBytes ) /* negative */
 	{
 		byteIndex = max((int)(buffer->length) - abs(nBytes),0);
+		nBytes = min((int)(buffer->length), abs(nBytes));
 	}
 	else /* 0 */
 	{
+		byteIndex = 0;
 		nBytes = buffer->length;
 	}
 
-	if (abs(nBytes) == buffer->length)
+	if (nBytes == (int)buffer->length)
 	{
-		/* header */
+		/* summary header */
 		createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, ptr_uartStruct->commandKeywordIndex, subCommandKeywordIndex, spiApiCommandKeywords);
 		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%selements: %#x (%#i)"), uart_message_string, buffer->length, buffer->length );
 		UART0_Send_Message_String_p(NULL,0);
@@ -1587,13 +1627,13 @@ uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataAr
 		createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, ptr_uartStruct->commandKeywordIndex, subCommandKeywordIndex, spiApiCommandKeywords);
 		maxMessageSize = BUFFER_SIZE - 1 - strlen_P(dots) - strlen(uart_message_string);
 
-		for (int16_t byteIndexCtr = 0; byteIndex < buffer->length && byteIndexCtr < abs(nBytes); byteIndex++, byteIndexCtr++)
+		for (int16_t byteCtr = 0; byteIndex < buffer->length && byteCtr < nBytes; byteIndex++, byteCtr++)
 		{
-			if ( (byteIndex)%8 == 0)
+			if ( (byteCtr)%8 == 0)
 			{
 				clearString(message, BUFFER_SIZE);
 				ctr++;
-				if ( abs(nBytes) > 8 )
+				if ( nBytes > 8 )
 				{
 					snprintf(message, maxMessageSize, "(#%i) ", ctr);
 				}
@@ -1601,12 +1641,12 @@ uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataAr
 
 			snprintf(message, maxMessageSize, "%s%02X ", message, buffer->data[byteIndex]);
 
-			if ( 0 == (byteIndexCtr +1 )%8 || byteIndex == buffer->length -1 || byteIndexCtr == nBytes )
+			if ( 0 == (byteCtr+1)%8 || byteIndex == buffer->length-1 || byteCtr+1 == nBytes )
 			{
 				createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, ptr_uartStruct->commandKeywordIndex, subCommandKeywordIndex, spiApiCommandKeywords);
 
 				/* attach "..." at the end, if there are more to come*/
-				if (byteIndexCtr < nBytes - 1)
+				if (byteCtr+1 < nBytes)
 				{
 					strncat_P(message, dots, BUFFER_SIZE -1 );
 				}

@@ -146,6 +146,7 @@ uint8_t spiApiAddNumericParameterToByteArray(const char string[], uint8_t index)
 uint8_t spiApiAddNumericStringToByteArray(const char string[]);
 
 uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataArray *buffer, int16_t nBytes, int8_t subCommandKeywordIndex);
+uint8_t spiApiShowBuffer(struct uartStruct *ptr_uartStruct, spiByteDataArray *buffer, int8_t subCommandKeywordIndex);
 
 uint8_t spiApiShowWriteBufferContent(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex);
 /**/
@@ -192,10 +193,5 @@ uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex);
 void spiApiShowChipSelectStatus(uint8_t mask, bool invert);
 uint8_t spiApiCsStatus(struct uartStruct *ptr_uartStruct, bool invert);
 uint8_t spiApiCsSetOrCsRelease( bool set );
-
-#define max(a,b) \
-  ({ __typeof__ (a) _a = (a); \
-      __typeof__ (b) _b = (b); \
-    _a > _b ? _a : _b; })
 
 #endif /* SPIAPI_H_ */
