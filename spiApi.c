@@ -552,7 +552,6 @@ uint8_t spiApiSubCommandWriteBuffer(void)
 {
 	uint8_t result = 0;
 	uint8_t csSelectMask = 0xFF;
-	uint64_t inputValue = 0;
 
 	switch (ptr_uartStruct->number_of_arguments - 1)
 	{
@@ -561,17 +560,11 @@ uint8_t spiApiSubCommandWriteBuffer(void)
 		break;
 		case 1: /*else*/
 		default:
-			if ( 0 != getUnsignedNumericValueFromParameterIndex(2, &inputValue))
+			result = apiAssignParameterToValue( 2, &csSelectMask, apiVarType_UINT8, 0, 0xFF );
+			if ( spiApiCommandResult_FAILURE <= result )
 			{
 				return spiApiCommandResult_FAILURE_QUIET;
 			}
-			if (inputValue > 0xFF )
-			{
-				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
-				return spiApiCommandResult_FAILURE_QUIET;
-			}
-			/* set */
-			csSelectMask = 0xFF & inputValue;
 			break;
 	}
 
@@ -662,38 +655,27 @@ uint8_t spiApiSubCommandCsBarStatus(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiCsStatus(struct uartStruct *ptr_uartStruct, bool invert) /*optional external mask*/
 {
-	uint64_t value = 0;
-	int16_t nArgumentArgs =  0;
-	nArgumentArgs = ptr_uartStruct->number_of_arguments - 1;
+	uint8_t mask = 0;
+	uint16_t result = spiApiCommandResult_SUCCESS_QUIET;
 
-	switch (nArgumentArgs)
+	switch (ptr_uartStruct->number_of_arguments - 1)
 	{
-		case 0: /* read */
-		{
-			spiApiShowChipSelectStatus(0xFF, invert);
-			return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
-		}
+		case 0: /* show all */
+			mask = 0xFF;
 		break;
-		case 1: /*mask*/
+		case 1: /* show mask*/
 		default:
-			if ( 0 != getUnsignedNumericValueFromParameterIndex(2, &value))
-			{
-				return spiApiCommandResult_FAILURE_QUIET;
-			}
-			else if (value > 0xFF )
-			{
-				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
-				return spiApiCommandResult_FAILURE_QUIET;
-			}
-			else
-			{
-				spiApiShowChipSelectStatus(0xFF & value, invert);
-				return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
-			}
+			result = apiAssignParameterToValue(2, &mask, apiVarType_UINT8, 0,0xFF);
 		break;
 	}
 
-	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+	if (spiApiCommandResult_FAILURE > result)
+	{
+		spiApiShowChipSelectStatus(0xFF & mask, invert);
+		result = spiApiCommandResult_SUCCESS_WITH_OUTPUT;
+	}
+
+	return result;
 }
 
 void spiApiShowChipSelectStatus(uint8_t mask, bool invert)
@@ -738,87 +720,41 @@ uint8_t spiApiSubCommandCsRelease(void)
 
 uint8_t spiApiCsSetOrCsRelease( bool set )
 {
-	uint64_t inputValue = 0;
-	int16_t nArgumentArgs =  0;
-	nArgumentArgs = ptr_uartStruct->number_of_arguments - 1;
 	uint8_t externalChipSelectMask = 0;
+	uint16_t result = spiApiCommandResult_SUCCESS_QUIET;
 
-	switch (nArgumentArgs)
+	switch (ptr_uartStruct->number_of_arguments - 1)
 	{
 		case 0: /* set all active within configuration's mask */
-			externalChipSelectMask = 0xFF & spiApiConfiguration.csExternalSelectMask;
+			externalChipSelectMask = spiApiConfiguration.csExternalSelectMask;
 		break;
-		case 1: /*set all active within mask*/
+		case 1: /* show mask*/
 		default:
-			if ( 0 != getUnsignedNumericValueFromParameterIndex(2, &inputValue))
-			{
-				return spiApiCommandResult_FAILURE_QUIET;
-			}
-			else if (inputValue > 0xFF )
-			{
-				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
-				return spiApiCommandResult_FAILURE_QUIET;
-			}
-			else
-			{
-				externalChipSelectMask = (0xFF & (0xFF & inputValue));
-			}
-
-			break;
+			result = apiAssignParameterToValue(2, &externalChipSelectMask, apiVarType_UINT8, 0,0xFF);
+		break;
 	}
 
-	if ( set )
+	if (spiApiCommandResult_FAILURE > result)
 	{
-		spiSetChosenChipSelect(externalChipSelectMask);
-	}
-	else
-	{
-		spiReleaseChosenChipSelect(externalChipSelectMask);
+		if ( set )
+		{
+			spiSetChosenChipSelect(externalChipSelectMask);
+		}
+		else
+		{
+			spiReleaseChosenChipSelect(externalChipSelectMask);
+		}
+
+		result = spiApiCommandResult_SUCCESS_WITH_OUTPUT;
 	}
 
-	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+	return result;
 
 }
 
 uint8_t spiApiSubCommandCsSelectMask(struct uartStruct *ptr_uartStruct)
 {
-	uint64_t inputValue = 0;
-	int16_t nArgumentArgs =  0;
-	nArgumentArgs = ptr_uartStruct->number_of_arguments - 1;
-
-	switch (nArgumentArgs)
-	{
-		case 0: /*read*/
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, stringBigHex, uart_message_string, spiApiConfiguration.csExternalSelectMask);
-			return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
-		break;
-		case 1: /*write*/
-		default:
-			if ( 0 != getUnsignedNumericValueFromParameterIndex(2, &inputValue))
-			{
-				return spiApiCommandResult_FAILURE_QUIET;
-			}
-			else if (inputValue > 0xFF )
-			{
-				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
-				return spiApiCommandResult_FAILURE_QUIET;
-			}
-			else
-			{
-				/* set */
-				spiApiConfiguration.csExternalSelectMask = 0xFF & inputValue;
-				/* report by recursive call */
-				ptr_uartStruct->number_of_arguments = 1;
-				spiApiSubCommandCsSelectMask(ptr_uartStruct);
-				ptr_uartStruct->number_of_arguments = nArgumentArgs + 1;
-
-				return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
-			}
-
-			break;
-	}
-
-	return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
+	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.csExternalSelectMask), apiVarType_UINT8, 0, 0xFF, true, NULL);
 }
 
 uint8_t spiApiSubCommandAutoPurgeReadBuffer(struct uartStruct *ptr_uartStruct)
@@ -842,6 +778,7 @@ uint8_t spiApiSubCommandCsPins(struct uartStruct *ptr_uartStruct)
 
 	uint8_t channelIndex = 0;
     uint16_t result = 0;
+
 	switch (ptr_uartStruct->number_of_arguments - 1)
 	{
 		case 0: /*read all*/
@@ -1464,7 +1401,7 @@ size_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t argumen
     	else
     	{
     		/* get contents from remainder container */
-#warning TODO: !!!! REMAINDER analysis
+#warning TODO: !!!! REMAINDER analysis to be replaced by union for uartStruct
 
     		result = spiAddNumericParameterToByteArray(&resultString[0], -1);
     		if ( 0 > result )
@@ -1769,6 +1706,7 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
 		return spiApiCommandResult_FAILURE_QUIET;
 	}
+
 	/* set */
 	switch( type )
 	{
