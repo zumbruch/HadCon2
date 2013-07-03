@@ -101,21 +101,21 @@ const char* spiApiCommandKeywords[] PROGMEM = {
 
 spiApiConfig spiApiConfiguration;
 bool spiApiInitialized = false;
+spiApiConfig *ptr_spiApiConfiguration = &spiApiConfiguration;
 
 void spiApiInit(void)
 {
 	/* initial configuration*/
-	spiApiConfiguration.transmitByteOrder    = spiApiTransmitByteOrder_MSB;
-	spiApiConfiguration.byteCompletion       = SPI_MSBYTE_FIRST;
-	spiApiConfiguration.reportTransmit       = false;
-	spiApiConfiguration.csExternalSelectMask = 0xFF;
-	spiApiConfiguration.autoPurgeReadBuffer  = true;
-	spiApiConfiguration.autoPurgeWriteBuffer = false;
-	spiApiConfiguration.hardwareInit         = false;
-	spiApiConfiguration.spiConfiguration     = spiGetConfiguration();
+	ptr_spiApiConfiguration->transmitByteOrder    = spiApiTransmitByteOrder_MSB;
+	ptr_spiApiConfiguration->byteCompletion       = SPI_MSBYTE_FIRST;
+	ptr_spiApiConfiguration->reportTransmit       = false;
+	ptr_spiApiConfiguration->csExternalSelectMask = 0xFF;
+	ptr_spiApiConfiguration->autoPurgeReadBuffer  = true;
+	ptr_spiApiConfiguration->autoPurgeWriteBuffer = false;
+	ptr_spiApiConfiguration->hardwareInit         = false;
+	ptr_spiApiConfiguration->spiConfiguration     = spiGetConfiguration();
 }
 
-spiApiConfig *ptr_spiApiConfiguration = &spiApiConfiguration;
 
 void spiApi(struct uartStruct *ptr_uartStruct)
 {
@@ -408,7 +408,7 @@ uint8_t spiApiSubCommandWrite(struct uartStruct *ptr_uartStruct, uint16_t parame
 {
 	uint8_t result = 0;
 
-	if ( true == spiApiConfiguration.autoPurgeReadBuffer )
+	if ( true == ptr_spiApiConfiguration->autoPurgeReadBuffer )
 	{
 		spiApiSubCommandPurgeReadBuffer();
 	}
@@ -416,7 +416,7 @@ uint8_t spiApiSubCommandWrite(struct uartStruct *ptr_uartStruct, uint16_t parame
 	if ( 0 < spiApiFillWriteArray(ptr_uartStruct, parameterIndex))
 	{
 		/*spiWrite*/
-		result = spiWriteAndReadWithChipSelect( spiApiConfiguration.transmitByteOrder, spiApiConfiguration.csExternalSelectMask );
+		result = spiWriteAndReadWithChipSelect( ptr_spiApiConfiguration->transmitByteOrder, ptr_spiApiConfiguration->csExternalSelectMask );
 
 		if (  spiApiCommandResult_FAILURE <= result)
 		{
@@ -425,7 +425,7 @@ uint8_t spiApiSubCommandWrite(struct uartStruct *ptr_uartStruct, uint16_t parame
 		else
 		{
 			/*reporting*/
-			if ( true == spiApiConfiguration.reportTransmit )
+			if ( true == ptr_spiApiConfiguration->reportTransmit )
 			{
 				spiApiSubCommandShowWriteBuffer(ptr_uartStruct);
 				result = spiApiCommandResult_SUCCESS_QUIET;
@@ -441,7 +441,7 @@ uint8_t spiApiSubCommandWrite(struct uartStruct *ptr_uartStruct, uint16_t parame
 		result = spiApiCommandResult_FAILURE;
 	}
 
-	if ( true == spiApiConfiguration.autoPurgeWriteBuffer )
+	if ( true == ptr_spiApiConfiguration->autoPurgeWriteBuffer )
 	{
 		spiApiSubCommandPurgeWriteBuffer();
 	}
@@ -534,13 +534,13 @@ void spiApiShowStatusSpeed(void)
 
 uint8_t spiApiSubCommandTransmit(void)
 {
-	uint8_t result = spiWriteAndReadWithoutChipSelect( spiApiConfiguration.transmitByteOrder );
+	uint8_t result = spiWriteAndReadWithoutChipSelect( ptr_spiApiConfiguration->transmitByteOrder );
 	if (  spiApiCommandResult_FAILURE <= result)
 	{
 		result = spiApiCommandResult_FAILURE_QUIET;
 		return result;
 	}
-	if ( true == spiApiConfiguration.reportTransmit )
+	if ( true == ptr_spiApiConfiguration->reportTransmit )
 	{
 		spiApiSubCommandShowWriteBuffer(ptr_uartStruct);
 		return spiApiCommandResult_SUCCESS_QUIET;
@@ -556,7 +556,7 @@ uint8_t spiApiSubCommandWriteBuffer(void)
 	switch (ptr_uartStruct->number_of_arguments - 1)
 	{
 		case 0: /*default*/
-			csSelectMask = spiApiConfiguration.csExternalSelectMask;
+			csSelectMask = ptr_spiApiConfiguration->csExternalSelectMask;
 		break;
 		case 1: /*else*/
 		default:
@@ -568,12 +568,12 @@ uint8_t spiApiSubCommandWriteBuffer(void)
 			break;
 	}
 
-	if ( true == spiApiConfiguration.autoPurgeReadBuffer )
+	if ( true == ptr_spiApiConfiguration->autoPurgeReadBuffer )
 	{
 		spiApiSubCommandPurgeReadBuffer();
 	}
 
-	result = spiWriteAndReadWithChipSelect( spiApiConfiguration.transmitByteOrder, csSelectMask );
+	result = spiWriteAndReadWithChipSelect( ptr_spiApiConfiguration->transmitByteOrder, csSelectMask );
 
 	if ( 0 != result )
 	{
@@ -581,7 +581,7 @@ uint8_t spiApiSubCommandWriteBuffer(void)
 	}
 	else
 	{
-		if ( true == spiApiConfiguration.reportTransmit )
+		if ( true == ptr_spiApiConfiguration->reportTransmit )
 		{
 			spiApiSubCommandShowWriteBuffer(ptr_uartStruct);
 			result = spiApiCommandResult_SUCCESS_QUIET;
@@ -592,7 +592,7 @@ uint8_t spiApiSubCommandWriteBuffer(void)
 		}
 	}
 
-	if ( true == spiApiConfiguration.autoPurgeWriteBuffer )
+	if ( true == ptr_spiApiConfiguration->autoPurgeWriteBuffer )
 	{
 		spiApiSubCommandPurgeWriteBuffer();
 	}
@@ -629,7 +629,7 @@ uint8_t spiApiSubCommandPurgeReadBuffer(void)
 
 uint8_t spiApiSubCommandRead(void)
 {
-	if (SPI_MSBYTE_FIRST == spiApiConfiguration.transmitByteOrder)
+	if (SPI_MSBYTE_FIRST == ptr_spiApiConfiguration->transmitByteOrder)
 	{
 		return spiApiShowBufferContent( ptr_uartStruct, &spiReadData, -1, spiApiCommandKeyNumber_READ);
 	}
@@ -726,7 +726,7 @@ uint8_t spiApiCsSetOrCsRelease( bool set )
 	switch (ptr_uartStruct->number_of_arguments - 1)
 	{
 		case 0: /* set all active within configuration's mask */
-			externalChipSelectMask = spiApiConfiguration.csExternalSelectMask;
+			externalChipSelectMask = ptr_spiApiConfiguration->csExternalSelectMask;
 		break;
 		case 1: /* show mask*/
 		default:
@@ -754,22 +754,22 @@ uint8_t spiApiCsSetOrCsRelease( bool set )
 
 uint8_t spiApiSubCommandCsSelectMask(struct uartStruct *ptr_uartStruct)
 {
-	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.csExternalSelectMask), apiVarType_UINT8, 0, 0xFF, true, NULL);
+	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(ptr_spiApiConfiguration->csExternalSelectMask), apiVarType_UINT8, 0, 0xFF, true, NULL);
 }
 
 uint8_t spiApiSubCommandAutoPurgeReadBuffer(struct uartStruct *ptr_uartStruct)
 {
-	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.autoPurgeReadBuffer), apiVarType_BOOL_TrueFalse, 0, 0xFF, true, NULL);
+	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(ptr_spiApiConfiguration->autoPurgeReadBuffer), apiVarType_BOOL_TrueFalse, 0, 0xFF, true, NULL);
 }
 
 uint8_t spiApiSubCommandAutoPurgeWriteBuffer(struct uartStruct *ptr_uartStruct)
 {
-	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.autoPurgeWriteBuffer), apiVarType_BOOL_TrueFalse, 0, 0xFF, true, NULL);
+	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(ptr_spiApiConfiguration->autoPurgeWriteBuffer), apiVarType_BOOL_TrueFalse, 0, 0xFF, true, NULL);
 }
 
 uint8_t spiApiSubCommandTransmitReport(struct uartStruct *ptr_uartStruct)
 {
-	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.reportTransmit), apiVarType_BOOL_TrueFalse, 0, 0xFF, true, NULL);
+	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(ptr_spiApiConfiguration->reportTransmit), apiVarType_BOOL_TrueFalse, 0, 0xFF, true, NULL);
 }
 
 uint8_t spiApiSubCommandCsPins(struct uartStruct *ptr_uartStruct)
@@ -897,15 +897,15 @@ uint8_t spiApiSubCommandShowReadBuffer(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandControlBits(struct uartStruct *ptr_uartStruct)
 {
-	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
+	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
 
-	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.spiConfiguration.data), apiVarType_UINT16, 0, 0x1FF, true, NULL);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(ptr_spiApiConfiguration->spiConfiguration.data), apiVarType_UINT16, 0, 0x1FF, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
 		if (0 < ptr_uartStruct->number_of_arguments -1)
 		{
-			spiSetConfiguration(spiApiConfiguration.spiConfiguration);
+			spiSetConfiguration(ptr_spiApiConfiguration->spiConfiguration);
 		}
 	}
 	return result;
@@ -913,8 +913,8 @@ uint8_t spiApiSubCommandControlBits(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandSpiEnable(struct uartStruct *ptr_uartStruct)
 {
-	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
-	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bSpe;
+	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
+	uint8_t bits = ptr_spiApiConfiguration->spiConfiguration.bits.bSpe;
 
 	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
@@ -922,8 +922,8 @@ uint8_t spiApiSubCommandSpiEnable(struct uartStruct *ptr_uartStruct)
 	{
 		if (0 < ptr_uartStruct->number_of_arguments -1)
 		{
-			spiApiConfiguration.spiConfiguration.bits.bSpe = 0x1 & bits;
-			spiSetConfiguration(spiApiConfiguration.spiConfiguration);
+			ptr_spiApiConfiguration->spiConfiguration.bits.bSpe = 0x1 & bits;
+			spiSetConfiguration(ptr_spiApiConfiguration->spiConfiguration);
 		}
 	}
 	return result;
@@ -931,8 +931,8 @@ uint8_t spiApiSubCommandSpiEnable(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandDataOrder(struct uartStruct *ptr_uartStruct)
 {
-	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
-	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bDord;
+	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
+	uint8_t bits = ptr_spiApiConfiguration->spiConfiguration.bits.bDord;
 
 	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
@@ -940,8 +940,8 @@ uint8_t spiApiSubCommandDataOrder(struct uartStruct *ptr_uartStruct)
 	{
 		if (0 < ptr_uartStruct->number_of_arguments -1)
 		{
-			spiApiConfiguration.spiConfiguration.bits.bDord = 0x1 & bits;
-			spiSetConfiguration(spiApiConfiguration.spiConfiguration);
+			ptr_spiApiConfiguration->spiConfiguration.bits.bDord = 0x1 & bits;
+			spiSetConfiguration(ptr_spiApiConfiguration->spiConfiguration);
 		}
 	}
 	return result;
@@ -949,8 +949,8 @@ uint8_t spiApiSubCommandDataOrder(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandMaster(struct uartStruct *ptr_uartStruct)
 {
-	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
-	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bMstr;
+	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
+	uint8_t bits = ptr_spiApiConfiguration->spiConfiguration.bits.bMstr;
 
 	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
@@ -958,8 +958,8 @@ uint8_t spiApiSubCommandMaster(struct uartStruct *ptr_uartStruct)
 	{
 		if (0 < ptr_uartStruct->number_of_arguments -1)
 		{
-			spiApiConfiguration.spiConfiguration.bits.bMstr= 0x1 & bits;
-			spiSetConfiguration(spiApiConfiguration.spiConfiguration);
+			ptr_spiApiConfiguration->spiConfiguration.bits.bMstr= 0x1 & bits;
+			spiSetConfiguration(ptr_spiApiConfiguration->spiConfiguration);
 		}
 	}
 	return result;
@@ -967,8 +967,8 @@ uint8_t spiApiSubCommandMaster(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandClockPolarity(struct uartStruct *ptr_uartStruct)
 {
-	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
-	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bCpol;
+	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
+	uint8_t bits = ptr_spiApiConfiguration->spiConfiguration.bits.bCpol;
 
 	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
@@ -976,8 +976,8 @@ uint8_t spiApiSubCommandClockPolarity(struct uartStruct *ptr_uartStruct)
 	{
 		if (0 < ptr_uartStruct->number_of_arguments -1)
 		{
-			spiApiConfiguration.spiConfiguration.bits.bCpol = 0x1 & bits;
-			spiSetConfiguration(spiApiConfiguration.spiConfiguration);
+			ptr_spiApiConfiguration->spiConfiguration.bits.bCpol = 0x1 & bits;
+			spiSetConfiguration(ptr_spiApiConfiguration->spiConfiguration);
 		}
 	}
 	return result;
@@ -985,8 +985,8 @@ uint8_t spiApiSubCommandClockPolarity(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandClockPhase(struct uartStruct *ptr_uartStruct)
 {
-	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
-	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bCpha;
+	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
+	uint8_t bits = ptr_spiApiConfiguration->spiConfiguration.bits.bCpha;
 
 	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
@@ -994,8 +994,8 @@ uint8_t spiApiSubCommandClockPhase(struct uartStruct *ptr_uartStruct)
 	{
 		if (0 < ptr_uartStruct->number_of_arguments -1)
 		{
-			spiApiConfiguration.spiConfiguration.bits.bCpha = 0x1 & bits;
-			spiSetConfiguration(spiApiConfiguration.spiConfiguration);
+			ptr_spiApiConfiguration->spiConfiguration.bits.bCpha = 0x1 & bits;
+			spiSetConfiguration(ptr_spiApiConfiguration->spiConfiguration);
 		}
 	}
 	return result;
@@ -1003,8 +1003,8 @@ uint8_t spiApiSubCommandClockPhase(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandSpeed(struct uartStruct *ptr_uartStruct)
 {
-	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
-	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bSpr;
+	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
+	uint8_t bits = ptr_spiApiConfiguration->spiConfiguration.bits.bSpr;
 
 	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x3, true, NULL);
 
@@ -1012,8 +1012,8 @@ uint8_t spiApiSubCommandSpeed(struct uartStruct *ptr_uartStruct)
 	{
 		if (0 < ptr_uartStruct->number_of_arguments -1)
 		{
-			spiApiConfiguration.spiConfiguration.bits.bSpr = 0x3 & bits;
-			spiSetConfiguration(spiApiConfiguration.spiConfiguration);
+			ptr_spiApiConfiguration->spiConfiguration.bits.bSpr = 0x3 & bits;
+			spiSetConfiguration(ptr_spiApiConfiguration->spiConfiguration);
 		}
 	}
 	return result;
@@ -1021,11 +1021,11 @@ uint8_t spiApiSubCommandSpeed(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandSpeedDivider(struct uartStruct *ptr_uartStruct)
 {
-	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
+	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
 	uint8_t divider = 0;
 	uint8_t shift = 0;
 
-	switch(spiApiConfiguration.spiConfiguration.bits.bSpr & 0x3)
+	switch(ptr_spiApiConfiguration->spiConfiguration.bits.bSpr & 0x3)
 	{
 		case 0:
 			divider = 0x4;
@@ -1044,7 +1044,7 @@ uint8_t spiApiSubCommandSpeedDivider(struct uartStruct *ptr_uartStruct)
 			shift = 7;
 			break;
 	}
-	switch(spiApiConfiguration.spiConfiguration.bits.bSpi2x & 0x1)
+	switch(ptr_spiApiConfiguration->spiConfiguration.bits.bSpi2x & 0x1)
 	{
 		case 0:
 			break;
@@ -1063,38 +1063,38 @@ uint8_t spiApiSubCommandSpeedDivider(struct uartStruct *ptr_uartStruct)
 			switch(divider)
 			{
 				case 0x02:
-					spiApiConfiguration.spiConfiguration.bits.bSpr   = 0x0;
-					spiApiConfiguration.spiConfiguration.bits.bSpi2x = 0x1;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpr   = 0x0;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpi2x = 0x1;
 					shift = 1;
 					break;
 				case 0x04:
-					spiApiConfiguration.spiConfiguration.bits.bSpr   = 0x0;
-					spiApiConfiguration.spiConfiguration.bits.bSpi2x = 0x0;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpr   = 0x0;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpi2x = 0x0;
 					shift = 2;
 					break;
 				case 0x08:
-					spiApiConfiguration.spiConfiguration.bits.bSpr   = 0x1;
-					spiApiConfiguration.spiConfiguration.bits.bSpi2x = 0x1;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpr   = 0x1;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpi2x = 0x1;
 					shift = 3;
 					break;
 				case 0x10:
-					spiApiConfiguration.spiConfiguration.bits.bSpr   = 0x1;
-					spiApiConfiguration.spiConfiguration.bits.bSpi2x = 0x0;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpr   = 0x1;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpi2x = 0x0;
 					shift = 4;
 					break;
 				case 0x20:
-					spiApiConfiguration.spiConfiguration.bits.bSpr   = 0x2;
-					spiApiConfiguration.spiConfiguration.bits.bSpi2x = 0x1;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpr   = 0x2;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpi2x = 0x1;
 					shift = 5;
 					break;
 				case 0x40:
-					spiApiConfiguration.spiConfiguration.bits.bSpr   = 0x2;
-					spiApiConfiguration.spiConfiguration.bits.bSpi2x = 0x0;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpr   = 0x2;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpi2x = 0x0;
 					shift = 6;
 					break;
 				case 0x80:
-					spiApiConfiguration.spiConfiguration.bits.bSpr   = 0x3;
-					spiApiConfiguration.spiConfiguration.bits.bSpi2x = 0x0;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpr   = 0x3;
+					ptr_spiApiConfiguration->spiConfiguration.bits.bSpi2x = 0x0;
 					shift = 7;
 					break;
 				default:
@@ -1104,7 +1104,7 @@ uint8_t spiApiSubCommandSpeedDivider(struct uartStruct *ptr_uartStruct)
 			}
 			if ( spiApiCommandResult_FAILURE > result )
 			{
-				spiSetConfiguration(spiApiConfiguration.spiConfiguration);
+				spiSetConfiguration(ptr_spiApiConfiguration->spiConfiguration);
 			}
 		}
 	}
@@ -1117,8 +1117,8 @@ uint8_t spiApiSubCommandSpeedDivider(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandDoubleSpeed(struct uartStruct *ptr_uartStruct)
 {
-	spiApiConfiguration.spiConfiguration = spiGetConfiguration();
-	uint8_t bits = spiApiConfiguration.spiConfiguration.bits.bSpi2x;
+	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
+	uint8_t bits = ptr_spiApiConfiguration->spiConfiguration.bits.bSpi2x;
 
 	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
 
@@ -1126,8 +1126,8 @@ uint8_t spiApiSubCommandDoubleSpeed(struct uartStruct *ptr_uartStruct)
 	{
 		if (0 < ptr_uartStruct->number_of_arguments -1)
 		{
-			spiApiConfiguration.spiConfiguration.bits.bSpi2x = 0x1 & bits;
-			spiSetConfiguration(spiApiConfiguration.spiConfiguration);
+			ptr_spiApiConfiguration->spiConfiguration.bits.bSpi2x = 0x1 & bits;
+			spiSetConfiguration(ptr_spiApiConfiguration->spiConfiguration);
 		}
 	}
 	return result;
@@ -1137,13 +1137,13 @@ uint8_t spiApiSubCommandDoubleSpeed(struct uartStruct *ptr_uartStruct)
 /*spi api settings*/
 uint8_t spiApiSubCommandTransmitByteOrder(struct uartStruct *ptr_uartStruct)
 {
-	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.transmitByteOrder), apiVarType_UINT8, 0, 0x1, true, NULL);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(ptr_spiApiConfiguration->transmitByteOrder), apiVarType_UINT8, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
 		if (0 == ptr_uartStruct->number_of_arguments -1)
 		{
-			switch (spiApiConfiguration.transmitByteOrder)
+			switch (ptr_spiApiConfiguration->transmitByteOrder)
 			{
 				case spiApiTransmitByteOrder_MSB:
 					strncat_P(uart_message_string, PSTR(" (MSB/big endian)"), BUFFER_SIZE -1);
@@ -1162,13 +1162,13 @@ uint8_t spiApiSubCommandTransmitByteOrder(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandCompleteByte(struct uartStruct *ptr_uartStruct)
 {
-	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(spiApiConfiguration.byteCompletion), apiVarType_UINT8, 0, 0x1, true, NULL);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(ptr_spiApiConfiguration->byteCompletion), apiVarType_UINT8, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
 		if (0 == ptr_uartStruct->number_of_arguments -1)
 		{
-			switch (spiApiConfiguration.byteCompletion)
+			switch (ptr_spiApiConfiguration->byteCompletion)
 			{
 				case spiApiByteCompletion_LEADING:
 					strncat_P(uart_message_string, PSTR(" (0xX -> 0x0X)"), BUFFER_SIZE -1);
