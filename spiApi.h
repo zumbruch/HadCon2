@@ -70,7 +70,6 @@ enum spiApiCommandKeyNumber
 	spiApiCommandKeyNumber_SPEED_DIVIDER,
 	spiApiCommandKeyNumber_DOUBLE_SPEED,
 	spiApiCommandKeyNumber_TRANSMIT_BYTE_ORDER,
-	spiApiCommandKeyNumber_COMPLETE_BYTE,
 	spiApiCommandKeyNumber_RESET,
 	spiApiCommandKeyNumber_TRANSMIT_REPORT,
 	spiApiCommandKeyNumber_AUTO_PURGE_WRITE_BUFFER,
@@ -87,6 +86,7 @@ enum spiApiCommandResults
 	spiApiCommandResult_FAILURE 						= 100,
 	spiApiCommandResult_FAILURE_NOT_A_SUB_COMMAND,
 	spiApiCommandResult_FAILURE_QUIET,
+	spiApiCommandResult_UNDEFINED,
 	spiApiCommandResult_MAXIMUM_INDEX
 };
 
@@ -121,7 +121,6 @@ enum spiApiByteCompletions
 typedef struct spiApiConfig
 {
 	uint8_t transmitByteOrder; /* MSB first 0 / LSB !0 */
-	uint8_t byteCompletion;    /* MSB (0xf == 0x0f) / LSB (0xf == 0xf0) */
 	bool reportTransmit;    /* show write buffer content on transmit*/
 	uint8_t csExternalSelectMask;     /* selection of pins to set when sending, subset of available cs channels */
 	bool autoPurgeWriteBuffer;        /* auto purge write buffer at the end of write commands */
@@ -141,10 +140,10 @@ void spiApiShowStatusSpeed(void);
 
 
 void spiApiInit(void);
-size_t spiApiFillWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex);
-size_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex);
-int8_t spiAddNumericParameterToByteArray(const char string[], uint8_t index);
-int8_t spiAddNumericStringToByteArray(const char string[]);
+uint8_t spiApiPurgeAndFillWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex);
+uint8_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex);
+uint8_t spiApiAddNumericParameterToByteArray(const char string[], uint8_t index);
+uint8_t spiApiAddNumericStringToByteArray(const char string[]);
 
 uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataArray *buffer, int16_t nBytes, int8_t subCommandKeywordIndex);
 
@@ -179,7 +178,6 @@ uint8_t spiApiSubCommandSpeed(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandSpeedDivider(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandDoubleSpeed(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandTransmitByteOrder(struct uartStruct *ptr_uartStruct);
-uint8_t spiApiSubCommandCompleteByte(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandTransmitReport(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandAutoPurgeReadBuffer(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandAutoPurgeWriteBuffer(struct uartStruct *ptr_uartStruct);

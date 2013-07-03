@@ -80,11 +80,10 @@ static const char spiApiCommandKeyword42[] PROGMEM = "speed";              		/* 
 static const char spiApiCommandKeyword43[] PROGMEM = "speed_divider";      		/* get/set speed divider*/
 static const char spiApiCommandKeyword44[] PROGMEM = "double_speed";       		/* get/set double speed*/
 static const char spiApiCommandKeyword45[] PROGMEM = "transmit_byte_order";		/* MSB/LSB, big endian */
-static const char spiApiCommandKeyword46[] PROGMEM = "complete_byte";      		/* completing byte by zero at the end or the beginning, due to odd hex digit*/
-static const char spiApiCommandKeyword47[] PROGMEM = "reset";              		/* reset to default*/
-static const char spiApiCommandKeyword48[] PROGMEM = "transmit_report";    		/* report send bytes*/
-static const char spiApiCommandKeyword49[] PROGMEM = "auto_purge_write_buffer";	/* automatic purge of write buffer after write commands */
-static const char spiApiCommandKeyword50[] PROGMEM = "auto_purge_read_buffer";	/* automatic purge of read buffer before write commands */
+static const char spiApiCommandKeyword46[] PROGMEM = "reset";              		/* reset to default*/
+static const char spiApiCommandKeyword47[] PROGMEM = "transmit_report";    		/* report send bytes*/
+static const char spiApiCommandKeyword48[] PROGMEM = "auto_purge_write_buffer";	/* automatic purge of write buffer after write commands */
+static const char spiApiCommandKeyword49[] PROGMEM = "auto_purge_read_buffer";	/* automatic purge of read buffer before write commands */
 
 const char* spiApiCommandKeywords[] PROGMEM = {
         spiApiCommandKeyword00, spiApiCommandKeyword01, spiApiCommandKeyword02, spiApiCommandKeyword03, spiApiCommandKeyword04,
@@ -96,8 +95,7 @@ const char* spiApiCommandKeywords[] PROGMEM = {
 		spiApiCommandKeyword30, spiApiCommandKeyword31, spiApiCommandKeyword32, spiApiCommandKeyword33, spiApiCommandKeyword34,
 		spiApiCommandKeyword35, spiApiCommandKeyword36, spiApiCommandKeyword37, spiApiCommandKeyword38, spiApiCommandKeyword39,
 		spiApiCommandKeyword40, spiApiCommandKeyword41, spiApiCommandKeyword42, spiApiCommandKeyword43, spiApiCommandKeyword44,
-		spiApiCommandKeyword45, spiApiCommandKeyword46, spiApiCommandKeyword47, spiApiCommandKeyword48, spiApiCommandKeyword49,
-		spiApiCommandKeyword50 };
+		spiApiCommandKeyword45, spiApiCommandKeyword46, spiApiCommandKeyword47, spiApiCommandKeyword48, spiApiCommandKeyword49 };
 
 spiApiConfig spiApiConfiguration;
 bool spiApiInitialized = false;
@@ -107,7 +105,6 @@ void spiApiInit(void)
 {
 	/* initial configuration*/
 	ptr_spiApiConfiguration->transmitByteOrder    = spiApiTransmitByteOrder_MSB;
-	ptr_spiApiConfiguration->byteCompletion       = SPI_MSBYTE_FIRST;
 	ptr_spiApiConfiguration->reportTransmit       = false;
 	ptr_spiApiConfiguration->csExternalSelectMask = 0xFF;
 	ptr_spiApiConfiguration->autoPurgeReadBuffer  = true;
@@ -168,7 +165,7 @@ void spiApi(struct uartStruct *ptr_uartStruct)
 
 void spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandIndex, uint8_t parameterIndex)
 {
-	uint8_t result = 0;
+	uint8_t result = spiApiCommandResult_UNDEFINED;
 	// find matching command keyword
 
 	if ( 0 > subCommandIndex )
@@ -341,10 +338,6 @@ void spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandInde
 			/* MSB/LSB, big endian */
 			result = spiApiSubCommandTransmitByteOrder(ptr_uartStruct);
 			break;
-		case spiApiCommandKeyNumber_COMPLETE_BYTE:
-			/* completing byte by zero at the end or the beginning, due to odd hex digit*/
-			result = spiApiSubCommandCompleteByte(ptr_uartStruct);
-			break;
 		case spiApiCommandKeyNumber_RESET:
 			result = spiApiSubCommandReset();
 			break;
@@ -406,26 +399,26 @@ void spiApiSubCommandsFooter( uint16_t result )
 
 uint8_t spiApiSubCommandWrite(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex)
 {
-	uint8_t result = 0;
+	uint8_t result = spiApiCommandResult_UNDEFINED;
 
 	if ( true == ptr_spiApiConfiguration->autoPurgeReadBuffer )
 	{
 		spiApiSubCommandPurgeReadBuffer();
 	}
 
-	if ( 0 < spiApiFillWriteArray(ptr_uartStruct, parameterIndex))
+	if ( spiApiCommandResult_FAILURE > spiApiPurgeAndFillWriteArray(ptr_uartStruct, parameterIndex))
 	{
 		/*spiWrite*/
-		result = spiWriteAndReadWithChipSelect( ptr_spiApiConfiguration->transmitByteOrder, ptr_spiApiConfiguration->csExternalSelectMask );
+		result = spiWriteAndReadWithChipSelect(ptr_spiApiConfiguration->transmitByteOrder, ptr_spiApiConfiguration->csExternalSelectMask);
 
-		if (  spiApiCommandResult_FAILURE <= result)
+		if (spiApiCommandResult_FAILURE <= result)
 		{
 			result = spiApiCommandResult_FAILURE_QUIET;
 		}
 		else
 		{
 			/*reporting*/
-			if ( true == ptr_spiApiConfiguration->reportTransmit )
+			if (true == ptr_spiApiConfiguration->reportTransmit)
 			{
 				spiApiSubCommandShowWriteBuffer(ptr_uartStruct);
 				result = spiApiCommandResult_SUCCESS_QUIET;
@@ -438,7 +431,7 @@ uint8_t spiApiSubCommandWrite(struct uartStruct *ptr_uartStruct, uint16_t parame
 	}
 	else
 	{
-		result = spiApiCommandResult_FAILURE;
+		result = spiApiCommandResult_FAILURE_QUIET;
 	}
 
 	if ( true == ptr_spiApiConfiguration->autoPurgeWriteBuffer )
@@ -451,20 +444,28 @@ uint8_t spiApiSubCommandWrite(struct uartStruct *ptr_uartStruct, uint16_t parame
 
 uint8_t spiApiSubCommandAdd(struct uartStruct *ptr_uartStruct)
 {
-	if ( 1 == ptr_uartStruct->number_of_arguments)
+	switch( ptr_uartStruct->number_of_arguments -1 )
 	{
-		/* SPI a - missinterpretation
-		 * overlap of hex number 'a' and the 'a' add command */
-		return spiApiSubCommandWrite(ptr_uartStruct, 1);
-	}
-	else if ( 0 < spiApiAddToWriteArray(ptr_uartStruct, 2))
-	{
-		return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
-	}
-	else
-	{
-		CommunicationError_p( ERRA, SERIAL_ERROR_too_few_arguments, true, NULL);
-		return spiApiCommandResult_FAILURE_QUIET;
+		case 0: /* SPI a */
+			/* not allowed command,
+			 * either since a is not an even digit value,
+			 * or a without any further arguments makes no sense.
+			 *
+			 * failure will be reported with in write command */
+
+			return spiApiSubCommandWrite(ptr_uartStruct, 1);
+			break;
+		case 1:
+		default:
+	   		if ( spiApiCommandResult_FAILURE > spiApiAddToWriteArray(ptr_uartStruct, 2))
+			{
+				return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+			}
+			else
+			{
+				return spiApiCommandResult_FAILURE_QUIET;
+			}
+			break;
 	}
 }
 
@@ -491,7 +492,6 @@ uint8_t spiApiSubCommandShowStatus(void)
 			spiApiCommandKeyNumber_SPEED_DIVIDER,
 
 			spiApiCommandKeyNumber_TRANSMIT_BYTE_ORDER,
-			spiApiCommandKeyNumber_COMPLETE_BYTE,
 			spiApiCommandKeyNumber_TRANSMIT_REPORT,
 			spiApiCommandKeyNumber_AUTO_PURGE_READ_BUFFER,
 			spiApiCommandKeyNumber_AUTO_PURGE_WRITE_BUFFER,
@@ -550,7 +550,7 @@ uint8_t spiApiSubCommandTransmit(void)
 
 uint8_t spiApiSubCommandWriteBuffer(void)
 {
-	uint8_t result = 0;
+	uint8_t result = spiApiCommandResult_UNDEFINED;
 	uint8_t csSelectMask = 0xFF;
 
 	switch (ptr_uartStruct->number_of_arguments - 1)
@@ -1160,37 +1160,11 @@ uint8_t spiApiSubCommandTransmitByteOrder(struct uartStruct *ptr_uartStruct)
 	return result;
 }
 
-uint8_t spiApiSubCommandCompleteByte(struct uartStruct *ptr_uartStruct)
-{
-	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(ptr_spiApiConfiguration->byteCompletion), apiVarType_UINT8, 0, 0x1, true, NULL);
-
-	if ( spiApiCommandResult_FAILURE > result )
-	{
-		if (0 == ptr_uartStruct->number_of_arguments -1)
-		{
-			switch (ptr_spiApiConfiguration->byteCompletion)
-			{
-				case spiApiByteCompletion_LEADING:
-					strncat_P(uart_message_string, PSTR(" (0xX -> 0x0X)"), BUFFER_SIZE -1);
-					break;
-				case spiApiByteCompletion_TRAILING:
-					strncat_P(uart_message_string, PSTR(" (0xX -> 0xX0)"), BUFFER_SIZE -1);
-					break;
-				default:
-					strncat_P(uart_message_string, PSTR(" UNDEFINED"), BUFFER_SIZE -1);
-					break;
-			}
-		}
-	}
-	return result;
-}
-
-
 uint8_t spiApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct)
 {
 	uint8_t chipSelectNumber = 0;
 	spiPin cs;
-    uint8_t result = 0;
+    uint8_t result = spiApiCommandResult_UNDEFINED;
     uint8_t parameterIndex = 0;
 	switch (ptr_uartStruct->number_of_arguments - 1)
 	{
@@ -1368,19 +1342,16 @@ uint8_t spiApiSubCommandCsRemovePin(struct uartStruct *ptr_uartStruct)
 
 /* helpers */
 
-size_t spiApiFillWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterStartIndex)
+uint8_t spiApiPurgeAndFillWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterStartIndex)
 {
-	/* reset array length*/
-	spiWriteData.length = 0;
-
-	spiApiAddToWriteArray(ptr_uartStruct, parameterStartIndex);
-
-	return spiWriteData.length;
+	/* reset array*/
+	spiPurgeWriteData();
+	return spiApiAddToWriteArray(ptr_uartStruct, parameterStartIndex);
 }
 
-size_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t argumentIndex)
+uint8_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t argumentIndex)
 {
-	int8_t result;
+	uint8_t result = spiApiCommandResult_UNDEFINED;
 
     while( spiWriteData.length < sizeof(spiWriteData.data) -1 && (int) argumentIndex <= ptr_uartStruct->number_of_arguments )
     {
@@ -1391,10 +1362,10 @@ size_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t argumen
 
     		/* get contents from parameter container */
     		/* spiWriteData should be increased */
-    		result = spiAddNumericParameterToByteArray(NULL, argumentIndex);
-
-    		if ( 0 > result )
+    		result = spiApiAddNumericParameterToByteArray(NULL, argumentIndex);
+    		if ( spiApiCommandResult_FAILURE <= result )
     		{
+    			return result;
     			break;
     		}
     	}
@@ -1403,9 +1374,10 @@ size_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t argumen
     		/* get contents from remainder container */
 #warning TODO: !!!! REMAINDER analysis to be replaced by union for uartStruct
 
-    		result = spiAddNumericParameterToByteArray(&resultString[0], -1);
-    		if ( 0 > result )
+    		result = spiApiAddNumericParameterToByteArray(&resultString[0], -1);
+    		if ( spiApiCommandResult_FAILURE <= result )
     		{
+    			return result;
     			break;
     		}
     	}
@@ -1414,11 +1386,11 @@ size_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t argumen
   		argumentIndex++;
     }
 
-    return spiWriteData.length;
+    return result;
 
 }//END of function
 
-int8_t spiAddNumericParameterToByteArray(const char string[], uint8_t index)
+uint8_t spiApiAddNumericParameterToByteArray(const char string[], uint8_t index)
 {
 	int8_t result;
 	printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ), PSTR("para to byte array"));
@@ -1431,32 +1403,33 @@ int8_t spiAddNumericParameterToByteArray(const char string[], uint8_t index)
 			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("NULL pointer received"));
 			return -1;
 		}
-		result = spiAddNumericStringToByteArray( string );
-		if (-1 == result)
+		result = spiApiAddNumericStringToByteArray( string );
+		if ( spiApiCommandResult_FAILURE <= result )
 		{
-			return -1;
+			return result;
 		}
 	}
 	/* get string from setParameter at the index */
 	else
 	{
 		printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ), PSTR("para string to byte array"));
-		result = spiAddNumericStringToByteArray( setParameter[index] );
-		if (-1 == result)
+		result = spiApiAddNumericStringToByteArray( setParameter[index] );
+		if ( spiApiCommandResult_FAILURE <= result )
 		{
-			return -1;
+			return result;
 		}
 	}
-	return 0;
+	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+
 }
 
 /*
- * int8_t spiAddNumericStringToByteArray(const char string[], spiByteDataArray* data)
+ * int8_t spiApiAddNumericStringToByteArray(const char string[], spiByteDataArray* data)
  *
  *
  */
 
-int8_t spiAddNumericStringToByteArray(const char string[])
+uint8_t spiApiAddNumericStringToByteArray(const char string[])
 {
 	uint64_t value;
 	size_t numberOfDigits;
@@ -1464,13 +1437,20 @@ int8_t spiAddNumericStringToByteArray(const char string[])
 	if ( NULL == string)
 	{
 		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("NULL pointer received"));
-		return -1;
+		return spiApiCommandResult_FAILURE_QUIET;
 	}
 
 	if ( isNumericArgument(string, MAX_LENGTH_COMMAND - MAX_LENGTH_KEYWORD - 2))
 	{
 		/* get number of digits*/
 		numberOfDigits = getNumberOfHexDigits(string, MAX_LENGTH_COMMAND - MAX_LENGTH_KEYWORD - 2 );
+
+		// only even number of digits are allowed, since only complete bytes are transmitted
+		if (numberOfDigits%2 )
+		{
+			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("only EVEN number of digits allowed (%s)"), string);
+			return spiApiCommandResult_FAILURE_QUIET;
+		}
 
 		/* check if new element, split into bytes, MSB to LSB,
 		 * to be added would exceed the maximum size of data array */
@@ -1498,11 +1478,8 @@ int8_t spiAddNumericStringToByteArray(const char string[])
 						/* 0x0000000000000		.. 0xFFFFFFFFFFFFFF*/
 						/* 0x000000000000000	.. 0xFFFFFFFFFFFFFFFF*/
 						/* ... */
-#warning TODO add case add leading 0 at end for odd number of digits
 						spiAddWriteData( 0xFF & (value >> (8 * byteIndex)) );
 
-						//						data->data[data->length] = 0xFF & (value >> (8 * byteIndex));
-						//						data->length++;
 						printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ),
 								PSTR("data[%i]=%x"), spiWriteData.length - 1, spiWriteData.data[spiWriteData.length -1]);
 					}
@@ -1510,7 +1487,7 @@ int8_t spiAddNumericStringToByteArray(const char string[])
 				else
 				{
 					CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type, TRUE, PSTR("%s"), string);
-					return -1;
+					return spiApiCommandResult_FAILURE_QUIET;
 				}
 			} /* > 64 bit*/
 			else
@@ -1523,53 +1500,34 @@ int8_t spiAddNumericStringToByteArray(const char string[])
 				printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ), PSTR("init byte '%s'"), byte);
 				size_t charIndex = 0;
 
-				/* in case of odd number of digits*/
-#warning TODO add case add leading 0 at end for odd number of digits
-				/* add leading 0 in front
-				 */
+				charIndex = 0;
+				while (charIndex + 1 < numberOfDigits)
 				{
-					if (numberOfDigits%2 )
-					{
-						printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ), PSTR("odd"));
-						byte[0]='0';
-						byte[1]=string[charIndex];
-						charIndex++;
-					}
-					else
-					{
-						printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ), PSTR("even"));
-						charIndex = 0;
-					}
-					while (charIndex + 1 < numberOfDigits)
-					{
 
-						byte[0]=string[charIndex];
-						byte[1]=string[charIndex + 1];
-						charIndex+=2;
-						printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__,
-								(const char*) ( filename ), PSTR("strtoul '%s'"), byte);
-						spiAddWriteData( strtoul(byte, NULL, 16) );
-						printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ),
-								PSTR("data[%i]=%x"), spiWriteData.length - 1, spiWriteData.data[spiWriteData.length -1]);
-						//spiAddNumericStringToByteArray(&byte[0], data);
-					}
+					byte[0]=string[charIndex];
+					byte[1]=string[charIndex + 1];
+					charIndex+=2;
+					printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__,
+							(const char*) ( filename ), PSTR("strtoul '%s'"), byte);
+					spiAddWriteData( strtoul(byte, NULL, 16) );
+					printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ),
+							PSTR("data[%i]=%x"), spiWriteData.length - 1, spiWriteData.data[spiWriteData.length -1]);
 				}
 			}
 		}
 		else
 		{
 			CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("too many bytes to add"));
-			return -1;
+			return spiApiCommandResult_FAILURE_QUIET;
 		}
-
 	}
 	else
 	{
 		CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type, TRUE, PSTR("%s"), string);
-		return -1;
+		return spiApiCommandResult_FAILURE_QUIET;
 	}
 
-	return 0;
+	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
 }
 
 /*
