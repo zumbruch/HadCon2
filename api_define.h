@@ -12,7 +12,7 @@
 #define STRING_END 0
 
 /* threshold for CommunicationError, below this value the global variable message
- * is used instead of the constand alternative text */
+ * is used instead of the constant alternative text */
 
 #define F_CPU 10000000UL
 
@@ -46,7 +46,7 @@
 #define MAX_LENGTH_CAN_DATA  41
 
 /*maximum length of command with CAN standard 2.0A*/
-#define MAX_LENGTH_COMMAND  BUFFER_SIZE
+#define MAX_LENGTH_COMMAND  (BUFFER_SIZE - 1)
 
 /*maximum length of various error*/
 #define MAX_LENGTH_ERROR  50
