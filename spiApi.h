@@ -16,6 +16,7 @@
 #include "api_debug.h"
 #include "spi.h"
 
+typedef uint8_t apiCommandResult;
 
 extern const char* spiApiCommandKeywords[] PROGMEM;
 enum spiApiCommandKeyNumber
