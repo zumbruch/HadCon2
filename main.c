@@ -126,8 +126,6 @@ char canStoreString[MAX_LENGTH_CAN_DATA];
 
 volatile unsigned char uartReady;/*variable for Uart interrupt*/
 
-char keepAliveString[15] = "PING";/*only for keep_alive function*/
-
 char uartString[BUFFER_SIZE]; /* variable for storage received a complete string via UART */
 char decrypt_uartString[BUFFER_SIZE];
 char decrypt_uartString_remainder[BUFFER_SIZE];
@@ -146,6 +144,7 @@ char message[BUFFER_SIZE];
 char resultString[BUFFER_SIZE];
 
 unsigned char nextCharPos; /*pointer of the variable uartString  */
+bool uartInputBufferExceeded = false;
 uint16_t canErrorCode = 0; /* error code for CAN-communication */
 uint16_t twiErrorCode = 0; /* error code for I2C/TWI-communication */
 uint16_t uartErrorCode = 0; /* error code for UART-communication */
@@ -345,13 +344,18 @@ int main( void )
 
 	   if ( 1 == timer1Ready )
 	   {
+		   static unsigned int pingCtr = 0;
 		   if ( flag_pingActive )
 		   {
-			   cli();
 			   // disable interrupts
-			   strncpy(uart_message_string, keepAliveString, BUFFER_SIZE - 1);
-			   UART0_Send_Message_String_p(NULL,0);
-
+			   cli();
+			   if (0 == pingCtr % 10)
+			   {
+				   clearString(uart_message_string, BUFFER_SIZE);
+				   strncpy_P(uart_message_string, (const char*) ( pgm_read_word( &(commandKeywords[commandKeyNumber_PING]))), BUFFER_SIZE - 1);
+				   UART0_Send_Message_String_p(NULL,0);
+			   }
+			   pingCtr++;
 			   timer1Ready = 0;
 			   sei();
 		   }
