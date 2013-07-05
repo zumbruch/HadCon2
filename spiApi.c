@@ -1387,51 +1387,59 @@ uint8_t spiApiPurgeAndFillWriteArray(struct uartStruct *ptr_uartStruct, uint16_t
 	return spiApiAddToWriteArray(ptr_uartStruct, parameterStartIndex);
 }
 
-uint8_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t argumentIndex)
+uint8_t spiApiAddToWriteArray(struct uartStruct *ptr_uartStruct, uint16_t parameterIndex)
 {
 	uint8_t result = spiApiCommandResult_UNDEFINED;
-
-    while( spiWriteData.length < sizeof(spiWriteData.data) -1 && (int) argumentIndex <= ptr_uartStruct->number_of_arguments )
+	uint8_t nTotalArgs = ptr_uartStruct->number_of_arguments;
+	uint8_t argumentCounter = parameterIndex;
+    while( spiWriteData.length < sizeof(spiWriteData.data) && argumentCounter < nTotalArgs + 1)
     {
-    	if ( argumentIndex < MAX_PARAMETER)
-    	{
-    		printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*)  ( filename ),
-    				PSTR("setParameter[%i]: \"%s\""), argumentIndex, setParameter[argumentIndex]);
+		parameterIndex = argumentCounter % MAX_PARAMETER;
+		printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, filename, PSTR("%i"), argumentCounter);
 
-    		/* get contents from parameter container */
-    		/* spiWriteData should be increased */
-    		result = spiApiAddNumericParameterToByteArray(NULL, argumentIndex);
-    		if ( spiApiCommandResult_FAILURE <= result )
-    		{
-    			return result;
-    			break;
-    		}
-    	}
-    	else
-    	{
-    		/* get contents from remainder container */
-#warning TODO: !!!! REMAINDER analysis to be replaced by union for uartStruct
+		printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, filename,
+				PSTR("setParameter[%i]: \"%s\""), parameterIndex, setParameter[parameterIndex]);
 
-    		result = spiApiAddNumericParameterToByteArray(&resultString[0], -1);
-    		if ( spiApiCommandResult_FAILURE <= result )
+		/* get contents from parameter container */
+		result = spiApiAddNumericParameterToByteArray(NULL, parameterIndex);
+		if ( spiApiCommandResult_FAILURE <= result )
+		{
+			return result;
+			break;
+		}
+		argumentCounter++;
+
+		if (0 == argumentCounter % MAX_PARAMETER )
+		{
+    		if (strlen(decrypt_uartString_remainder))
     		{
-    			return result;
-    			break;
+    			/* get contents from remainder container */
+    			/* reuse setParameter as long as arguments are there*/
+    			clearString(resultString, BUFFER_SIZE);
+    			strncpy(resultString, decrypt_uartString_remainder, BUFFER_SIZE);
+    			clearString(decrypt_uartString_remainder, BUFFER_SIZE);
+
+    			printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, filename, PSTR("'%s'"), resultString);
+
+    			if ( 1 > uartSplitUartString( resultString )  )
+    			{
+    				break;
+    			}
     		}
+			else
+			{
+				break;
+			}
     	}
-  		printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*)  ( filename ),
-    				PSTR("%S%S%S"), dots, dots, dots);
-  		argumentIndex++;
     }
 
     return result;
-
 }//END of function
 
 uint8_t spiApiAddNumericParameterToByteArray(const char string[], uint8_t index)
 {
 	int8_t result;
-	printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ), PSTR("para to byte array"));
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemSPI, __LINE__, filename, PSTR("para to byte[]"));
 
 	/* get string string[] */
 	if ( 0 > index || MAX_PARAMETER <= index  )
@@ -1450,7 +1458,6 @@ uint8_t spiApiAddNumericParameterToByteArray(const char string[], uint8_t index)
 	/* get string from setParameter at the index */
 	else
 	{
-		printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ), PSTR("para string to byte array"));
 		result = spiApiAddNumericStringToByteArray( setParameter[index] );
 		if ( spiApiCommandResult_FAILURE <= result )
 		{
@@ -1458,17 +1465,12 @@ uint8_t spiApiAddNumericParameterToByteArray(const char string[], uint8_t index)
 		}
 	}
 	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
-
 }
-
-/*
- * int8_t spiApiAddNumericStringToByteArray(const char string[], spiByteDataArray* data)
- *
- *
- */
 
 uint8_t spiApiAddNumericStringToByteArray(const char string[])
 {
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemSPI, __LINE__, filename, PSTR("string to byte[]"));
+
 	uint64_t value;
 	size_t numberOfDigits;
 
@@ -1490,36 +1492,26 @@ uint8_t spiApiAddNumericStringToByteArray(const char string[])
 			return spiApiCommandResult_FAILURE_QUIET;
 		}
 
-		/* check if new element, split into bytes, MSB to LSB,
-		 * to be added would exceed the maximum size of data array */
+		/* check if new element to be added, split into bytes, MSB to LSB,
+		 * would exceed the maximum size of data array */
 
 		size_t numberOfBytes = ((numberOfDigits + numberOfDigits%2) >> 1);
-		printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ), PSTR("no. bytes/digits %i %i"), numberOfBytes, numberOfDigits);
+
+		printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, filename,
+				PSTR("#bytes/#digits %i/%i"), numberOfBytes, numberOfDigits);
 
 		if ( spiWriteData.length + numberOfBytes < sizeof(spiWriteData.data) -1 )
 		{
+			printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, filename,
+					PSTR("valueString '%s' "), string);
+
 			if ( 16 >= numberOfDigits ) /*64 bit*/
 			{
 				if ( 0 == getUnsignedNumericValueFromParameterString(string, &value) )
 				{
-					printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ),
-								PSTR("value %#08lx%08lx"), value >> 32, value && 0xFFFFFFFF);
-					/* byte order: MSB to LSB / big endian*/
 					for (int8_t byteIndex = numberOfBytes - 1; byteIndex >= 0; byteIndex--)
 					{
-						/* 0x0 					.. 0xFF*/
-						/* 0x000 				.. 0xFFFF*/
-						/* 0x00000 				.. 0xFFFFFF*/
-						/* 0x0000000 			.. 0xFFFFFFFF*/
-						/* 0x000000000	 		.. 0xFFFFFFFFFF*/
-						/* 0x00000000000		.. 0xFFFFFFFFFFFF*/
-						/* 0x0000000000000		.. 0xFFFFFFFFFFFFFF*/
-						/* 0x000000000000000	.. 0xFFFFFFFFFFFFFFFF*/
-						/* ... */
 						spiAddWriteData( 0xFF & (value >> (8 * byteIndex)) );
-
-						printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ),
-								PSTR("data[%i]=%x"), spiWriteData.length - 1, spiWriteData.data[spiWriteData.length -1]);
 					}
 				}
 				else
@@ -1530,27 +1522,29 @@ uint8_t spiApiAddNumericStringToByteArray(const char string[])
 			} /* > 64 bit*/
 			else
 			{
-				printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ), PSTR(">64 bit"));
-
-				clearString(byte, sizeof(byte));
-				strcat_P(byte, PSTR("00"));
-
-				printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ), PSTR("init byte '%s'"), byte);
 				size_t charIndex = 0;
 
-				charIndex = 0;
+				/* skip leading 0x/0X */
+				if ( 0 == strncasecmp_P (string, PSTR("0x"), sizeof(string)))
+				{
+					charIndex+=2;
+				}
+
 				while (charIndex + 1 < numberOfDigits)
 				{
-
 					byte[0]=string[charIndex];
 					byte[1]=string[charIndex + 1];
 					charIndex+=2;
-					printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__,
-							(const char*) ( filename ), PSTR("strtoul '%s'"), byte);
+
 					spiAddWriteData( strtoul(byte, NULL, 16) );
-					printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, (const char*) ( filename ),
-							PSTR("data[%i]=%x"), spiWriteData.length - 1, spiWriteData.data[spiWriteData.length -1]);
 				}
+			}
+
+			/* debug report */
+			for (int8_t byteIndex = numberOfBytes - 1; byteIndex >= 0; byteIndex--)
+			{
+				printDebug_p(debugLevelEventDebug, debugSystemSPI, __LINE__, filename,
+						PSTR("data[%i]=%x"), spiWriteData.length -1 - byteIndex, spiWriteData.data[spiWriteData.length -1 - byteIndex]);
 			}
 		}
 		else
