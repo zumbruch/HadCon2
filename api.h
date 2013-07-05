@@ -31,6 +31,8 @@ typedef struct uartStruct
 extern struct uartStruct uartFrame;
 extern struct uartStruct *ptr_uartStruct;
 
+extern bool uartInputBufferExceeded;
+
 /* Implemented functions
  * and
  * corresponding function pointers*/
@@ -47,7 +49,7 @@ void apiConvertUartDataToCanUartStruct( uint8_t offset ); /*converting the decom
 
 void keep_alive( struct uartStruct *PtrFrame ); /*this function checks the functionality of the software*/
 
-int8_t uartSplitUartString( void ); /*CPU-cutting format in various parameters */
+int8_t uartSplitUartString( char inputUartString[] ); /*CPU-cutting format in various parameters */
 
 void Initialization( void ); /*this function initialize all init functions again and actives the interrupt*/
 
@@ -62,10 +64,10 @@ int8_t UART0_Init( void ); /* initialize serial communication */
 void UART0_Transmit( unsigned char c );/* function send  data direction to cpu */
 extern void (*UART0_Transmit_p)( uint8_t );
 
-int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize );/* help function for the output of register contents in CPU */
+int16_t UART0_Send_Message_String( char *outputString, uint16_t maxSize );/* help function for the output of register contents in CPU */
 extern int16_t (*UART0_Send_Message_String_p)( char *, uint16_t );
 
-int8_t UART0_Send_Message_String_woLF( char *tmp_str, uint32_t maxSize );/* help function for the output of register contents in CPU */
+int8_t UART0_Send_Message_String_woLF( char *outputString, uint32_t maxSize );/* help function for the output of register contents in CPU */
 
 int8_t apiFindCommandKeywordIndex(const char string[], PGM_P commandKeywords[], size_t commandMaximumIndex ); /* find matching command keyword and return its index*/
 

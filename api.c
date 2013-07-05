@@ -58,8 +58,8 @@
 #include "testing.h"
 #endif
 
-
 static const char filename[] PROGMEM = __FILE__;
+static const char stringSpaceIntSpace[] PROGMEM = "%s %i ";
 
 #warning TODO: combine responseKeyword and other responses error into one set of responses
 
@@ -731,6 +731,17 @@ int8_t Timer0A_Init( void )
 
 void Process_Uart_Event(void)
 {
+	if ( true == uartInputBufferExceeded)
+	{
+		/* maximum length check of input */
+
+		CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, PSTR("max: %i"), MAX_LENGTH_COMMAND);
+
+		clearString(uartString, BUFFER_SIZE);
+		uartInputBufferExceeded = false;
+		return;
+	}
+
 	/* copy string into (buffer) uartString*/
 	strncpy(decrypt_uartString, uartString, BUFFER_SIZE - 1);
     /* clear uartString, avoiding memset*/
@@ -742,7 +753,7 @@ void Process_Uart_Event(void)
 	/* split uart string into its elements */
 
 	int8_t number_of_elements = -1;
-	number_of_elements = uartSplitUartString();
+	number_of_elements = uartSplitUartString(decrypt_uartString);
 
  	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, filename,
  			PSTR("number of string elements found: %i"), number_of_elements);
@@ -836,10 +847,7 @@ void Process_Uart_Event(void)
 			}
 		}
 	}
-	else
-	{
-		   CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("API Parsing failed") );
-	}
+
 	/*clear the variables*/
 	Reset_SetParameter();
 	Reset_UartStruct(ptr_uartStruct);
@@ -858,80 +866,56 @@ void Process_Uart_Event(void)
  * no direct output: use of global variable setParameter
  * return value:
  *          number of found elements,
- *          0 else
+ *          -1 else
  */
 
-int8_t uartSplitUartString( void )
+int8_t uartSplitUartString( char inputUartString[] )
 {
 	uint8_t parameterIndex;
 
-	/* maximum length check of input */
-
-	if ( MAX_LENGTH_COMMAND < strlen(decrypt_uartString) )
-	{
-		CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
-
-		/* reset */
-		clearString(decrypt_uartString, BUFFER_SIZE);
-		/* "reset": decrypt_uartString[0] = '\0'; */
-
-		return 0;
-	}
-
 	/*
-	 * disassemble the decrypt_uartString into stringlets
+	 * disassemble the inputUartString into stringlets
 	 * separated by delimiters UART_DELIMITER
 	 * into elements of array setParameter
 	 */
 
 	char *save_ptr = NULL;
-	char *result = NULL; /* pointer init */
+	char *result_ptr = NULL; /* pointer init */
 
 	/* initial iteration */
-	result = strtok_rP(decrypt_uartString, PSTR(UART_DELIMITER), &save_ptr); /*search spaces in string */
+	result_ptr = strtok_r(inputUartString, UART_DELIMITER, &save_ptr); /*search spaces in string */
 	parameterIndex = 0; /* pointer of setParameter*/
 
-	while ( result != NULL )
+	while ( result_ptr != NULL )
 	{
-		if (MAX_LENGTH_PARAMETER < strlen(result))
+		if (MAX_LENGTH_PARAMETER < strlen(result_ptr))
 		{
 			/* TODO: create correct error code*/
 			CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
-		    clearString(decrypt_uartString, BUFFER_SIZE);
-		    /* "reset": decrypt_uartString[0] = '\0'; */
-
-			return 0;
+			return -1;
 		}
 
 		/* only copy the first MAX_PARAMETER elements
 		 * if there are more, still count the elements
-		 * and copy the rest into decrypt_uartString_remainder*/
+		 * and copy the rest into inputUartString_remainder*/
 		if ( MAX_PARAMETER > parameterIndex )
 		{
-			strncpy(setParameter[parameterIndex], result, MAX_LENGTH_PARAMETER);
+			strncpy(setParameter[parameterIndex], result_ptr, MAX_LENGTH_PARAMETER);
 		}
 		if (MAX_PARAMETER == parameterIndex)
 		{
 			clearString(decrypt_uartString_remainder, BUFFER_SIZE);
-			strncpy(decrypt_uartString_remainder, save_ptr, BUFFER_SIZE);
+			strncpy(decrypt_uartString_remainder, result_ptr, BUFFER_SIZE -1 );
+			strncat(decrypt_uartString_remainder, UART_DELIMITER, BUFFER_SIZE -1 );
+			strncat(decrypt_uartString_remainder, save_ptr, BUFFER_SIZE -1 );
+			printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, filename, PSTR("remainder '%s'"), decrypt_uartString_remainder);
 		}
 
-		result = strtok_rP(NULL, PSTR(UART_DELIMITER), &save_ptr);
+		result_ptr = strtok_r(NULL, UART_DELIMITER, &save_ptr);
 		parameterIndex++;
-
-		//		if ( MAX_PARAMETER < parameterIndex )
-		//		{
-		//			CommunicationError_p(ERRA, SERIAL_ERROR_too_many_arguments, FALSE, NULL);
-		//	        clearString(decrypt_uartString, BUFFER_SIZE);
-		//	        /* "reset": decrypt_uartString[0] = '\0'; */
-		//			return 0;
-		//		}
 	}
 
- 	printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, filename, PSTR("found %i arguments "), parameterIndex-1);
-
-    clearString(decrypt_uartString, BUFFER_SIZE);
-     /* "reset": decrypt_uartString[0] = '\0'; */
+ 	printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, filename, PSTR("found %i strings"), parameterIndex);
 
 	return parameterIndex;
 
@@ -1511,7 +1495,11 @@ ISR (SIG_UART0_RECV)
 		uartReady = 1; /* mark, that we got an CAN_interrupt, to be handled by main */
 		nextCharPos = 0;
 	}
-	else
+	else if ( BUFFER_SIZE - 1 == nextCharPos ) /* string exceeds length, skip remainder, set flag */
+	{
+		uartInputBufferExceeded = true;
+	}
+	else /* add character and trailing '\0' */
 	{
 		uartString[nextCharPos] = c;
 		nextCharPos++;
@@ -1525,7 +1513,7 @@ ISR (SIG_UART0_RECV)
  *(single character) this function will send  8 bits from the at90can128
  */
 
-#warning UART add timeout ? Add check for USART0 init ?
+#warning UART add timeout or transmit interrupt? Add check for USART0 init ?
 
 void UART0_Transmit( uint8_t data )
 {
@@ -1539,22 +1527,22 @@ void UART0_Transmit( uint8_t data )
 	UDR0 = data;
 }
 
-#warning TODO: UART change UART activities into interrupt based one, q.v. https://www.mikrocontroller.net/articles/Interrupt
+#warning TODO: UART also change UART send activities into interrupt based one, q.v. https://www.mikrocontroller.net/articles/Interrupt
 /*
  *this function sends a string to serial communication
- * the input parameter is a defined global variable tmp_str
+ * the input parameter is a defined global variable outputString
  * the output parameter is an integer
  * 0 -> the message is sent
  */
 
-int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize )
+int16_t UART0_Send_Message_String( char *outputString, uint16_t maxSize )
 {
-	/* this function sends the string pointed to by tmp_str to UART
+	/* this function sends the string pointed to by outputString to UART
 	 * this happens char by char until STRING_END is found
 	 * afterwards the message string is cleared up to the size maxSize
 	 *
-	 * if tmp_str is NULL
-	 *    - tmp_str is set to the global variable uart_message_string
+	 * if outputString is NULL
+	 *    - outputString is set to the global variable uart_message_string
 	 *    - and maxSize is set to BUFFER_SIZE
 	 * else if maxSize is 0
 	 *    - maxSize is assumed to be BUFFER_SIZE
@@ -1568,12 +1556,12 @@ int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize )
 	if (FALSE != uart0_init)
 	{
 
-		/* if tmp_str is NULL, take as default uart_message_string and its size BUFFER_SIZE */
-		if (NULL == tmp_str)
+		/* if outputString is NULL, take as default uart_message_string and its size BUFFER_SIZE */
+		if (NULL == outputString)
 		{
 			if (NULL != uart_message_string)
 			{
-				tmp_str = uart_message_string;
+				outputString = uart_message_string;
 				maxSize = BUFFER_SIZE;
 			}
 			else
@@ -1590,12 +1578,12 @@ int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize )
 
 		static uint16_t index;
 
-		for ( index = 0; STRING_END != tmp_str[index] && index < maxSize ; index++ )
+		for ( index = 0; STRING_END != outputString[index] && index < maxSize ; index++ )
 		{
-			UART0_Transmit_p(tmp_str[index]);
+			UART0_Transmit_p(outputString[index]);
 		}
 		UART0_Transmit_p('\n');
-		clearString(tmp_str, maxSize); /*clear tmp_str variable*/
+		clearString(outputString, maxSize); /*clear outputString variable*/
 		return index;
 	}
 	else
@@ -1608,19 +1596,19 @@ int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize )
 
 /*
  *this function sends a string to serial communication
- * the input parameter is a defined global variable tmp_str
+ * the input parameter is a defined global variable outputString
  * the output parameter is an integer
  * 0 -> the message is sent
  * only use for the function owiFindFamilyDevicesAndAccessValues in one_wire.c
  */
-int8_t UART0_Send_Message_String_woLF( char *tmp_str, uint32_t maxSize )
+int8_t UART0_Send_Message_String_woLF( char *outputString, uint32_t maxSize )
 {
-	for ( uint16_t j = 0 ; j < strlen((char *) tmp_str) && j < maxSize ; j++ )
+	for ( uint16_t j = 0 ; j < strlen((char *) outputString) && j < maxSize ; j++ )
 	{
-		UART0_Transmit_p(tmp_str[j]);
+		UART0_Transmit_p(outputString[j]);
 	}
 
-	clearString(tmp_str, maxSize); /*clear tmp_str variable*/
+	clearString(outputString, maxSize); /*clear outputString variable*/
 	return 0;
 }//END of UART0_Send_Message_String_woLF
 
@@ -1744,27 +1732,27 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
        switch (errorType)
        {
           case ERRG:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(general_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRC:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(can_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRA:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(serial_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRM:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(mob_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRT:
-              snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+              snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
               strncat_P(uart_message_string, (const char*) (pgm_read_word( &(twi_error[errorIndex]))), BUFFER_SIZE -1);
               break;
           case ERRU:
-              snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+              snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
               break;
           default:
          	  printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, filename, PSTR("wrong error type %i... returning"), errorType);
@@ -1777,7 +1765,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
     {
        if (TRUE == flag_UseOnlyAlternatives)
        {
-          snprintf_P(uart_message_string,  BUFFER_SIZE - 1 , PSTR("%s %i "), uart_message_string, errorIndex);
+          snprintf_P(uart_message_string,  BUFFER_SIZE - 1 , stringSpaceIntSpace, uart_message_string, errorIndex);
        }
        else
        {
@@ -1890,7 +1878,6 @@ void Initialization( void )
 
    owiBusMask = 0xFF;
    adcBusMask = 0x0F;
-
 
    uart0_init = UART0_Init();
 
