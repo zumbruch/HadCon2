@@ -403,7 +403,7 @@ static const uint8_t commandImplementation43   PROGMEM = FALSE;
 static const char commandKeyword44[]           PROGMEM = "SPI"; /* SPI master */
 static const char commandSyntax44[]            PROGMEM = "[data]";
 static const char commandSyntaxAlternative44[] PROGMEM = "<cmd> <arguments>";
-static const char commandShortDescription44[]  PROGMEM = "experimental SPI master (slave)";
+static const char commandShortDescription44[]  PROGMEM = "SPI master (slave)";
 static const uint8_t commandImplementation44   PROGMEM = TRUE;
 
 // index: 45
