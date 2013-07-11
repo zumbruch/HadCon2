@@ -32,8 +32,6 @@ static const char stringKommaHex[] 	PROGMEM = "%s,%x";
 
 static char byte[3]= "00";
 
-#warning TODO: remove abbrev and replace by first match, requires priority ordering, and option in keyword lookup
-
 static const char spiApiCommandKeyword00[] PROGMEM = "add"; 					/* add <args> to write buffer*/
 static const char spiApiCommandKeyword01[] PROGMEM = "a";
 static const char spiApiCommandKeyword02[] PROGMEM = "control_bits";       		/* get/set SPI control bits*/
@@ -800,7 +798,10 @@ uint8_t spiApiCsSetOrCsRelease( bool set )
 			spiReleaseChosenChipSelect(externalChipSelectMask);
 		}
 
-		result = spiApiCommandResult_SUCCESS_WITH_OUTPUT;
+		/* report */
+		spiApiShowStatus( ({ uint8_t list[] = { spiApiCommandKeyNumber_CS }; &list[0];}), 1);
+		result = spiApiCommandResult_SUCCESS_QUIET;
+
 	}
 
 	return result;
@@ -1617,7 +1618,7 @@ uint8_t spiApiAddNumericStringToByteArray(const char string[])
 	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
 }
 
-/* uint8_t spiApiShowBufferContent(spiByteDataArray *buffer, int16_t nBytes, int8_t commandKeywordIndex, int8_t subCommandKeywordIndex, PGM_P commandKeywords[])
+/* uint8_t spiApiShowBufferContent(spiByteDataArray *buffer, int16_t nRequestedBytes, int8_t commandKeywordIndex, int8_t subCommandKeywordIndex, PGM_P commandKeywords[])
  *
  * shows the content of the data in buffer
  * and prints out the corresponding caller's command and sub command keyword
@@ -1625,32 +1626,35 @@ uint8_t spiApiAddNumericStringToByteArray(const char string[])
  * Arguments:
  *
  *	buffer:
- * 			pointer to the buffer struct
- * 	nBytes:
- * 			number of bytes to show
- * 			0:		 	all available (max: buffer->length)
- * 			positive:	first nBytes of buffer, data index 0 ... nBytes
- * 			negative:	last  nBytes of buffer, data index buffer->length - 1 - nBytes ... buffer->length - 1
+ * 						pointer to the buffer struct
+ * 	nRequestedBytes:
+ * 						number of bytes to show
+ * 						0:		 	all available (max: buffer->length)
+ * 						positive:	first nBytes of buffer,
+ * 										data index 0 ... nBytes
+ * 						negative:	last  nBytes of buffer,
+ * 										data index buffer->length - 1 - nBytes ... buffer->length - 1
  *
  * 	commandKeywordIndex
  * 	subCommandKeywordIndex
  * 	subCommandKeywordArray
  */
 
-uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataArray *buffer, int16_t nBytes, int8_t subCommandKeywordIndex)
+uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataArray *buffer, int16_t nRequestedBytes, int8_t subCommandKeywordIndex)
 {
 	uint16_t ctr = 0;
 	uint16_t maxMessageSize = 0;
 	size_t byteIndex = 0;
+	int nBytes = nRequestedBytes;
 
 	clearString(message, BUFFER_SIZE);
 
-	if ( 0 < nBytes ) /* positive */
+	if ( 0 < nRequestedBytes ) /* positive */
 	{
 		byteIndex = 0;
 		nBytes = min((int)(buffer->length), nBytes);
 	}
-	else if ( 0 > nBytes ) /* negative */
+	else if ( 0 > nRequestedBytes ) /* negative */
 	{
 		byteIndex = max((int)(buffer->length) - abs(nBytes),0);
 		nBytes = min((int)(buffer->length), abs(nBytes));
@@ -1661,7 +1665,8 @@ uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataAr
 		nBytes = buffer->length;
 	}
 
-	if (nBytes == (int)buffer->length)
+	/* print summary header if all elements requested */
+	if ( 0 == nRequestedBytes)
 	{
 		/* summary header */
 		createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, ptr_uartStruct->commandKeywordIndex, subCommandKeywordIndex, spiApiCommandKeywords);
@@ -1669,11 +1674,9 @@ uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataAr
 		UART0_Send_Message_String_p(NULL,0);
 	}
 
+	/* data */
 	if (buffer->length)
 	{
-		/* data */
-		clearString(message, BUFFER_SIZE);
-		createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, ptr_uartStruct->commandKeywordIndex, subCommandKeywordIndex, spiApiCommandKeywords);
 		maxMessageSize = BUFFER_SIZE - 1 - strlen_P(dots) - strlen(uart_message_string);
 
 		for (int16_t byteCtr = 0; byteIndex < buffer->length && byteCtr < nBytes; byteIndex++, byteCtr++)
@@ -1705,6 +1708,17 @@ uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataAr
 			}
 		}
 	}
+	else
+	{
+		if (nRequestedBytes)
+		{
+			/* empty buffer */
+			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, ptr_uartStruct->commandKeywordIndex, subCommandKeywordIndex, spiApiCommandKeywords);
+			strncat_P(uart_message_string, PSTR("--"),BUFFER_SIZE -1  );
+			return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
+		}
+	}
+
 
 	return spiApiCommandResult_SUCCESS_QUIET;
 }
