@@ -1,0 +1,969 @@
+<!--
+<span style="white-space:nowrap;"> *SEND* ==%SCLB% &lt;ID-Range&gt; [&lt;RTR&gt; ]%SCLE%== </span>
+   * Set ALLOWTOPICCHANGE = EpicsUserGroup
+-->
+%LOGOEPICSGSI%
+
+---+!! _%CALC{"$SUBSTITUTE($PROPERSPACE(%TOPIC%),Had Con,HadCon)"}%_
+%TOC%
+
+---++ Introduction
+   Command descriptions of command ==%CALC{"$UPPER($LISTITEM(-1, $TRANSLATE($PROPERSPACE(%TOPIC%),$sp,$comma)))"}%==
+
+---++++ %CALC{"$UPPER($LISTITEM(-1, $TRANSLATE($PROPERSPACE(%TOPIC%),$sp,$comma)))"}%
+%STARTINCLUDE%
+%CALC{"$IF($EXACT(%INCLUDINGTOPIC%,%TOPIC%),,<div style="text-align:right"><a style=\"font-size:smaller\" href="%SCRIPTURLPATH%/edit%SCRIPTSUFFIX%/%WEB%/%TOPIC%\">edit</a></div>)"}%
+
+<ul>
+---+++++ General Operation
+---
+
+ The SPI command set allows to operate the SPI interface of the HadCon's &mu;Controller as a master.
+	
+ It sends data in atomic chunks of *bytes* via the ==MOSI== pin to slave devices and receives via the ==MISO== pin the responses.
+ This happens in a buffered mode, so that multiple bytes can be send and received at once. %BR% 
+ The current limitation of the write-buffer is linked to the input string buffer of 140 characters, i.e. &approx; 60 bytes.
+	
+ Up to 8 Chip-Select output pin(s) can be manipulated either 
+   * automatically ( _[[#SPI_Basic_Operation][ Basic Operation]]_ ), 
+   * semi-automatically ( _[[#SPI_Advanced_Operation][ Advanced Operation]]_ ), or 
+   * manually ( _[[#SPI_Expert_Operation][ Expert Operation]]_ ) 
+
+ The received data is stored in a read buffer which is of the same size as the write buffer.
+ The purging of the buffers depend on the mode of operation and the configuration settings.
+ 
+<ul>
+<a name="SPI_Basic_Operation" />
+---++++++ Basic Operation
+---
+<ul>
+ All necessary steps are taken automatically, optional behavior can be achieved by changing the configuration.
+
+ Example task: 
+ %BGCDIV%
+	SPI write dc 7f 8f8fb4 0123456789abcdef be %BR% 
+ %ENDBGCDIV%
+   equivalent to
+ %BGCDIV%
+	SPI dc 7f 8f8fb4 0123456789abcdef be 
+ %ENDBGCDIV%
+
+*NOTE*: only even number of digits per argument are allowed
+
+ This ==write== command includes the following steps:
+   1. optionally _purge read buffer_ %BR% 
+      (default: TRUE) 
+   1. _purge write buffer_
+   2. _filling the write buffer_ %BR% by decomposing input byte by byte %BR% 
+      &rArr; ==dc 7f 8f 8f b4 01 23 45 67 89 ab cd ef be==
+   3. _set cs_
+      * setting the defined chip-select pin(s) to _"active low"_
+         * optionally masked by an external mask
+   4. _transmit/receive_ %BR% byte by byte in the given byte-order
+      * transmit write buffer content
+      * attaching received bytes to the end of the read buffer
+   5. _release cs_
+      * release the defined chip-select pins(s) to _"passive high"_
+         * optionally masked by an external mask
+   6. optionally _purge write buffer_ %BR%
+      (default: FALSE) 
+      
+
+The read buffer content can be shown as follows:
+   * last read element %BR% 
+	 %BGCDIV%
+	 	SPI read %BR%
+	 %ENDBGCDIV%
+   * last read 3 elements %BR% 
+	 %BGCDIV%
+	 	SPI show_read_buffer 3 1 %BR%
+	 %ENDBGCDIV%
+   * first read 6 elements %BR% 
+	 %BGCDIV%
+	 	SPI show_read_buffer 6 %BR%
+	 %ENDBGCDIV%
+   * the full content %BR%	 
+	 %BGCDIV%
+	 	SPI show_read_buffer 
+	 %ENDBGCDIV%
+</ul>
+---
+</ul>
+	
+
+<ul>
+<a name="SPI_Advanced_Operation" />
+---++++++ Advanced Operation
+---
+<ul>
+The user can prepare step by step the write buffer before automatically sending it.
+
+Example sequence: _add/write_buffer_ 
+<pre>
+%BGCDIV%
+   SPI purge_read_buffer      <code>// optionally</code>
+   SPI purge_write_buffer     <code>// optionally</code>     
+   
+	SPI add dc 7f              
+	SPI add 8f8fb4             <code>// repeat until write buffer is full</code>
+	SPI add 0123456789abcdef   <code>//</code>
+	SPI add be                 <code>//</code>
+	
+	SPI show_write_buffer      <code>// optionally</code>
+	
+	SPI write_buffer           
+	
+	SPI write_buffer           <code>// e.g. repeat it, if <b><i>auto_purge</i></b> is OFF</code>
+	
+	SPI write_buffer 02        <code>// only activate second chip select pin, by masking it with 0x02</code>
+%ENDBGCDIV%
+</pre>
+ 
+The ==write_buffer== command includes all remaining necessary steps:
+   3. _set cs_
+      * setting the defined chip-select pin(s) to _"active low"_
+         * optionally masked by an external mask
+   4. _transmit/receive_ %BR% byte by byte in the given byte-order
+      * transmit write buffer content
+      * attaching received bytes to the end of the read buffer
+   5. _release cs_
+      * release the defined chip-select pins(s) to _"passive high"_
+         * optionally masked by an external mask
+   6. optionally _purge write buffer_
+
+Example sequence: _write/write_buffer_ 
+<pre>
+%BGCDIV%
+   SPI write dc 7f 8f8fb4 0123456789abcdef be 
+	SPI write_buffer           <code>// e.g. repeat it, if <b><i>auto_purge</i></b> is OFF</code>
+	...              
+	SPI write_buffer
+	SPI write_buffer 02        <code>// only activate 2nd chip select pin, by masking it with 0x02</code>
+	SPI write_buffer 01        <code>// only activate 1st chip select pin</code>
+	SPI write_buffer fc        <code>// only activate the other chip select pins</code>
+%ENDBGCDIV%
+</pre>
+
+Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
+
+</ul>
+---
+</ul>
+	     
+<ul>
+<a name="SPI_Expert_Operation" />
+---++++++ Expert Operation
+---
+<ul>
+The user has full control on setting and releasing chip select pins.
+
+Example sequence: _selected chip select_ 
+<pre>
+%BGCDIV%
+   SPI purge_read_buffer     <code>// optionally</code>     
+    SPI purge_write_buffer    <code>// optionally</code>     
+	SPI add dc 7f 8f8fb4 0123456789abcdef be              
+
+	SPI cs                    <code>// get status of defined chip select pins</code>
+	SPI cs_bar                <code>// same as above but with <i>"active low"</i> logic</code>
+
+	SPI cs_set                <code>// set all available chip select pins to <i>"active"</i></code>
+	SPI transmit           
+	SPI cs_release            <code>// set all available chip select pins to <i>"passive"</i></code>
+
+	SPI cs_set 01             <code>// only activate 1st chip select pin to <i>"active"</i></code>
+	SPI transmit           
+	SPI cs_release            <code>// set all available chip select pins to <i>"passive"</i></code>
+
+	SPI cs_set fe             <code>// only activate the other chip select pins to <i>"active"</i></code>
+	SPI transmit           
+	SPI cs_release ee         <code>// set masked chip select pins to <i>"passive"</i>, keep 5th <i>"active"</i></code>
+	SPI cs_release 10         <code>// set masked chip select pins to <i>"passive"</i>, keep 5th <i>"active"</i></code>
+%ENDBGCDIV%
+</pre>
+
+Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
+
+</ul>
+---
+</ul>
+---
+</ul>
+
+<ul>
+---+++++ Main Commands
+---
+<ul>
+<a name="SPI" />
+---++++++ SPI
+<ul>
+   $ *Format*: 
+      * %BGCSPAN% SPI %ENDBGCSPAN% 
+         * short-cut of [[#SPI_status][SPI status]]
+   $ *Format*: 
+      * %BGCSPAN% SPI ==%SCLB% &lt;list of data bytes|words|dwords|qwords&gt;%SCLE%== %ENDBGCSPAN% 
+         * short-cut of [[#SPI_write][SPI write]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_write" />
+---++++++ SPI w/write
+<ul>
+   $ *Task*: send list of bytes to clients, including predefined purge, chip-select behavior 
+   $ *Format*: 
+      * %BGCSPAN% SPI write                     ==%SCLB% &lt;list of data bytes|words|dwords|qwords&gt;%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI w&nbsp;&nbsp;&nbsp;&nbsp; ==%SCLB% &lt;list of data bytes|words|dwords|qwords&gt;%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI write OK== %ENDBGCDIV%
+   $ *Description*: %BR%
+      As described in section _[[#SPI_Basic_Operation][Basic Operation]]_
+      $ *Arguments*: 
+         * list of data bytes|words|dwords|qwords|...
+   $ *Comments*:  
+      * Maximum single number length 24 digits
+      * only byte-wise sending  allowed
+      * see [[#SPI_cs_select_mask][SPI cs_select_mask]]
+      * see [[#SPI_auto_purge_write_buffer][SPI auto_purge_write_buffer]]
+      * see [[#SPI_auto_purge_read_buffer][SPI auto_purge_read_buffer]]
+      * see [[#SPI_transmit_report][SPI transmit_report]]
+      * see [[#SPI_transmit_byte_order][SPI transmit_byte_order]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_add" />
+---++++++ SPI a/add
+<ul>
+
+   $ *Task*: add list of data byte by byte to the write buffer 
+   $ *Format*: 
+      * %BGCSPAN% SPI add           ==%SCLB% &lt;list of data bytes|words|dwords|qwords&gt;%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI a&nbsp;&nbsp; ==%SCLB% &lt;list of data bytes|words|dwords|qwords&gt;%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI add OK== %ENDBGCDIV%
+      $ *Arguments*: 
+         * list of data bytes|words|dwords|qwords|...
+   $ *Comments*: 
+      * Maximum single number length 24 digits
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_write_buffer" />
+---++++++ SPI wb/write_buffer
+<ul>
+
+   $ *Task*: send write buffer content to clients, including predefined purge, chip-select behavior, %BR%
+             optionally selecting chip select pins
+   $ *Format*: 
+      * %BGCSPAN% SPI write_buffer ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI wb           ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI write_buffer== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * optional: external chip select mask:
+            * [ 0 ... FF]
+            * each bit represents a cs pin
+               * 1:active, 0:inactive
+   $ *Comments*:  
+      * see [[#SPI_auto_purge_write_buffer][SPI auto_purge_write_buffer]]
+      * see [[#SPI_auto_purge_read_buffer][SPI auto_purge_read_buffer]]
+      * see [[#SPI_transmit_report][SPI transmit_report]]
+      * see [[#SPI_transmit_byte_order][SPI transmit_byte_order]]
+      * see [[#SPI_cs_pins][SPI cs_pins]]
+
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_transmit" />
+---++++++ SPI t/transmit
+<ul>
+   $ *Task*: send write buffer content to clients, w/o any chip select manipulation 
+   $ *Format*: 
+      * %BGCSPAN% SPI transmit %ENDBGCSPAN%
+      * %BGCSPAN% SPI t      %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI transmit OK== %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * see [[#SPI_transmit_report][SPI transmit_report]]
+      * see [[#SPI_transmit_byte_order][SPI transmit_byte_order]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_set" />
+---++++++ SPI css/cs_set
+<ul>
+
+   $ *Task*: sets (selected) chip select pins to _"active low"_
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_set ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI css    ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs 1:1 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      On success ==cs== is called to show the current status
+      $ *Arguments*: 
+         * optional: external chip select mask:
+            * [ 0 ... FF]
+            * each bit represents a cs pin
+               * 1:active, 0:inactive
+   $ *Comments*:  
+      * see [[#SPI_cs_select_mask][SPI cs_select_mask]]
+      * see [[#SPI_cs][SPI cs]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_release" />
+---++++++ SPI csr/cs_release
+<ul>
+
+   $ *Task*: releases (selected) chip select pins to _"passive high"_
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_release ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI csr        ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs 1:1 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR%
+      %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * optional: external chip select mask:
+            * [ 0 ... FF]
+            * each bit represents a cs pin
+               * 1:active, 0:inactive
+   $ *Comments*:  
+      * see [[#SPI_cs_select_mask][SPI cs_select_mask]]
+      * see [[#SPI_cs][SPI cs]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_read" />
+---++++++ SPI r/read 
+<ul>
+
+   $ *Task*: read the last element filled into the read buffer %BR%
+   			depending on the _[[#SPI_transmit_byte_order][transmit byte order]]_ :
+   			* 0, MSB: last element 
+   			* 1, LSB: first element  
+   $ *Format*: 
+      * %BGCSPAN% SPI read %ENDBGCSPAN%
+      * %BGCSPAN% SPI r      %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI read ==%SCLB%&lt;value&gt;%SCLE%==== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * see [[#SPI_transmit_byte_order][SPI transmit_byte_order]]
+
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_show_write_buffer" />
+---++++++ SPI sw/show_write_buffer
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI show_write_buffer %ENDBGCSPAN%
+      * %BGCSPAN% SPI sw      %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI show_write_buffer== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_show_read_buffer" />
+---++++++ SPI sr/show_read_buffer
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI show_read_buffer %ENDBGCSPAN%
+      * %BGCSPAN% SPI sr      %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI show_read_buffer== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+</ul>
+---
+<ul>
+---+++++ Clean-up
+---
+
+<ul>
+<a name="SPI_purge" />
+---++++++ SPI p/purge
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI purge %ENDBGCSPAN%
+      * %BGCSPAN% SPI p      %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI purge OK== %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_purge_write_buffer" />
+---++++++ SPI pw/purge_write_buffer
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI purge_write_buffer %ENDBGCSPAN%
+      * %BGCSPAN% SPI pw      %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI purge_write_buffer OK== %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+<ul>
+<a name="SPI_purge_read_buffer" />
+---++++++ SPI pr/purge_read_buffer
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI purge_read_buffer %ENDBGCSPAN%
+      * %BGCSPAN% SPI pr      %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI purge_read_buffer OK== %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_reset" />
+---++++++ SPI reset
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI reset %ENDBGCSPAN%
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI reset OK== %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+</ul>
+---
+<ul>
+---+++++ Status
+---
+
+<ul>
+<a name="SPI_status" />
+---++++++ SPI s/status 
+<ul>
+
+   $ *Task*:  Show status
+   $ *Format*: 
+      * %BGCSPAN% SPI status %ENDBGCSPAN%
+      * %BGCSPAN% SPI s      %ENDBGCSPAN%  
+      * %BGCSPAN% SPI        %ENDBGCSPAN% 
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI status== %BR%
+      ==RECV SPI cs 1:0 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR%
+      ==RECV SPI cs_bar 1:1 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR%
+      ==RECV SPI cs_pins 1:PORTB,0== %BR%
+      ==RECV SPI cs_select_mask FF== %BR%
+      ==RECV SPI control_bits 50== %BR%
+      ==RECV SPI spi_enable 1== %BR%
+      ==RECV SPI data_order 0== %BR%
+      ==RECV SPI master 1== %BR%
+      ==RECV SPI clock_polarity 0== %BR%
+      ==RECV SPI clock_phase 0== %BR%
+      ==RECV SPI speed 0== %BR%
+      ==RECV SPI double_speed 0== %BR%
+      ==RECV SPI speed_divider 4 (2500000Hz @ 10000000Hz)== %BR%
+      ==RECV SPI transmit_byte_order 0 (MSB/big endian)== %BR%
+      ==RECV SPI transmit_report FALSE== %BR%
+      ==RECV SPI auto_purge_read_buffer TRUE== %BR%
+      ==RECV SPI auto_purge_write_buffer FALSE== %BR%
+      ==RECV SPI show_write_buffer elements: 0xd (13)== %BR%
+      ==RECV SPI show_write_buffer (#1) AB BB AA BB CC EE FF 66 ...== %BR%
+      ==RECV SPI show_write_buffer (#2) 54 12 45 54 58== %BR%
+      ==RECV SPI show_read_buffer elements: 0 (0)==
+          %ENDBGCDIV%
+   $ *Description*: 
+      * recursive call of all available status information
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs" />
+---++++++ SPI cs
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI cs %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_bar" />
+---++++++ SPI csb/cs_bar
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_bar %ENDBGCSPAN%
+      * %BGCSPAN% SPI csb      %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs_bar== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+</ul>
+---
+<ul>
+---+++++ Chip Select Configuration
+---
+
+<ul>
+<a name="SPI_cs_select_mask" />
+---++++++ SPI cs_select_mask
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_select_mask %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs_select_mask== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_pins" />
+---++++++ SPI cs_pins
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_pins %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs_pins== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_add_pin" />
+---++++++ SPI csap/cs_add_pin
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_add_pin %ENDBGCSPAN%
+      * %BGCSPAN% SPI csap      %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs_add_pin== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+<ul>
+<a name="SPI_cs_remove_pin" />
+---++++++ SPI csrp/cs_remove_pin
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_remove_pin %ENDBGCSPAN%
+      * %BGCSPAN% SPI csrp      %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs_remove_pin== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+
+</ul>
+---
+<ul>
+---+++++ SPI Configuration
+---
+<ul>
+
+<a name="SPI_control_bits" />
+---++++++ SPI c/control_bits
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI control_bits %ENDBGCSPAN%
+      * %BGCSPAN% SPI c      %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI control_bits== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+
+<ul>
+<a name="SPI_spi_enable" />
+---++++++ SPI spi_enable
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI spi_enable %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI spi_enable== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_data_order" />
+---++++++ SPI data_order
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI data_order %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI data_order== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_master" />
+---++++++ SPI master
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI master %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI master== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_clock_polarity" />
+---++++++ SPI clock_polarity
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI clock_polarity %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI clock_polarity== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_clock_phase" />
+---++++++ SPI clock_phase
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI clock_phase %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI clock_phase== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_speed" />
+---++++++ SPI speed
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI speed %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI speed== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_speed_divider" />
+---++++++ SPI speed_divider
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI speed_divider %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI speed_divider== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_double_speed" />
+---++++++ SPI double_speed
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI double_speed %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI double_speed== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+</ul>
+---
+<ul>
+---+++++ API Configuration
+---
+<ul>
+
+<a name="SPI_transmit_byte_order" />
+---++++++ SPI transmit_byte_order
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI transmit_byte_order %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI transmit_byte_order== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_transmit_report" />
+---++++++ SPI transmit_report
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI transmit_report %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI transmit_report== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+<ul>
+<a name="SPI_auto_purge_write_buffer" />
+---++++++ SPI auto_purge_write_buffer
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI auto_purge_write_buffer %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI auto_purge_write_buffer== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+<ul>
+<a name="SPI_auto_purge_read_buffer" />
+---++++++ SPI auto_purge_read_buffer
+<ul>
+
+   $ *Task*:  
+   $ *Format*: 
+      * %BGCSPAN% SPI auto_purge_read_buffer %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI auto_purge_read_buffer== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+</ul>
+%STOPINCLUDE%
+
+---
+-- Main.PeterZumbruch - 10 Jul 2013
