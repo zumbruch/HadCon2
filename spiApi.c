@@ -174,12 +174,10 @@ uint8_t spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandI
     /* generate header */
 	switch (parameterIndex)
 	{
-		case 0:
-			/*recursiveCall*/
-			break;
 		case 1:
 			createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
 			break;
+		case 0:
 		default:
 			/* else */
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, ptr_uartStruct->commandKeywordIndex, subCommandIndex, spiApiCommandKeywords);
