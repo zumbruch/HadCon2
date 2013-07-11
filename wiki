@@ -66,7 +66,7 @@
       * release the defined chip-select pins(s) to _"passive high"_
          * optionally masked by an external mask
    6. optionally _purge write buffer_ %BR%
-      (default: FALSE) 
+       (default: FALSE) 
       
 
 The read buffer content can be shown as follows:
@@ -86,6 +86,9 @@ The read buffer content can be shown as follows:
 	 %BGCDIV%
 	 	SPI show_read_buffer 
 	 %ENDBGCDIV%
+
+   See _[[#SPI_read][read]]_, and _[[#SPI_show_read_buffer][show_read_buffer]]_ commands for details	
+
 </ul>
 ---
 </ul>
@@ -101,21 +104,21 @@ The user can prepare step by step the write buffer before automatically sending 
 Example sequence: _add/write_buffer_ 
 <pre>
 %BGCDIV%
-   SPI purge_read_buffer      <code>// optionally</code>
-   SPI purge_write_buffer     <code>// optionally</code>     
+    SPI purge_read_buffer      <code>// optionally</code>
+    SPI purge_write_buffer     <code>// optionally</code>     
    
-	SPI add dc 7f              
-	SPI add 8f8fb4             <code>// repeat until write buffer is full</code>
-	SPI add 0123456789abcdef   <code>//</code>
-	SPI add be                 <code>//</code>
+    SPI add dc 7f              
+    SPI add 8f8fb4             <code>// repeat until write buffer is full</code>
+    SPI add 0123456789abcdef   <code>//</code>
+    SPI add be                 <code>//</code>
 	
-	SPI show_write_buffer      <code>// optionally</code>
+    SPI show_write_buffer      <code>// optionally</code>
 	
-	SPI write_buffer           
+    SPI write_buffer           
 	
-	SPI write_buffer           <code>// e.g. repeat it, if <b><i>auto_purge</i></b> is OFF</code>
+    SPI write_buffer           <code>// e.g. repeat it, if <b><i>auto_purge</i></b> is OFF</code>
 	
-	SPI write_buffer 02        <code>// only activate second chip select pin, by masking it with 0x02</code>
+    SPI write_buffer 02        <code>// only activate second chip select pin, by masking it with 0x02</code>
 %ENDBGCDIV%
 </pre>
  
@@ -134,13 +137,13 @@ The ==write_buffer== command includes all remaining necessary steps:
 Example sequence: _write/write_buffer_ 
 <pre>
 %BGCDIV%
-   SPI write dc 7f 8f8fb4 0123456789abcdef be 
-	SPI write_buffer           <code>// e.g. repeat it, if <b><i>auto_purge</i></b> is OFF</code>
+    SPI write dc 7f 8f8fb4 0123456789abcdef be 
+    SPI write_buffer           <code>// e.g. repeat it, if <b><i>auto_purge</i></b> is OFF</code>
 	...              
-	SPI write_buffer
-	SPI write_buffer 02        <code>// only activate 2nd chip select pin, by masking it with 0x02</code>
-	SPI write_buffer 01        <code>// only activate 1st chip select pin</code>
-	SPI write_buffer fc        <code>// only activate the other chip select pins</code>
+    SPI write_buffer
+    SPI write_buffer 02        <code>// only activate 2nd chip select pin, by masking it with 0x02</code>
+    SPI write_buffer 01        <code>// only activate 1st chip select pin</code>
+    SPI write_buffer fc        <code>// only activate the other chip select pins</code>
 %ENDBGCDIV%
 </pre>
 
@@ -160,25 +163,25 @@ The user has full control on setting and releasing chip select pins.
 Example sequence: _selected chip select_ 
 <pre>
 %BGCDIV%
-   SPI purge_read_buffer     <code>// optionally</code>     
+    SPI purge_read_buffer     <code>// optionally</code>
     SPI purge_write_buffer    <code>// optionally</code>     
-	SPI add dc 7f 8f8fb4 0123456789abcdef be              
+    SPI add dc 7f 8f8fb4 0123456789abcdef be              
 
-	SPI cs                    <code>// get status of defined chip select pins</code>
-	SPI cs_bar                <code>// same as above but with <i>"active low"</i> logic</code>
+    SPI cs                    <code>// get status of defined chip select pins</code>
+    SPI cs_bar                <code>// same as above but with <i>"active low"</i> logic</code>
 
-	SPI cs_set                <code>// set all available chip select pins to <i>"active"</i></code>
-	SPI transmit           
-	SPI cs_release            <code>// set all available chip select pins to <i>"passive"</i></code>
+    SPI cs_set                <code>// set all available chip select pins to <i>"active"</i></code>
+    SPI transmit           
+    SPI cs_release            <code>// set all available chip select pins to <i>"passive"</i></code>
 
-	SPI cs_set 01             <code>// only activate 1st chip select pin to <i>"active"</i></code>
-	SPI transmit           
-	SPI cs_release            <code>// set all available chip select pins to <i>"passive"</i></code>
+    SPI cs_set 01             <code>// only activate 1st chip select pin to <i>"active"</i></code>
+    SPI transmit           
+    SPI cs_release            <code>// set all available chip select pins to <i>"passive"</i></code>
 
-	SPI cs_set fe             <code>// only activate the other chip select pins to <i>"active"</i></code>
-	SPI transmit           
-	SPI cs_release ee         <code>// set masked chip select pins to <i>"passive"</i>, keep 5th <i>"active"</i></code>
-	SPI cs_release 10         <code>// set masked chip select pins to <i>"passive"</i>, keep 5th <i>"active"</i></code>
+    SPI cs_set fe             <code>// only activate the other chip select pins to <i>"active"</i></code>
+    SPI transmit           
+    SPI cs_release ee         <code>// set masked chip select pins to <i>"passive"</i>, keep 5th <i>"active"</i></code>
+    SPI cs_release 10         <code>// set masked chip select pins to <i>"passive"</i>, keep 5th <i>"active"</i></code>
 %ENDBGCDIV%
 </pre>
 
@@ -361,19 +364,24 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI r/read 
 <ul>
 
-   $ *Task*: read the last element filled into the read buffer %BR%
-   			depending on the _[[#SPI_transmit_byte_order][transmit byte order]]_ :
-   			* 0, MSB: last element 
-   			* 1, LSB: first element  
+   $ *Task*: read the last element filled into the read buffer
    $ *Format*: 
       * %BGCSPAN% SPI read %ENDBGCSPAN%
       * %BGCSPAN% SPI r      %ENDBGCSPAN%  
    $ *Response*:  %BGCDIV% 
-      ==RECV SPI read ==%SCLB%&lt;value&gt;%SCLE%==== %BR%
+      ==RECV SPI read %SCLB%&lt;value&gt;%SCLE%== %BR%
           %ENDBGCDIV%
-   $ *Description*: 
+   $ *Description*: \
+   			read the last element filled into the read buffer %BR%
+   			depending on the _[[#SPI_transmit_byte_order][transmit_byte_order]]_ :
+   			* 0, MSB: last element (FIFO)
+   			* 1, LSB: first element (LIFO)
       $ *Arguments*: 
          * - 
+      $ *Return values*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+         	* _"--"_ , if read buffer is empty
+         	* last byte filled [0 .. FF]         
    $ *Comments*:  
       * see [[#SPI_transmit_byte_order][SPI transmit_byte_order]]
 
@@ -385,17 +393,66 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 <a name="SPI_show_write_buffer" />
 ---++++++ SPI sw/show_write_buffer
 <ul>
-
-   $ *Task*:  
+   $ *Task*:  show (partial) content of write buffer
    $ *Format*: 
-      * %BGCSPAN% SPI show_write_buffer %ENDBGCSPAN%
-      * %BGCSPAN% SPI sw      %ENDBGCSPAN%  
-   $ *Response*:  %BGCDIV% 
-      ==RECV SPI show_write_buffer== %BR%
-          %ENDBGCDIV%
+      * %BGCSPAN% SPI show_write_buffer ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI sw                ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*: 
+      * w\o any arguments, %BR%
+   	    buffer filled, 
+   	    &le; 8 bytes: %BR%
+    	  %BGCDIV% SPI sw %BR%
+    	           ==RECV SPI show_write_buffer elements: 0x5 (5)== %BR%
+    	           ==RECV SPI show_write_buffer 10 00 10 21 42== %ENDBGCDIV% 
+      * w\o any arguments, %BR%
+  	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sw %BR%
+    	           ==RECV SPI show_write_buffer elements: 0x14 (20)== %BR%
+    	           ==RECV SPI show_write_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
+    	           ==RECV SPI show_write_buffer (#2) 10 10 10 00 10 21 42 51 ...== %BR%
+    	           ==RECV SPI show_write_buffer (#3) 25 01 10 10== %ENDBGCDIV% 
+      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne; 0,%BR%
+   	    buffer empty: %BR%
+    	  %BGCDIV% SPI sw 3 %BR%
+    	           ==RECV SPI show_write_buffer --== %ENDBGCDIV% 
+      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 4, %BR%
+   	    buffer filled, &le; 8 bytes: %BR%
+    	  %BGCDIV% SPI sw 4%BR%
+    	           ==RECV SPI show_write_buffer 10 00 10 21== %ENDBGCDIV% 
+      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 0xA,  %BR%
+   	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sw a%BR%
+    	           ==RECV SPI show_write_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
+    	           ==RECV SPI show_write_buffer (#2) 10 10== %ENDBGCDIV% 
+      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 2, %BR%
+   	    w\ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+   	    buffer filled, &le; 8 bytes, %BR%
+    	  %BGCDIV% SPI sw 2 TRUE%BR%
+    	           ==RECV SPI show_write_buffer 10 10== %ENDBGCDIV% 
+      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 9,  %BR%
+   	    w\ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+   	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sw 9 1%BR%
+    	           ==RECV SPI show_write_buffer (#1) 00 10 21 42 51 25 01 10 ...== %BR%
+    	           ==RECV SPI show_write_buffer (#2) 10== %ENDBGCDIV%
    $ *Description*: 
+      Shows (partial) content of write buffer.
+      Depending on the optional arguments the set can be reduced to a sub set of the buffer,
+      beginning from the first element filled or reverse beginning with the last elements added.
+      Depending on the number of elements requested, additional information is added:
+      * if all elements are show a summary line is added, with the given number of elements in the buffer in hex and decimal
+      * if the number of elements to show exceed ==8== 
+         * a line counter ==(#i)==, starting from 1, is added in front 
+         * _"..."_ are added at the end of the line, if more lines follow 
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==
+         	* max number of bytes to show, &ge; 0
+         		* ==0==: all available
+         		* else: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from beginning (1) to maximum ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==   
+         * ==%SCLB%&lt;Reverse Flag&gt;%SCLE%==
+         	* flag to revert direction of interest
+         		* ==0,FALSE,OFF,LOW==: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from beginning (1) to maximum ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==
+         		* else: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from ==%SCLB%&lt;number of elements&gt; - &lt;Number of Bytes&gt;%SCLE%== until last added element
    $ *Comments*:  
       * -
 </ul>
@@ -406,17 +463,66 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 <a name="SPI_show_read_buffer" />
 ---++++++ SPI sr/show_read_buffer
 <ul>
-
-   $ *Task*:  
+   $ *Task*:  show (partial) content of read buffer
    $ *Format*: 
-      * %BGCSPAN% SPI show_read_buffer %ENDBGCSPAN%
-      * %BGCSPAN% SPI sr      %ENDBGCSPAN%  
-   $ *Response*:  %BGCDIV% 
-      ==RECV SPI show_read_buffer== %BR%
-          %ENDBGCDIV%
+      * %BGCSPAN% SPI show_read_buffer ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI sr                ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*: 
+      * w\o any arguments, %BR%
+   	    buffer filled, 
+   	    &le; 8 bytes: %BR%
+    	  %BGCDIV% SPI sr %BR%
+    	           ==RECV SPI show_read_buffer elements: 0x5 (5)== %BR%
+    	           ==RECV SPI show_read_buffer 10 00 10 21 42== %ENDBGCDIV% 
+      * w\o any arguments, %BR%
+  	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sr %BR%
+    	           ==RECV SPI show_read_buffer elements: 0x14 (20)== %BR%
+    	           ==RECV SPI show_read_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
+    	           ==RECV SPI show_read_buffer (#2) 10 10 10 00 10 21 42 51 ...== %BR%
+    	           ==RECV SPI show_read_buffer (#3) 25 01 10 10== %ENDBGCDIV% 
+      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne; 0,%BR%
+   	    buffer empty: %BR%
+    	  %BGCDIV% SPI sr 3 %BR%
+    	           ==RECV SPI show_read_buffer --== %ENDBGCDIV% 
+      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 4, %BR%
+   	    buffer filled, &le; 8 bytes: %BR%
+    	  %BGCDIV% SPI sr 4%BR%
+    	           ==RECV SPI show_read_buffer 10 00 10 21== %ENDBGCDIV% 
+      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 0xA,  %BR%
+   	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sr a%BR%
+    	           ==RECV SPI show_read_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
+    	           ==RECV SPI show_read_buffer (#2) 10 10== %ENDBGCDIV% 
+      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 2, %BR%
+   	    w\ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+   	    buffer filled, &le; 8 bytes, %BR%
+    	  %BGCDIV% SPI sr 2 TRUE%BR%
+    	           ==RECV SPI show_read_buffer 10 10== %ENDBGCDIV% 
+      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 9,  %BR%
+   	    w\ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+   	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sr 9 1%BR%
+    	           ==RECV SPI show_read_buffer (#1) 00 10 21 42 51 25 01 10 ...== %BR%
+    	           ==RECV SPI show_read_buffer (#2) 10== %ENDBGCDIV%
    $ *Description*: 
+      Shows (partial) content of read buffer.
+      Depending on the optional arguments the set can be reduced to a sub set of the buffer,
+      beginning from the first element filled or reverse beginning with the last elements added.
+      Depending on the number of elements requested, additional information is added:
+      * if all elements are show a summary line is added, with the given number of elements in the buffer in hex and decimal
+      * if the number of elements to show exceed ==8== 
+         * a line counter ==(#i)==, starting from 1, is added in front 
+         * _"..."_ are added at the end of the line, if more lines follow 
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==
+         	* max number of bytes to show, &ge; 0
+         		* ==0==: all available
+         		* else: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from beginning (1) to maximum ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==   
+         * ==%SCLB%&lt;Reverse Flag&gt;%SCLE%==
+         	* flag to revert direction of interest
+         		* ==0,FALSE,OFF,LOW==: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from beginning (1) to maximum ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==
+         		* else: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from ==%SCLB%&lt;number of elements&gt; - &lt;Number of Bytes&gt;%SCLE%== until last added element
    $ *Comments*:  
       * -
 </ul>
@@ -434,7 +540,7 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI p/purge
 <ul>
 
-   $ *Task*:  
+   $ *Task*: purge write and read buffer 
    $ *Format*: 
       * %BGCSPAN% SPI purge %ENDBGCSPAN%
       * %BGCSPAN% SPI p      %ENDBGCSPAN%  
@@ -442,10 +548,12 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
       * _nothing_  
       * if ==DEBG== > 0 %BGCDIV% ==RECV SPI purge OK== %ENDBGCDIV%
    $ *Description*: 
+   		purges write and read buffer, by internally calling ==purge_write_buffer== and ==purge_read_buffer==
       $ *Arguments*: 
          * - 
    $ *Comments*:  
-      * -
+      * see [[#SPI_purge_write_buffer][SPI purge_write_buffer]]
+      * see [[#SPI_purge_read_buffer][SPI purge_read_buffer]]
 </ul>
 ---
 </ul>
@@ -454,8 +562,7 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 <a name="SPI_purge_write_buffer" />
 ---++++++ SPI pw/purge_write_buffer
 <ul>
-
-   $ *Task*:  
+   $ *Task*:  purge write buffer
    $ *Format*: 
       * %BGCSPAN% SPI purge_write_buffer %ENDBGCSPAN%
       * %BGCSPAN% SPI pw      %ENDBGCSPAN%  
@@ -466,7 +573,7 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
       $ *Arguments*: 
          * - 
    $ *Comments*:  
-      * -
+      * only resets the number of elements to 0, not the data
 </ul>
 ---
 </ul>
@@ -475,7 +582,7 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI pr/purge_read_buffer
 <ul>
 
-   $ *Task*:  
+   $ *Task*:  purge read buffer
    $ *Format*: 
       * %BGCSPAN% SPI purge_read_buffer %ENDBGCSPAN%
       * %BGCSPAN% SPI pr      %ENDBGCSPAN%  
@@ -486,7 +593,7 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
       $ *Arguments*: 
          * - 
    $ *Comments*:  
-      * -
+      * only resets the number of elements to 0, not the data
 </ul>
 ---
 </ul>
@@ -496,7 +603,7 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI reset
 <ul>
 
-   $ *Task*:  
+   $ *Task*: resets SPI interface and SPI parameter settings to their default status  
    $ *Format*: 
       * %BGCSPAN% SPI reset %ENDBGCSPAN%
    $ *Response*:   
@@ -506,7 +613,7 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
       $ *Arguments*: 
          * - 
    $ *Comments*:  
-      * -
+      * see [[#SPI_status][SPI status]]
 </ul>
 ---
 </ul>
@@ -966,4 +1073,4 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 %STOPINCLUDE%
 
 ---
--- Main.PeterZumbruch - 10 Jul 2013
+-- Main.PeterZumbruch - 11 Jul 2013
