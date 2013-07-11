@@ -964,7 +964,7 @@ uint8_t spiApiShowBuffer(struct uartStruct *ptr_uartStruct, spiByteDataArray *bu
 			break;
 		case 2: /*read selected, optionally inverted*/
 		default:
-			result = apiAssignParameterToValue(2,  &(nBytes), apiVarType_UINT16, 1, INT16_MAX);
+			result = apiAssignParameterToValue(2,  &(nBytes), apiVarType_UINT16, 0, INT16_MAX);
 			if ( spiApiCommandResult_FAILURE <= result)
 			{
 				return result;
