@@ -1,5 +1,4 @@
 <!--
-<span style="white-space:nowrap;"> *SEND* ==%SCLB% &lt;ID-Range&gt; [&lt;RTR&gt; ]%SCLE%== </span>
    * Set ALLOWTOPICCHANGE = EpicsUserGroup
 -->
 %LOGOEPICSGSI%
@@ -398,39 +397,39 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
       * %BGCSPAN% SPI show_write_buffer ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%
       * %BGCSPAN% SPI sw                ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%  
    $ *Response*: 
-      * w\o any arguments, %BR%
+      * w/o any arguments, %BR%
    	    buffer filled, 
    	    &le; 8 bytes: %BR%
     	  %BGCDIV% SPI sw %BR%
     	           ==RECV SPI show_write_buffer elements: 0x5 (5)== %BR%
     	           ==RECV SPI show_write_buffer 10 00 10 21 42== %ENDBGCDIV% 
-      * w\o any arguments, %BR%
+      * w/o any arguments, %BR%
   	    buffer filled, &gt; 8 bytes: %BR%
     	  %BGCDIV% SPI sw %BR%
     	           ==RECV SPI show_write_buffer elements: 0x14 (20)== %BR%
     	           ==RECV SPI show_write_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
     	           ==RECV SPI show_write_buffer (#2) 10 10 10 00 10 21 42 51 ...== %BR%
     	           ==RECV SPI show_write_buffer (#3) 25 01 10 10== %ENDBGCDIV% 
-      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne; 0,%BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne; 0,%BR%
    	    buffer empty: %BR%
     	  %BGCDIV% SPI sw 3 %BR%
     	           ==RECV SPI show_write_buffer --== %ENDBGCDIV% 
-      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 4, %BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 4, %BR%
    	    buffer filled, &le; 8 bytes: %BR%
     	  %BGCDIV% SPI sw 4%BR%
     	           ==RECV SPI show_write_buffer 10 00 10 21== %ENDBGCDIV% 
-      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 0xA,  %BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 0xA,  %BR%
    	    buffer filled, &gt; 8 bytes: %BR%
     	  %BGCDIV% SPI sw a%BR%
     	           ==RECV SPI show_write_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
     	           ==RECV SPI show_write_buffer (#2) 10 10== %ENDBGCDIV% 
-      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 2, %BR%
-   	    w\ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 2, %BR%
+   	    w/ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
    	    buffer filled, &le; 8 bytes, %BR%
     	  %BGCDIV% SPI sw 2 TRUE%BR%
     	           ==RECV SPI show_write_buffer 10 10== %ENDBGCDIV% 
-      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 9,  %BR%
-   	    w\ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 9,  %BR%
+   	    w/ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
    	    buffer filled, &gt; 8 bytes: %BR%
     	  %BGCDIV% SPI sw 9 1%BR%
     	           ==RECV SPI show_write_buffer (#1) 00 10 21 42 51 25 01 10 ...== %BR%
@@ -466,41 +465,41 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
    $ *Task*:  show (partial) content of read buffer
    $ *Format*: 
       * %BGCSPAN% SPI show_read_buffer ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%
-      * %BGCSPAN% SPI sr                ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%  
+      * %BGCSPAN% SPI sr               ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%  
    $ *Response*: 
-      * w\o any arguments, %BR%
+      * w/o any arguments, %BR%
    	    buffer filled, 
    	    &le; 8 bytes: %BR%
     	  %BGCDIV% SPI sr %BR%
     	           ==RECV SPI show_read_buffer elements: 0x5 (5)== %BR%
     	           ==RECV SPI show_read_buffer 10 00 10 21 42== %ENDBGCDIV% 
-      * w\o any arguments, %BR%
+      * w/o any arguments, %BR%
   	    buffer filled, &gt; 8 bytes: %BR%
     	  %BGCDIV% SPI sr %BR%
     	           ==RECV SPI show_read_buffer elements: 0x14 (20)== %BR%
     	           ==RECV SPI show_read_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
     	           ==RECV SPI show_read_buffer (#2) 10 10 10 00 10 21 42 51 ...== %BR%
     	           ==RECV SPI show_read_buffer (#3) 25 01 10 10== %ENDBGCDIV% 
-      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne; 0,%BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne; 0,%BR%
    	    buffer empty: %BR%
     	  %BGCDIV% SPI sr 3 %BR%
     	           ==RECV SPI show_read_buffer --== %ENDBGCDIV% 
-      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 4, %BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 4, %BR%
    	    buffer filled, &le; 8 bytes: %BR%
     	  %BGCDIV% SPI sr 4%BR%
     	           ==RECV SPI show_read_buffer 10 00 10 21== %ENDBGCDIV% 
-      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 0xA,  %BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 0xA,  %BR%
    	    buffer filled, &gt; 8 bytes: %BR%
     	  %BGCDIV% SPI sr a%BR%
     	           ==RECV SPI show_read_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
     	           ==RECV SPI show_read_buffer (#2) 10 10== %ENDBGCDIV% 
-      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 2, %BR%
-   	    w\ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 2, %BR%
+   	    w/ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
    	    buffer filled, &le; 8 bytes, %BR%
     	  %BGCDIV% SPI sr 2 TRUE%BR%
     	           ==RECV SPI show_read_buffer 10 10== %ENDBGCDIV% 
-      * w\ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 9,  %BR%
-   	    w\ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 9,  %BR%
+   	    w/ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
    	    buffer filled, &gt; 8 bytes: %BR%
     	  %BGCDIV% SPI sr 9 1%BR%
     	           ==RECV SPI show_read_buffer (#1) 00 10 21 42 51 25 01 10 ...== %BR%
@@ -673,15 +672,31 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI cs
 <ul>
 
-   $ *Task*:  
+   $ *Task*: reports current status of (selected) chip select lines
    $ *Format*: 
-      * %BGCSPAN% SPI cs %ENDBGCSPAN%
-   $ *Response*:  %BGCDIV% 
-      ==RECV SPI cs== %BR%
-          %ENDBGCDIV%
+      * %BGCSPAN% SPI cs ==%SCLB%[&lt;Chip Select Mask&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  
+      * w/o mask %BR%   
+   	    %BGCDIV% SPI cs %BR%
+   	             ==RECV SPI cs 1:0 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR% %ENDBGCDIV%
+      * w/  mask, eg. <code>0b01100001 = 0x71</code>%BR%   
+   	    %BGCDIV% SPI cs 71%BR%
+   	             ==RECV SPI cs 1:0 6:- 7:-== %BR% %ENDBGCDIV%
    $ *Description*: 
       $ *Arguments*: 
-         * - 
+         * optional ==%SCLB%[&lt;Chip Select Mask&gt;]%SCLE%==
+            * [ 0 ... FF]
+            * each bit represents a cs pin
+               * 1:chosen, 0:ignore        	
+      $ *Response*:  
+         * list of ==%SCLB%&lt;Pin States&gt;%SCLE%==
+            * syntax ==%SCLB%&lt;Pin States&gt;%SCLE%==:
+               * ==%SCLB%&lt;Index&gt;:&lt;State&gt;%SCLE%==
+                  * ==%SCLB%&lt;Index&gt;%SCLE%==: ==1 ... 8==
+                  * ==%SCLB%&lt;State&gt;%SCLE%==:
+                     * ==1==: HIGH
+                     * ==0==: LOW
+                     * ==-==: undefined, channel not connected   
    $ *Comments*:  
       * -
 </ul>
@@ -693,18 +708,80 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI csb/cs_bar
 <ul>
 
-   $ *Task*:  
+   $ *Task*: reports current inverted status of (selected) chip select lines
    $ *Format*: 
-      * %BGCSPAN% SPI cs_bar %ENDBGCSPAN%
-      * %BGCSPAN% SPI csb      %ENDBGCSPAN%  
-   $ *Response*:  %BGCDIV% 
-      ==RECV SPI cs_bar== %BR%
-          %ENDBGCDIV%
+      * %BGCSPAN% SPI cs_bar ==%SCLB%[&lt;Chip Select Mask&gt;]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI csb    ==%SCLB%[&lt;Chip Select Mask&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  
+      * w/o mask %BR%   
+   	    %BGCDIV% SPI csb %BR%
+   	             ==RECV SPI cs_bar 1:1 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR% %ENDBGCDIV%
+      * w/  mask, eg. <code>0b01100001 = 0x71</code>%BR%   
+   	    %BGCDIV% SPI csb 71%BR%
+   	             ==RECV SPI cs_bar 1:1 6:- 7:-== %BR% %ENDBGCDIV%
    $ *Description*: 
       $ *Arguments*: 
-         * - 
+         * optional ==%SCLB%&lt;Chip Select Mask&gt;%SCLE%==
+            * [ 0 ... FF]
+            * each bit represents a cs channel/pin
+               * 1:chosen, 0:ignore        	
+      $ *Response*:  
+         * list of ==%SCLB%&lt;Pin States&gt;%SCLE%==
+            * syntax ==%SCLB%&lt;Pin States&gt;%SCLE%==:
+               * ==%SCLB%&lt;Index&gt;:&lt;State&gt;%SCLE%==
+                  * ==%SCLB%&lt;Index&gt;%SCLE%==: ==1 ... 8==
+                  * ==%SCLB%&lt;State&gt;%SCLE%==:
+                     * ==1==: LOW
+                     * ==0==: HIGH
+                     * ==-==: undefined, channel not connected   
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_pins" />
+---++++++ SPI cs_pins
+<ul>
+   $ *Task*: report current chip select channel configurations  
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_pins ==%SCLB%[&lt;CS Channel Index&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*: 
+      * w/o argument %BR% 
+       %BGCDIV% SPI cs_pins%BR%
+     	        ==RECV SPI cs_pins %SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%== %ENDBGCDIV% 
+         * e.g.: %BR% 
+                %BGCDIV% ==RECV SPI cs_pins 1:PORTB,0 2:PORTA,4 3:PORTG,4 7:PORTF,5== %ENDBGCDIV%
+      * w/ ==%SCLB%&lt;CS Channel Index&gt;%SCLE%== %BR% 
+       %BGCDIV% SPI cs_pins ==%SCLB%&lt;CS Channel Index&gt;%SCLE%== %BR%
+     	 ==RECV SPI cs_pins %SCLB%&lt;Index&gt;&lt;PORTx&gt;,&lt;Pin&gt;,&lt;Status&gt;%SCLE%== %ENDBGCDIV% 
+         * e.g.:  %BR%
+                %BGCDIV% SPI cs_pins 1%BR%	        
+     			==RECV SPI cs_pins 1:PORTB,0,ON== %ENDBGCDIV%
+   $ *Description*:  		
+      $ *Arguments*: 
+         * optional ==%SCLB%&lt;CS Channel Index&gt;%SCLE%==
+            * chip select index
+            * ==1 ... 8==  		
+      $ *Return values*: 
+         * ==%SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%== %BR%
+           or %BR%
+           ==%SCLB%&lt;&lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt;,&lt;Status&gt; CS Configuration&gt;%SCLE%==
+            * ==%SCLB%&lt;Index&gt;%SCLE%==   
+               * chip select index
+               * ==1 ... 8==
+            * ==%SCLB%&lt;PORTx&gt;%SCLE%==   
+		   	   * ==PORTx==
+		   	      * ==x==: ==A ... G==
+            * ==%SCLB%&lt;Pin&gt;%SCLE%==   
+               * pin number of ==PORTx==
+                  * ==0 ... 7==                
+            * ==%SCLB%&lt;Status&gt;%SCLE%==
+               * status of chosen chip select index
+                  * ==ON==: active
+                  * ==OFF==: deactivated    
    $ *Comments*:  
-      * -
+      * see [[#SPI_cs_add_pin][SPI cs_add_pin]]
+      * see [[#SPI_cs_remove_pin][SPI cs_remove_pin]]
 </ul>
 ---
 </ul>
@@ -720,35 +797,24 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI cs_select_mask
 <ul>
 
-   $ *Task*:  
+   $ *Task*: get / set external chip select mask 
    $ *Format*: 
-      * %BGCSPAN% SPI cs_select_mask %ENDBGCSPAN%
-   $ *Response*:  %BGCDIV% 
-      ==RECV SPI cs_select_mask== %BR%
-          %ENDBGCDIV%
+      * %BGCSPAN% SPI cs_select_mask ==%SCLB%[&lt;Chip Select Mask&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*: %BGCDIV% 
+      ==RECV SPI cs_select_mask %SCLB%&lt;Value&gt;%SCLE%== %BR%
+        %ENDBGCDIV%
    $ *Description*: 
+      The chip select mask allows to select a subset of the available, defined chip select channels. %BR%
+   	  Each bit of this mask represents a channel which can be selected or ignored. %BR%
+   	  This mask is used in all cases where chip select actions are required and not explicitly given.
+      * w/o argument: the current mask is shown
+      * w/ argument: ==%SCLB%&lt;Value&gt;%SCLE%== is assigned to the configuration
       $ *Arguments*: 
-         * - 
-   $ *Comments*:  
-      * -
-</ul>
----
-</ul>
-
-<ul>
-<a name="SPI_cs_pins" />
----++++++ SPI cs_pins
-<ul>
-
-   $ *Task*:  
-   $ *Format*: 
-      * %BGCSPAN% SPI cs_pins %ENDBGCSPAN%
-   $ *Response*:  %BGCDIV% 
-      ==RECV SPI cs_pins== %BR%
-          %ENDBGCDIV%
-   $ *Description*: 
-      $ *Arguments*: 
-         * - 
+         * optional, ==%SCLB%&lt;Value&gt;%SCLE%==
+         	* chip select mask
+         	* range ==[0 ... FF]==
+         	* each bit represents a chip select channel
+               * 1:chosen, 0:ignore        	
    $ *Comments*:  
       * -
 </ul>
@@ -760,38 +826,61 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI csap/cs_add_pin
 <ul>
 
-   $ *Task*:  
+   $ *Task*: add chip select channel configuration
    $ *Format*: 
-      * %BGCSPAN% SPI cs_add_pin %ENDBGCSPAN%
-      * %BGCSPAN% SPI csap      %ENDBGCSPAN%  
+      * %BGCSPAN% SPI cs_add_pin ==%SCLB%&lt;Symbolic Output Port Address&gt; &lt;Output Port Pin&gt; [&lt;Channel Select Index/Slot&gt;]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI csap       ==%SCLB%&lt;Symbolic Output Port Address&gt; &lt;Output Port Pin&gt; [&lt;Channel Select Index/Slot&gt;]%SCLE%== %ENDBGCSPAN%  
    $ *Response*:  %BGCDIV% 
-      ==RECV SPI cs_add_pin== %BR%
-          %ENDBGCDIV%
+      ==RECV SPI cs_pins SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%==%ENDBGCDIV% %BR%
+      see [[#SPI_cs_pins][SPI cs_pins]]
    $ *Description*: 
+   	  Allows to add up to 8 output port ==PORTX:Pin== combinations to act as channel select channels.
+   	  Provided the chosen slots aren't used yet or the address set is already defined
+   	  (see [[#SPI_cs_pins][SPI cs_pins]], [[#SPI_cs_remove_pin][SPI cs_remove_pin]]).
+   	  A successful operation is reported via [[#SPI_cs_pins][SPI cs_pins]]    	  
+      * w/o ====%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==:
+         * adds channel to next free slot
+      * w/  ====%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==:
+         * adds channel to assigned index
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;Symbolic Output Port Address&gt;%SCLE%==
+			* symbolic name for the available output port addresses
+            * ==PORTx==
+               * ==x==: ==A ... G==
+         * ==%SCLB%&lt;Output Port Pin&gt;%SCLE%==
+            * pin number of ==PORTx==
+               * ==0 ... 7==                
+         * optionally ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==
+            * chip select index
+               * ==1 ... 8==
    $ *Comments*:  
-      * -
+      * see [[#SPI_cs_pins][SPI cs_pins]]
+      * see [[#SPI_cs_remove_pin][SPI cs_remove_pin]]
 </ul>
 ---
 </ul>
+
 <ul>
 <a name="SPI_cs_remove_pin" />
 ---++++++ SPI csrp/cs_remove_pin
 <ul>
-
-   $ *Task*:  
+   $ *Task*: remove chip select channel configuration
    $ *Format*: 
-      * %BGCSPAN% SPI cs_remove_pin %ENDBGCSPAN%
-      * %BGCSPAN% SPI csrp      %ENDBGCSPAN%  
-   $ *Response*:  %BGCDIV% 
-      ==RECV SPI cs_remove_pin== %BR%
-          %ENDBGCDIV%
+      * %BGCSPAN% SPI cs_remove_pin ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI csrp          ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%== %ENDBGCSPAN%  
+      ==RECV SPI cs_pins SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%==%ENDBGCDIV% %BR%
+      see [[#SPI_cs_pins][SPI cs_pins]]
    $ *Description*: 
+      Removes a chip select configuration from set of pin configuration
+   	  (see [[#SPI_cs_pins][SPI cs_pins]]).
+   	  A successful operation is reported via [[#SPI_cs_pins][SPI cs_pins]]    	  
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==
+            * chip select index
+               * ==1 ... 8==       
    $ *Comments*:  
-      * -
+      * see [[#SPI_cs_pins][SPI cs_pins]]
+      * see [[#SPI_cs_add_pin][SPI cs_add_pin]]
 </ul>
 ---
 </ul>
@@ -1073,4 +1162,4 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 %STOPINCLUDE%
 
 ---
--- Main.PeterZumbruch - 11 Jul 2013
+-- Main.PeterZumbruch - 12 Jul 2013
