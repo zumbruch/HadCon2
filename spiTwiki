@@ -830,17 +830,17 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
    $ *Format*: 
       * %BGCSPAN% SPI cs_add_pin ==%SCLB%&lt;Symbolic Output Port Address&gt; &lt;Output Port Pin&gt; [&lt;Channel Select Index/Slot&gt;]%SCLE%== %ENDBGCSPAN%
       * %BGCSPAN% SPI csap       ==%SCLB%&lt;Symbolic Output Port Address&gt; &lt;Output Port Pin&gt; [&lt;Channel Select Index/Slot&gt;]%SCLE%== %ENDBGCSPAN%  
-   $ *Response*:  %BGCDIV% 
-      ==RECV SPI cs_pins SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%==%ENDBGCDIV% %BR%
+   $ *Response*: %BGCDIV% 
+      ==RECV SPI cs_pins %SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%== %ENDBGCDIV% 
       see [[#SPI_cs_pins][SPI cs_pins]]
    $ *Description*: 
    	  Allows to add up to 8 output port ==PORTX:Pin== combinations to act as channel select channels.
    	  Provided the chosen slots aren't used yet or the address set is already defined
-   	  (see [[#SPI_cs_pins][SPI cs_pins]], [[#SPI_cs_remove_pin][SPI cs_remove_pin]]).
+   	  (see [[#SPI_cs_pins][SPI cs_pins]], [[#SPI_cs_remove_pin][SPI cs_remove_pin]]).%BR%
    	  A successful operation is reported via [[#SPI_cs_pins][SPI cs_pins]]    	  
-      * w/o ====%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==:
+      * w/o ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==:
          * adds channel to next free slot
-      * w/  ====%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==:
+      * w/  ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==:
          * adds channel to assigned index
       $ *Arguments*: 
          * ==%SCLB%&lt;Symbolic Output Port Address&gt;%SCLE%==
@@ -868,12 +868,13 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
    $ *Format*: 
       * %BGCSPAN% SPI cs_remove_pin ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%== %ENDBGCSPAN%
       * %BGCSPAN% SPI csrp          ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%== %ENDBGCSPAN%  
-      ==RECV SPI cs_pins SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%==%ENDBGCDIV% %BR%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs_pins %SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%== %ENDBGCDIV% 
       see [[#SPI_cs_pins][SPI cs_pins]]
    $ *Description*: 
       Removes a chip select configuration from set of pin configuration
-   	  (see [[#SPI_cs_pins][SPI cs_pins]]).
-   	  A successful operation is reported via [[#SPI_cs_pins][SPI cs_pins]]    	  
+   	  (see [[#SPI_cs_pins][SPI cs_pins]]).%BR%
+   	  A successful operation is reported via [[#SPI_cs_pins][SPI cs_pins]].    	  
       $ *Arguments*: 
          * ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==
             * chip select index
