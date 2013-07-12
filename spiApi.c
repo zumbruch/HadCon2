@@ -1371,7 +1371,8 @@ uint8_t spiApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct)
 			/* check doubles */
 			for ( uint8_t slot  = CHIPSELECT0; slot < CHIPSELECT_MAXIMUM; slot++)
 			{
-				if (cs.pinNumber == (spiGetCurrentChipSelectArray()[slot]).pinNumber &&
+				if ((spiGetCurrentChipSelectArray()[slot]).isUsed &&
+					cs.pinNumber == (spiGetCurrentChipSelectArray()[slot]).pinNumber &&
 					cs.ptrPort == (spiGetCurrentChipSelectArray()[slot]).ptrPort )
 				{
 					CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("port/pin in use"));
