@@ -137,6 +137,11 @@ void spiApi(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandIndex, uint8_t parameterIndex);
 void spiApiSubCommandsFooter( uint16_t result );
 void spiApiShowStatus( uint8_t status[], uint8_t size );
+void spiApiShowStatusApiSettings(void);
+void spiApiShowStatusBuffer(void);
+void spiApiShowStatusChipSelect(void);
+void spiApiShowStatusControlBits(void);
+void spiApiShowStatusControls(void);
 void spiApiShowStatusSpeed(void);
 
 

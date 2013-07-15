@@ -526,37 +526,15 @@ uint8_t spiApiSubCommandAdd(struct uartStruct *ptr_uartStruct)
 
 uint8_t spiApiSubCommandShowStatus(void)
 {
-	uint8_t status[] = {
-			spiApiCommandKeyNumber_CS,
-			spiApiCommandKeyNumber_CS_BAR,
-			spiApiCommandKeyNumber_CS_PINS,
-			spiApiCommandKeyNumber_CS_SELECT_MASK,
-
-			spiApiCommandKeyNumber_CONTROL_BITS,
-			spiApiCommandKeyNumber_SPI_ENABLE,
-			spiApiCommandKeyNumber_DATA_ORDER,
-			spiApiCommandKeyNumber_MASTER,
-			spiApiCommandKeyNumber_CLOCK_POLARITY,
-			spiApiCommandKeyNumber_CLOCK_PHASE,
-			spiApiCommandKeyNumber_SPEED,
-			spiApiCommandKeyNumber_DOUBLE_SPEED,
-			spiApiCommandKeyNumber_SPEED_DIVIDER,
-
-			spiApiCommandKeyNumber_TRANSMIT_BYTE_ORDER,
-			spiApiCommandKeyNumber_TRANSMIT_REPORT,
-			spiApiCommandKeyNumber_AUTO_PURGE_READ_BUFFER,
-			spiApiCommandKeyNumber_AUTO_PURGE_WRITE_BUFFER,
-
-			spiApiCommandKeyNumber_SHOW_WRITE_BUFFER,
-			spiApiCommandKeyNumber_SHOW_READ_BUFFER
-	};
-
 	/* header */
 	createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, ptr_uartStruct->commandKeywordIndex, spiApiCommandKeyNumber_STATUS, spiApiCommandKeywords);
 	UART0_Send_Message_String_p(NULL,0);
 
+	spiApiShowStatusChipSelect();
+	spiApiShowStatusControls();
+	spiApiShowStatusApiSettings();
+	spiApiShowStatusBuffer();
 
-	spiApiShowStatus( status, sizeof(status) );
 	return spiApiCommandResult_SUCCESS_QUIET;
 }
 
@@ -572,6 +550,56 @@ void spiApiShowStatus( uint8_t status[], uint8_t size )
 	}
 	ptr_uartStruct->number_of_arguments = nArguments;
 
+}
+
+void spiApiShowStatusApiSettings(void)
+{
+	uint8_t list[] = {
+			spiApiCommandKeyNumber_TRANSMIT_BYTE_ORDER,
+			spiApiCommandKeyNumber_TRANSMIT_REPORT,
+			spiApiCommandKeyNumber_AUTO_PURGE_READ_BUFFER,
+			spiApiCommandKeyNumber_AUTO_PURGE_WRITE_BUFFER };
+	spiApiShowStatus( list, sizeof(list));
+}
+
+void spiApiShowStatusBuffer(void)
+{
+	uint8_t list[] = {
+			spiApiCommandKeyNumber_SHOW_WRITE_BUFFER,
+			spiApiCommandKeyNumber_SHOW_READ_BUFFER };
+	spiApiShowStatus( list, sizeof(list));
+}
+
+void spiApiShowStatusChipSelect(void)
+{
+	uint8_t list[] = {
+			spiApiCommandKeyNumber_CS,
+			spiApiCommandKeyNumber_CS_BAR,
+			spiApiCommandKeyNumber_CS_PINS,
+			spiApiCommandKeyNumber_CS_SELECT_MASK };
+	spiApiShowStatus( list, sizeof(list));
+}
+
+void spiApiShowStatusControls()
+{
+	uint8_t list[] = {
+			spiApiCommandKeyNumber_CONTROL_BITS,
+	};
+	spiApiShowStatus( list, sizeof(list));
+}
+
+
+void spiApiShowStatusControlBits()
+{
+	uint8_t list[] = {
+			spiApiCommandKeyNumber_SPI_ENABLE,
+			spiApiCommandKeyNumber_DATA_ORDER,
+			spiApiCommandKeyNumber_MASTER,
+			spiApiCommandKeyNumber_CLOCK_POLARITY,
+			spiApiCommandKeyNumber_CLOCK_PHASE };
+
+	spiApiShowStatus( list, sizeof(list));
+	spiApiShowStatusSpeed();
 }
 
 void spiApiShowStatusSpeed(void)
@@ -655,6 +683,7 @@ uint8_t spiApiSubCommandReset(void)
 {
 	spiInit();
 	spiApiInit();
+	spiEnable(true);
 	return spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
 }
 
@@ -991,7 +1020,8 @@ uint8_t spiApiSubCommandControlBits(struct uartStruct *ptr_uartStruct)
 {
 	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
 
-	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &(ptr_spiApiConfiguration->spiConfiguration.data), apiVarType_UINT16, 0, 0x1FF, true, NULL);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,
+			         &(ptr_spiApiConfiguration->spiConfiguration.data), apiVarType_UINT16, 0, 0x1FF, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -999,6 +1029,11 @@ uint8_t spiApiSubCommandControlBits(struct uartStruct *ptr_uartStruct)
 		{
 			spiSetConfiguration(ptr_spiApiConfiguration->spiConfiguration);
 		}
+		UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE);
+
+		spiApiShowStatusControlBits();
+
+		result = spiApiCommandResult_SUCCESS_QUIET;
 	}
 	return result;
 }
@@ -1008,7 +1043,7 @@ uint8_t spiApiSubCommandSpiEnable(struct uartStruct *ptr_uartStruct)
 	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
 	uint8_t bits = ptr_spiApiConfiguration->spiConfiguration.bits.bSpe;
 
-	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_BOOL_TrueFalse, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -1044,7 +1079,8 @@ uint8_t spiApiSubCommandMaster(struct uartStruct *ptr_uartStruct)
 	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
 	uint8_t bits = ptr_spiApiConfiguration->spiConfiguration.bits.bMstr;
 
-	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
+	/* TODO: implement client ??? */
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_BOOL_TrueFalse, 0x1, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
@@ -1212,7 +1248,7 @@ uint8_t spiApiSubCommandDoubleSpeed(struct uartStruct *ptr_uartStruct)
 	ptr_spiApiConfiguration->spiConfiguration = spiGetConfiguration();
 	uint8_t bits = ptr_spiApiConfiguration->spiConfiguration.bits.bSpi2x;
 
-	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_UINT8, 0, 0x1, true, NULL);
+	uint8_t result = apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2,  &bits, apiVarType_BOOL_TrueFalse, 0, 0x1, true, NULL);
 
 	if ( spiApiCommandResult_FAILURE > result )
 	{
