@@ -17,7 +17,7 @@
 ---+++++ General Operation
 ---
 
- The SPI command set allows to operate the SPI interface of the HadCon's &mu;Controller as a master.
+ The SPI command set allows to operate the SPI interface of the [[HadCon2][HadCon(2)]]'s &mu;Controller as a master.
 	
  It sends data in atomic chunks of *bytes* via the ==MOSI== pin to slave devices and receives via the ==MISO== pin the responses.
  This happens in a buffered mode, so that multiple bytes can be send and received at once. %BR% 
@@ -371,10 +371,10 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
       ==RECV SPI read %SCLB%&lt;value&gt;%SCLE%== %BR%
           %ENDBGCDIV%
    $ *Description*: \
-   			read the last element filled into the read buffer %BR%
-   			depending on the _[[#SPI_transmit_byte_order][transmit_byte_order]]_ :
-   			* 0, MSB: last element (FIFO)
-   			* 1, LSB: first element (LIFO)
+   	  read the last element filled into the read buffer %BR%
+   	  depending on the _[[#SPI_transmit_byte_order][transmit_byte_order]]_ :
+   	  * 0, MSB: last element (FIFO)
+   	  * 1, LSB: first element (LIFO)
       $ *Arguments*: 
          * - 
       $ *Return values*: 
@@ -640,13 +640,13 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
       ==RECV SPI cs_pins 1:PORTB,0== %BR%
       ==RECV SPI cs_select_mask FF== %BR%
       ==RECV SPI control_bits 50== %BR%
-      ==RECV SPI spi_enable 1== %BR%
+      ==RECV SPI spi_enable TRUE== %BR%
       ==RECV SPI data_order 0== %BR%
-      ==RECV SPI master 1== %BR%
+      ==RECV SPI master TRUE== %BR%
       ==RECV SPI clock_polarity 0== %BR%
       ==RECV SPI clock_phase 0== %BR%
       ==RECV SPI speed 0== %BR%
-      ==RECV SPI double_speed 0== %BR%
+      ==RECV SPI double_speed TRUE== %BR%
       ==RECV SPI speed_divider 4 (2500000Hz @ 10000000Hz)== %BR%
       ==RECV SPI transmit_byte_order 0 (MSB/big endian)== %BR%
       ==RECV SPI transmit_report FALSE== %BR%
@@ -898,18 +898,45 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI c/control_bits
 <ul>
 
-   $ *Task*:  
+   $ *Task*: set/get SPI hardware configuraton/status
    $ *Format*: 
-      * %BGCSPAN% SPI control_bits %ENDBGCSPAN%
-      * %BGCSPAN% SPI c      %ENDBGCSPAN%  
-   $ *Response*:  %BGCDIV% 
-      ==RECV SPI control_bits== %BR%
+      * %BGCSPAN% SPI control_bits ==%SCLB%[&lt;Extended SPI Control Register&gt;]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI c            ==%SCLB%[&lt;Extended SPI Control Register&gt;]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:  
+          e.g. :%BGCDIV% 
+      ==RECV SPI control_bits 50== %BR%
+      ==RECV SPI spi_enable TRUE== %BR%
+      ==RECV SPI data_order 0== %BR%
+      ==RECV SPI master TRUE== %BR%
+      ==RECV SPI clock_polarity 0== %BR%
+      ==RECV SPI clock_phase 0== %BR%
+      ==RECV SPI speed 0== %BR%
+      ==RECV SPI double_speed TRUE== %BR%
+      ==RECV SPI speed_divider 4 (2500000Hz @ 10000000Hz)==
           %ENDBGCDIV%
    $ *Description*: 
+      Allows to set/get the combined information/settings of 
+      the __SPI Control Register__ ==SPCR== and the __SPI Status Register__ ==SPSR== en bloc. 
+      Therefore those two registers are combinded into one 16bit data word with ==SPCR== as LSB and ==SPSR== as MSB. 
+      Since ==SPSR==, despite its name, does have one control bit. %BR%
+      * w/o ==%SCLB%&lt;Extended SPI Control Register&gt;%SCLE%==:
+         * reports status
+      * w/  ==%SCLB%&lt;Extended SPI Control Register&gt;%SCLE%==:
+         * changes configuration      
+      $ *Note*: all settings can be done alone using the functions described below.
+      Success is reported via its get mode and the get functions of the seperate properties.
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;Extended SPI Control Register&gt;%SCLE%==
+            * ==0 ... 1FF== 
    $ *Comments*:  
-      * -
+      * See [[#SPI_spi_enable][SPI spi_enable]]
+      * See [[#SPI_data_order][SPI data order]]
+      * See [[#SPI_master][SPI master]]
+      * See [[#SPI_clock_polarity][SPI clock polarity]]
+      * See [[#SPI_clock_phase][SPI clock phase ]]
+      * See [[#SPI_speed][SPI speed]]
+      * See [[#SPI_speed_divider][SPI speed divider]]
+      * See [[#SPI_double_speed][SPI double speed]]
 </ul>
 ---
 </ul>
@@ -1163,4 +1190,4 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 %STOPINCLUDE%
 
 ---
--- Main.PeterZumbruch - 12 Jul 2013
+-- Main.PeterZumbruch - 15 Jul 2013
