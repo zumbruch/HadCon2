@@ -1235,12 +1235,10 @@ uint8_t spiApiSubCommandSpeedDivider(struct uartStruct *ptr_uartStruct)
 				spiSetConfiguration(ptr_spiApiConfiguration->spiConfiguration);
 			}
 		}
+		snprintf_P(uart_message_string,  BUFFER_SIZE - 1, PSTR("%s (%luHz @ %luHz)"), uart_message_string, (unsigned long) (F_CPU >> shift), (unsigned long) (F_CPU) );
 	}
 
-
-	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s (%luHz @ %luHz)"), uart_message_string, (unsigned long) (F_CPU >> shift), (unsigned long) (F_CPU) );
-
-	return spiApiCommandResult_SUCCESS_WITH_OUTPUT;
+	return result;
 }
 
 uint8_t spiApiSubCommandDoubleSpeed(struct uartStruct *ptr_uartStruct)
