@@ -410,7 +410,7 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
     	           ==RECV SPI show_write_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
     	           ==RECV SPI show_write_buffer (#2) 10 10 10 00 10 21 42 51 ...== %BR%
     	           ==RECV SPI show_write_buffer (#3) 25 01 10 10== %ENDBGCDIV% 
-      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne; 0,%BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne;0,%BR%
    	    buffer empty: %BR%
     	  %BGCDIV% SPI sw 3 %BR%
     	           ==RECV SPI show_write_buffer --== %ENDBGCDIV% 
@@ -480,7 +480,7 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
     	           ==RECV SPI show_read_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
     	           ==RECV SPI show_read_buffer (#2) 10 10 10 00 10 21 42 51 ...== %BR%
     	           ==RECV SPI show_read_buffer (#3) 25 01 10 10== %ENDBGCDIV% 
-      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne; 0,%BR%
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne;0,%BR%
    	    buffer empty: %BR%
     	  %BGCDIV% SPI sr 3 %BR%
     	           ==RECV SPI show_read_buffer --== %ENDBGCDIV% 
@@ -947,15 +947,20 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI spi_enable
 <ul>
 
-   $ *Task*:  
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI enable state: SPE%SCLE%== 
    $ *Format*: 
-      * %BGCSPAN% SPI spi_enable %ENDBGCSPAN%
+      * %BGCSPAN% SPI spi_enable ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
-      ==RECV SPI spi_enable== %BR%
+      ==RECV SPI spi_enable ==%SCLB%SPI enable state: SPE%SCLE%==== %BR%
           %ENDBGCDIV%
    $ *Description*: 
+      _"When the SPE bit is written to one, the SPI is enabled. \
+        This bit must be set to enable any SPI operation."_ %BR%(from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
    $ *Comments*:  
       * -
 </ul>
@@ -967,17 +972,23 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI data_order
 <ul>
 
-   $ *Task*:  
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI Data Order: DORD%SCLE%== 
    $ *Format*: 
-      * %BGCSPAN% SPI data_order %ENDBGCSPAN%
+      * %BGCSPAN% SPI data_order ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
       ==RECV SPI data_order== %BR%
           %ENDBGCDIV%
    $ *Description*: 
+ 	  _"When the DORD bit is written to one, the LSB of the data word is transmitted first.\
+        When the DORD bit is written to zero, the MSB of the data word is transmitted first.
+ 	  "_ %BR%(from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
    $ *Comments*:  
-      * -
+      * Don't mix up with [[#SPI_transmit_byte_order][API's transmit_byte_order]]
 </ul>
 ---
 </ul>
@@ -987,17 +998,22 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI master
 <ul>
 
-   $ *Task*:  
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI Master/Slave Select: MSTR%SCLE%==
    $ *Format*: 
-      * %BGCSPAN% SPI master %ENDBGCSPAN%
+      * %BGCSPAN% SPI master ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
       ==RECV SPI master== %BR%
           %ENDBGCDIV%
    $ *Description*: 
+ 	  _"This bit selects Master SPI mode when written to one, and Slave SPI mode when written logic zero. \
+ 	  If <span style="text-decoration: overline">SS</span> [the 'Chip Select Pin'] is configured as an input and is driven low while MSTR is set, MSTR will be cleared"_ %BR%(from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==(0,) 1, &ne;0, ON, (OFF), TRUE, (FALSE)==
    $ *Comments*:  
-      * -
+      * _Slave_ mode not implemented
 </ul>
 ---
 </ul>
@@ -1007,15 +1023,25 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI clock_polarity
 <ul>
 
-   $ *Task*:  
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI Clock Polarity: CPOL%SCLE%==
    $ *Format*: 
-      * %BGCSPAN% SPI clock_polarity %ENDBGCSPAN%
+      * %BGCSPAN% SPI clock_polarity ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
       ==RECV SPI clock_polarity== %BR%
           %ENDBGCDIV%
    $ *Description*: 
+ 	  _"When this bit is written to one, SCK is high when idle. When CPOL is written to zero, \
+ 	  SCK is low when idle."_ %BR%
+ 	  (from Manual: AT90CANxx)
+      * %BR% 
+		| *CPOL* | *Leading Edge* | *Trailing Edge* |
+        |  0     |  Rising        |  Falling        |		 
+        |  1     |  Falling       |  Rising         |		 
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
    $ *Comments*:  
       * -
 </ul>
@@ -1027,15 +1053,24 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI clock_phase
 <ul>
 
-   $ *Task*:  
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI Clock Phase: CPHA%SCLE%==
    $ *Format*: 
-      * %BGCSPAN% SPI clock_phase %ENDBGCSPAN%
+      * %BGCSPAN% SPI clock_phase ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
       ==RECV SPI clock_phase== %BR%
           %ENDBGCDIV%
    $ *Description*: 
+ 	  _"The settings of the Clock Phase bit (CPHA) determine if data \
+ 	  is sampled on the leading (first) or trailing (last) edge of SCK."_ 
+		| *CPHA* | *Leading Edge* | *Trailing Edge* |
+        |  0     |  Sample        |  Setup          |		 
+        |  1     |  Setup         |  Sample         |		 
+ 	  (from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
    $ *Comments*:  
       * -
 </ul>
@@ -1047,17 +1082,33 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI speed
 <ul>
 
-   $ *Task*:  
+   $ *Task*: get/set spi configuration's bits ==%SCLB%SPI Clock Rate Select 1/0: SPR1/0%SCLE%==
    $ *Format*: 
-      * %BGCSPAN% SPI speed %ENDBGCSPAN%
+      * %BGCSPAN% SPI speed ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
       ==RECV SPI speed== %BR%
           %ENDBGCDIV%
    $ *Description*: 
+ 	  _"These two bits control the SCK rate of the device configured as a Master. \
+ 	    SPR1 and SPR0 have no effect on the Slave. "_ %BR%
+ 	    (from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0 ... 3== 
+            * %BR% 
+			| *speed* | *double speed* | *clock rate: <i>SCK frequency</i>* |
+			|  ==0==  |  ==OFF==       |  f<sub>clkIO</sub>/4               | 
+			|  ==1==  |  ==OFF==       |  f<sub>clkIO</sub>/16              | 
+			|  ==2==  |  ==OFF==       |  f<sub>clkIO</sub>/64              | 
+			|  ==3==  |  ==OFF==       |  f<sub>clkIO</sub>/128             | 
+			|  ==0==  |  ==ON==        |  f<sub>clkIO</sub>/2               | 
+			|  ==1==  |  ==ON==        |  f<sub>clkIO</sub>/8               | 
+			|  ==2==  |  ==ON==        |  f<sub>clkIO</sub>/32              | 
+			|  ==3==  |  ==ON==        |  f<sub>clkIO</sub>/64              | 
    $ *Comments*:  
-      * -
+      * See [[#SPI_double_speed][SPI double speed]]
 </ul>
 ---
 </ul>
@@ -1067,17 +1118,22 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI speed_divider
 <ul>
 
-   $ *Task*:  
+   $ *Task*: get/set spi configuration's ==%SCLB%Clock Rate Divider %SCLE%==
    $ *Format*: 
-      * %BGCSPAN% SPI speed_divider %ENDBGCSPAN%
+      * %BGCSPAN% SPI speed_divider ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
       ==RECV SPI speed_divider== %BR%
           %ENDBGCDIV%
    $ *Description*: 
+ 	  Set the ratio between f<sub>clkIO</sub> and ==SCK frequency==
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==2, 4, 8, 0x10, 0x20, 0x40, 0x80==
    $ *Comments*:  
-      * -
+      * See [[#SPI_speed][SPI speed]]
+      * See [[#SPI_double_speed][SPI double speed]]
 </ul>
 ---
 </ul>
@@ -1087,15 +1143,22 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI double_speed
 <ul>
 
-   $ *Task*:  
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI Double Speed Bit: SPI2X%SCLE%==
    $ *Format*: 
-      * %BGCSPAN% SPI double_speed %ENDBGCSPAN%
+      * %BGCSPAN% SPI double_speed ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
       ==RECV SPI double_speed== %BR%
           %ENDBGCDIV%
    $ *Description*: 
+ 	  _"When this bit is written logic one the SPI speed (SCK Frequency) will be doubled \
+ 	  when the SPI is in Master mode. This means that the minimum SCK period will be two CPU clock periods.\
+ 	  When the SPI is configured as Slave, the SPI is only guaranteed to work at f<sub>clkio</sub>/4 or lower."_ %BR%
+ 	  (from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
    $ *Comments*:  
       * -
 </ul>
@@ -1113,15 +1176,22 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI transmit_byte_order
 <ul>
 
-   $ *Task*:  
+   $ *Task*: get/set the transmit order the data bytes of the buffer are written to the devices
    $ *Format*: 
-      * %BGCSPAN% SPI transmit_byte_order %ENDBGCSPAN%
+      * %BGCSPAN% SPI transmit_byte_order ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
       ==RECV SPI transmit_byte_order== %BR%
           %ENDBGCDIV%
-   $ *Description*: 
+   $ *Description*:      
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1== %BR%
+            | *%SCLB%&lt;value&gt;%SCLE%* | *transmit byte order*   |
+            |            0                |  MSB, big endian, FIFO  |
+            |            1                |  LSB, little endian, LIFO  |
+            
    $ *Comments*:  
       * -
 </ul>
@@ -1133,15 +1203,18 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI transmit_report
 <ul>
 
-   $ *Task*:  
+   $ *Task*:  get status of / enable/disable additional transmission reports after sending the write buffer 
    $ *Format*: 
-      * %BGCSPAN% SPI transmit_report %ENDBGCSPAN%
+      * %BGCSPAN% SPI transmit_report ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
       ==RECV SPI transmit_report== %BR%
           %ENDBGCDIV%
-   $ *Description*: 
+   $ *Description*:
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
    $ *Comments*:  
       * -
 </ul>
@@ -1152,15 +1225,18 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI auto_purge_write_buffer
 <ul>
 
-   $ *Task*:  
+   $ *Task*:  get status of / enable/disable automatic write buffer purge after sending its content
    $ *Format*: 
-      * %BGCSPAN% SPI auto_purge_write_buffer %ENDBGCSPAN%
+      * %BGCSPAN% SPI auto_purge_write_buffer ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
       ==RECV SPI auto_purge_write_buffer== %BR%
           %ENDBGCDIV%
-   $ *Description*: 
+   $ *Description*:
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
    $ *Comments*:  
       * -
 </ul>
@@ -1171,15 +1247,18 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 ---++++++ SPI auto_purge_read_buffer
 <ul>
 
-   $ *Task*:  
+   $ *Task*:  get status of / enable/disable automatic read buffer purge before sending data
    $ *Format*: 
-      * %BGCSPAN% SPI auto_purge_read_buffer %ENDBGCSPAN%
+      * %BGCSPAN% SPI auto_purge_read_buffer ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
    $ *Response*:  %BGCDIV% 
       ==RECV SPI auto_purge_read_buffer== %BR%
           %ENDBGCDIV%
-   $ *Description*: 
+   $ *Description*:
+      * w/o argument: get value
+      * w/  argument: set value
       $ *Arguments*: 
-         * - 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
    $ *Comments*:  
       * -
 </ul>
@@ -1190,4 +1269,4 @@ Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
 %STOPINCLUDE%
 
 ---
--- Main.PeterZumbruch - 15 Jul 2013
+-- Main.PeterZumbruch - 16 Jul 2013
