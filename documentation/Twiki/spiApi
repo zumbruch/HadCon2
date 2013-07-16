@@ -17,13 +17,13 @@
 ---+++++ General Operation
 ---
 
- The SPI command set allows to operate the SPI interface of the [[HadCon2][HadCon(2)]]'s &mu;Controller as a master.
+ The ==%SCLB%SPI%SCLE%== command set allows to operate the _Serial Peripheral Interface_ SPI interface of the [[HadCon2][HadCon(2)]]'s microcontroller, (currently "only") as a master.
 	
  It sends data in atomic chunks of *bytes* via the ==MOSI== pin to slave devices and receives via the ==MISO== pin the responses.
  This happens in a buffered mode, so that multiple bytes can be send and received at once. %BR% 
  The current limitation of the write-buffer is linked to the input string buffer of 140 characters, i.e. &approx; 60 bytes.
 	
- Up to 8 Chip-Select output pin(s) can be manipulated either 
+ Up to 8 Chip-Select/SlaveS Select output pin(s) can be defined and manipulated either 
    * automatically ( _[[#SPI_Basic_Operation][ Basic Operation]]_ ), 
    * semi-automatically ( _[[#SPI_Advanced_Operation][ Advanced Operation]]_ ), or 
    * manually ( _[[#SPI_Expert_Operation][ Expert Operation]]_ ) 
@@ -36,7 +36,7 @@
 ---++++++ Basic Operation
 ---
 <ul>
- All necessary steps are taken automatically, optional behavior can be achieved by changing the configuration.
+    $_"Single Command Operation"_: All necessary steps are taken automatically, optional behavior can be achieved by changing the configuration.
 
  Example task: 
  %BGCDIV%
