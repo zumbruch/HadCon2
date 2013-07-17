@@ -55,6 +55,8 @@
 //#define OWI_TEMPERATURE_CONVERSION_TIME_RESOLUTION_DEFAULT_SHIFT_FACTOR 3 /*9 bit resolution, division by 8*/
 #endif
 
+static const char filename[] 		PROGMEM = __FILE__;
+
 uint16_t owiTemperatureMask = 0;
 uint16_t owiTemperatureMask_DS18B20 = 0;
 uint16_t* p_owiTemperatureMask_DS18B20 = &owiTemperatureMask_DS18B20;
@@ -166,7 +168,7 @@ void owiTemperatureReadSensors( struct uartStruct *ptr_uartStruct, uint8_t conve
 
       for (uint8_t index = 0; index < sizeof(familyCode)/sizeof(int8_t); index++)
       {
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("call: FindFamilyDevicesAndGetValues family code: %x"), familyCode[index]);
+          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("call: FindFamilyDevicesAndGetValues family code: %x"), familyCode[index]);
 
          foundDevices += owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, familyCode[index], NULL );
       }
@@ -244,7 +246,7 @@ uint16_t owiTemperatureGetNumberOfDevicesAndSetTemperatureMask(struct uartStruct
 
       tempDevices += owiScanIDS(OWI_FAMILY_DS18B20_TEMP, p_owiTemperatureMask_DS18B20);
       tempDevices += owiScanIDS(OWI_FAMILY_DS18S20_TEMP, p_owiTemperatureMask_DS18B20);
-       printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("misc temp commands keyword %s matches"), ptr_owiStruct->command);
+       printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("misc temp commands keyword %s matches"), ptr_owiStruct->command);
 
       if ( 0 < tempDevices )
       {
@@ -252,7 +254,7 @@ uint16_t owiTemperatureGetNumberOfDevicesAndSetTemperatureMask(struct uartStruct
          owiTemperatureMask |= owiTemperatureMask_DS18S20;
       }
    }
-    printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("found %i temp devices"), tempDevices);
+    printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("found %i temp devices"), tempDevices);
 
    return tempDevices;
 }
@@ -397,7 +399,7 @@ void owiTemperatureMiscSubCommandGetSetMaxConversionTime(struct uartStruct *ptr_
          /* generate message */
          createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
          strncat(uart_message_string, setParameter[1],BUFFER_SIZE -1 );
-         snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s%i (0x%x)"),
+         snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s%i (%#x)"),
                     owiTemperatureMaxConversionTime, owiTemperatureMaxConversionTime);
          /*send the data*/
          UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
@@ -672,7 +674,7 @@ void owiTemperatureSensorBySensorParasiticConversion(uint8_t currentPins, uint16
 
 int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t spawnReleaseBlock )
 {
-    printDebug_p(debugLevelEventDebugVerbose, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR(""));
+    printDebug_p(debugLevelEventDebugVerbose, debugSystemOWITemperatures, __LINE__, filename, PSTR(""));
 
    uint16_t currentTimeoutMask = 0;
    uint16_t maxConversionTime = owiTemperatureMaxConversionTime;
@@ -697,7 +699,7 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
       /* check if no devices availabe, then return */
       if ( 0 == owiTemperatureGetNumberOfDevicesAndSetTemperatureMask(ptr_uartStruct))
       {
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("no temp sensors at all"), maxConversionTime, currentPins);
+          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("no temp sensors at all"), maxConversionTime, currentPins);
          return 0;
       }
    }
@@ -738,25 +740,25 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
       /* if there are only DS18B20 devices availabe, i.e. no DS18S20, conversion time can be lowered depending on resolution */
       if ( 0 == ((owiTemperatureMask_DS18S20 & currentPins) & 0xFF ) )
       {
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("bus: only DS18B20, adopting max. t_conv to: %i ms (pins 0x%x)"), maxConversionTime, currentPins);
+          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("bus: only DS18B20, adopting max. t_conv to: %i ms (pins %#x)"), maxConversionTime, currentPins);
 
          maxConversionTime = maxConversionTime >> (12 - owiTemperatureResolution_DS18B20);
       }
       else
       {
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("bus: mixed sensors, max. t_conv: %f (pins 0x%x)"), maxConversionTime, currentPins);
+          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("bus: mixed sensors, max. t_conv: %f (pins %#x)"), maxConversionTime, currentPins);
       }
 
       if ( 0 == OWI_DetectPresence(currentPins) )
       {
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("no Device present (pin pattern 0x%x)"), currentPins);
+          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("no Device present (pin pattern %#x)"), currentPins);
 
          continue;
       }
       else
       {
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("some devices present (pin pattern 0x%x)"), currentPins);
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("starting conversion sequence"));
+          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("some devices present (pin pattern %#x)"), currentPins);
+          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("starting conversion sequence"));
       }
 
        /*
@@ -768,7 +770,7 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
        */
       if (FALSE != owiTemperatureForceParasiticMode || 0 != ((owiTemperatureParasiticModeMask & currentPins) & 0xF ) )
       {
-           printDebug_p(debugLevelEventDebugVerbose, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic conversion "));
+           printDebug_p(debugLevelEventDebugVerbose, debugSystemOWITemperatures, __LINE__, filename, PSTR("parasitic conversion "));
 
 	  if ( FALSE != owiTemperatureSensorBySensorParasiticConversionFlag )
 	  {
@@ -780,7 +782,7 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
 	    owiTemperatureSensorBySensorParasiticConversion(currentPins, selectedDeviceIndex);
 	    waitForConversion = FALSE;
 	  }
-           printDebug_p(debugLevelEventDebugVerbose, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("parasitic conversion done"));
+           printDebug_p(debugLevelEventDebugVerbose, debugSystemOWITemperatures, __LINE__, filename, PSTR("parasitic conversion done"));
        }
        else
        {
@@ -793,7 +795,7 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
              count = maxcount;
              timeout_flag = FALSE;
 
-              printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("waiting for conversion"));
+              printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("waiting for conversion"));
 
              uint8_t owiReadBit = 0;
 
@@ -838,7 +840,7 @@ int owiTemperatureConversions( uint8_t *pins, uint8_t waitForConversion, uint8_t
        }
    }//end of for ( int8_t busPatternIndex = 0 ; busPatternIndex < OWI_MAX_NUM_PIN_BUS ; busPatternIndex++ )
 
-    printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("finished (Timeout: current = 0x%x, all = 0x%x)"), currentTimeoutMask, owiTemperatureTimeoutMask);
+    printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("finished (Timeout: current = %#x, all = %#x)"), currentTimeoutMask, owiTemperatureTimeoutMask);
 
    return status;
 }
@@ -872,17 +874,17 @@ uint8_t owiTemperatureConversionEvaluateTimeoutFlag(const unsigned char timeout_
 
          if ( 0 < maxcount )
          {
-             printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("waited %i times a delay of"), maxcount - count); snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %i ms", uart_message_string, OWI_TEMPERATURE_CONVERSION_DELAY_MILLISECONDS);
+             printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("waited %i times a delay of"), maxcount - count); snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %i ms", uart_message_string, OWI_TEMPERATURE_CONVERSION_DELAY_MILLISECONDS);
          }
 
          if ( count > 0 )
          {
             /*wait the remaining time*/
-             printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("waiting the remaining %i times"), count); snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %i ms", uart_message_string, OWI_TEMPERATURE_CONVERSION_DELAY_MILLISECONDS);
+             printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("waiting the remaining %i times"), count); snprintf(uart_message_string, BUFFER_SIZE - 1, "%s %i ms", uart_message_string, OWI_TEMPERATURE_CONVERSION_DELAY_MILLISECONDS);
 
             while ( 0 < --count ) { _delay_ms(OWI_TEMPERATURE_CONVERSION_DELAY_MILLISECONDS); }
          }
-          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("conversion done"));
+          printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("conversion done"));
 
          return 0;
       }
@@ -914,11 +916,11 @@ uint32_t owiTemperatureReadSingleSensor( unsigned char bus_pattern, unsigned cha
    uint32_t temperature = 0x0;
 
    /*checks*/
-    printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("begin"));
+    printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("begin"));
 
    if ( 0 == ((owiBusMask & bus_pattern) & 0xFF) )
    {
-       printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("passive (bus pattern 0x%x owiBusMask 0x%x)"), bus_pattern,owiBusMask);
+       printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("passive (bus pattern %#x owiBusMask %#x)"), bus_pattern,owiBusMask);
 
       return (0x0L | owiReadStatus_owi_bus_mismatch) << 16;
    }
@@ -926,7 +928,7 @@ uint32_t owiTemperatureReadSingleSensor( unsigned char bus_pattern, unsigned cha
    if ( 0 != ((owiTemperatureTimeoutMask & bus_pattern) & 0xFF) )
    {
       /*conversion went into timeout*/
-      CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI Temperature Conversion timeout (>%i ms, %s, bus_pattern 0x%x vs. mask: 0x%x)"), OWI_TEMPERATURE_MAX_CONVERSION_TIME_MILLISECONDS, owi_id_string, bus_pattern, owiTemperatureTimeoutMask);
+      CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("OWI Temperature Conversion timeout (>%i ms, %s, bus_pattern %#x vs. mask: %#x)"), OWI_TEMPERATURE_MAX_CONVERSION_TIME_MILLISECONDS, owi_id_string, bus_pattern, owiTemperatureTimeoutMask);
 
       return (0x0L | owiReadStatus_conversion_timeout) << 16;
    }
@@ -964,7 +966,7 @@ uint32_t owiTemperatureReadSingleSensor( unsigned char bus_pattern, unsigned cha
 
    OWI_DetectPresence(bus_pattern);
 
-    printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, PSTR(__FILE__), PSTR("end"));
+    printDebug_p(debugLevelEventDebug, debugSystemOWITemperatures, __LINE__, filename, PSTR("end"));
 
    return temperature | ((0x0L | owiReadWriteStatus_OK) << 16);
 

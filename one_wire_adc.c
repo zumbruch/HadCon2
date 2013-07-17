@@ -128,6 +128,8 @@
 
 #define DS2450_TRIPLE_CONVERSION_MAX_LOOP_TURN 0x3
 
+static const char filename[] 		PROGMEM = __FILE__;
+
 uint16_t owiAdcMask = 0;
 uint16_t* p_owiAdcMask = &owiAdcMask;
 uint16_t owiAdcTimeoutAndFailureBusMask = 0xFFFF; /*bit mask of non converted channels/pins 1:conversion timeout*/
@@ -245,7 +247,7 @@ void owiReadADCs( struct uartStruct *ptr_uartStruct )
 			 * access values
 			 */
 
-			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("call: FindFamilyDevicesAndAccessValues"));
+			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("call: FindFamilyDevicesAndAccessValues"));
 
 			/*    - read DS2450 */
 			foundDevices += owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2450_ADC, NULL );
@@ -255,7 +257,7 @@ void owiReadADCs( struct uartStruct *ptr_uartStruct )
 				generalErrorCode = CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("no matching ID was found"));
 			}
 
-			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("end"));
+			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("end"));
 		}
 	}
 }//END of owiReadADCs function
@@ -458,7 +460,7 @@ uint8_t owiADCMemoryWriteByte(unsigned char bus_pattern, unsigned char * id, uin
 	uint8_t verificationData = 0x0;
 	uint8_t trialsCounter = maxTrials;
 
-	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("writing to ADC memory address: 0x%x \tdata: 0x%x"),address, data);
+	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("writing to ADC memory address: %#x \tdata: %#x"),address, data);
 
 	/* 0 trials, give it a chance */
 	if (0 == trialsCounter) { trialsCounter++;}
@@ -578,11 +580,11 @@ int8_t owiMakeADCConversions( uint8_t *pins )
 {
 	static uint8_t initialCall_flag = TRUE;
 
-	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR(""));
+	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR(""));
 
 	if ( TRUE == initialCall_flag )
 	{
-		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("inital call needs twice a conversion"));
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("inital call needs twice a conversion"));
 		initialCall_flag = FALSE;
 		owiMakeADCConversions(pins);
 	}
@@ -598,35 +600,35 @@ int8_t owiMakeADCConversions( uint8_t *pins )
 		// continue if bus isn't active
 		if ( 0 == ((owiBusMask & pins[busPatternIndex]) & 0xFF) )
 		{
-			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i differs (pin pattern 0x%x owiBusMask 0x%x)"), busPatternIndex, pins[busPatternIndex],owiBusMask);
+			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("bus: %i differs (pin pattern %#x owiBusMask %#x)"), busPatternIndex, pins[busPatternIndex],owiBusMask);
 			continue;
 		}
 		else
 		{
-			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i active  (pin pattern 0x%x owiBusMask 0x%x)"), busPatternIndex, pins[busPatternIndex],owiBusMask);
+			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("bus: %i active  (pin pattern %#x owiBusMask %#x)"), busPatternIndex, pins[busPatternIndex],owiBusMask);
 		}
 		// continue if bus doesn't contain any ADCs
 		if ( 0 == ((owiAdcMask & pins[busPatternIndex]) & 0xFF ) )
 		{
-			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i ADCs: NONE (pin pattern 0x%x owiAdcMask 0x%x)"), busPatternIndex, pins[busPatternIndex],owiAdcMask);
+			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("bus: %i ADCs: NONE (pin pattern %#x owiAdcMask %#x)"), busPatternIndex, pins[busPatternIndex],owiAdcMask);
 			continue;
 		}
 		else
 		{
-			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i ADCs: some (pin pattern 0x%x owiAdcMask 0x%x)"), busPatternIndex, pins[busPatternIndex],owiAdcMask);
+			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("bus: %i ADCs: some (pin pattern %#x owiAdcMask %#x)"), busPatternIndex, pins[busPatternIndex],owiAdcMask);
 		}
 
 		if ( TRUE == owiUseCommonAdcConversion_flag)
 		{
 			commonPins |= pins[busPatternIndex];
-			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i combining 0x%x to common set of pins 0x%x)"), busPatternIndex, pins[busPatternIndex],commonPins);
+			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("bus: %i combining %#x to common set of pins %#x)"), busPatternIndex, pins[busPatternIndex],commonPins);
 		}
 	}
 
 	if ( TRUE == owiUseCommonAdcConversion_flag)
 	{
 		busPatternIndexMax = 1; /*only once */
-		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("final common pins: 0x%x"), commonPins);
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("final common pins: %#x"), commonPins);
 	}
 	else
 	{
@@ -659,12 +661,12 @@ int8_t owiMakeADCConversions( uint8_t *pins )
 		/* now first access to bus, within the function  */
 		if ( 0 == OWI_DetectPresence(currentPins) )
 		{
-			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i no Device present (pin pattern 0x%x)"), busPatternIndex, currentPins);
+			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("bus: %i no Device present (pin pattern %#x)"), busPatternIndex, currentPins);
 			continue;
 		}
 		else
 		{
-			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus: %i some devices present (pin pattern 0x%x)"), busPatternIndex, currentPins);
+			printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("bus: %i some devices present (pin pattern %#x)"), busPatternIndex, currentPins);
 		}
 
 		/*starting conversion sequence on all IDs */
@@ -672,7 +674,7 @@ int8_t owiMakeADCConversions( uint8_t *pins )
 
 	}//end of: 	for ( int8_t busPatternIndex = 0 ; busPatternIndex < busPatternIndexMax ; busPatternIndex++ )
 
-	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("make conversion finished (owiAdcTimeoutMask = 0x%x)"), owiAdcTimeoutAndFailureBusMask);
+	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("make conversion finished (owiAdcTimeoutMask = %#x)"), owiAdcTimeoutAndFailureBusMask);
 	return 1;
 }//END of owiMakeADCConversions function
 
@@ -701,7 +703,7 @@ int8_t owiMakeADCConversions( uint8_t *pins )
  */
 uint8_t owiADCConvert(unsigned char currentPins, unsigned char * id)
 {
-	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus_pattern: 0x%x starting conversion sequence"), currentPins );
+	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("bus_pattern: %#x starting conversion sequence"), currentPins );
 
 	static uint16_t maxConversionTime = OWI_ADC_MAX_CONVERSION_TIME_MILLISECONDS;
 	static uint32_t count;
@@ -782,7 +784,7 @@ uint8_t owiADCConvert(unsigned char currentPins, unsigned char * id)
         receive_CRC = 0;
     	result = RESULT_OK;
 
-		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("bus_pattern: 0x%x sending command, mask, readout byte"),currentPins );
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("bus_pattern: %#x sending command, mask, readout byte"),currentPins );
 		/* select one or all, depending if id is given */
 		if ( NULL == id)
 		{
@@ -817,10 +819,10 @@ uint8_t owiADCConvert(unsigned char currentPins, unsigned char * id)
 			result = RESULT_OK; /*disable CRC check for skip rom*/
 		}
 
-		//		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("crc16 checksum 3 bytes 0x%x ?"), owiComputeCRC16(0x0000, 3, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
-		//		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("crc16 checksum 4 bytes 0x%x ?"), owiComputeCRC16(0x0000, 4, OWI_ROM_SKIP, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
-		//		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("crc16 checksum 3 bytes 0x%x ?"), owiComputeCRC16(0xFFFF, 3, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
-		//		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("crc16 checksum 4 bytes 0x%x ?"), owiComputeCRC16(0xFFFF, 4, OWI_ROM_SKIP, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
+		//		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("crc16 checksum 3 bytes %#x ?"), owiComputeCRC16(0x0000, 3, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
+		//		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("crc16 checksum 4 bytes %#x ?"), owiComputeCRC16(0x0000, 4, OWI_ROM_SKIP, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
+		//		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("crc16 checksum 3 bytes %#x ?"), owiComputeCRC16(0xFFFF, 3, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
+		//		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("crc16 checksum 4 bytes %#x ?"), owiComputeCRC16(0xFFFF, 4, OWI_ROM_SKIP, DS2450_CONVERT, DS2450_CONVERSION_CHANNEL_SELECT_MASK, DS2450_CONVERSION_READOUT_CONTROL) );
 
 
 		if ( RESULT_OK == result )
@@ -831,7 +833,7 @@ uint8_t owiADCConvert(unsigned char currentPins, unsigned char * id)
 		{
 			if (OWI_SEND_BYTE_MAX_TRIALS != trialsCounter)
 			{
-				printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("CRC16 check send byte failed - trial no. %i, computed 0x%x != received 0x%x"), trialsCounter);
+				printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("CRC16 check send byte failed - trial no. %i, computed %#x != received %#x"), trialsCounter);
 
 				/* ending the Convert command sequence in any case by issuing a Reset Pulse*/
 				OWI_DetectPresence(currentPins); /*the "DetectPresence" function includes sending a Reset Pulse*/
@@ -862,7 +864,7 @@ uint8_t owiADCConvert(unsigned char currentPins, unsigned char * id)
 				break;
 			}
 		}
-		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("waited %i times a delay of %i ms"), maxcount - count, OWI_ADC_CONVERSION_DELAY_MILLISECONDS);
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("waited %i times a delay of %i ms"), maxcount - count, OWI_ADC_CONVERSION_DELAY_MILLISECONDS);
 
 		/* ending the Convert command sequence in any case by issuing a Reset Pulse*/
 		OWI_DetectPresence(currentPins); /*the "DetectPresence" function includes sending a Reset Pulse*/
@@ -873,7 +875,7 @@ uint8_t owiADCConvert(unsigned char currentPins, unsigned char * id)
 	{
 		owiAdcTimeoutAndFailureBusMask &= ~(currentPins);
 		result = RESULT_OK;
-		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("OWI ADC Conversion failed (bus_pattern: 0x%x)"), currentPins);
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("OWI ADC Conversion failed (bus_pattern: %#x)"), currentPins);
 	}
 	else
 	{
@@ -884,10 +886,10 @@ uint8_t owiADCConvert(unsigned char currentPins, unsigned char * id)
 			owiAdcTimeoutAndFailureBusMask |= currentPins;
 			if ( FALSE != timeout_flag )
 			{
-				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion timeout (bus_pattern: 0x%x"), currentPins);
-				printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("OWI Adc Conversion timeout (>%i ms) on bus_mask (0x%x)"),  maxConversionTime, currentPins);
+				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion timeout (bus_pattern: %#x"), currentPins);
+				printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("OWI Adc Conversion timeout (>%i ms) on bus_mask (%#x)"),  maxConversionTime, currentPins);
 			}
-			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion failed (bus_pattern: 0x%x)"), currentPins);
+			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion failed (bus_pattern: %#x)"), currentPins);
 		}
 		else
 		{
@@ -895,7 +897,7 @@ uint8_t owiADCConvert(unsigned char currentPins, unsigned char * id)
 			if ( FALSE != timeout_flag )
 			{
 				CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion timeout (id: %s"), owi_id_string);
-				printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("OWI Adc Conversion timeout (>%i ms) (id: %s)"),  maxConversionTime, owi_id_string);
+				printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("OWI Adc Conversion timeout (>%i ms) (id: %s)"),  maxConversionTime, owi_id_string);
 			}
 			CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion failed (id: %s)"), owi_id_string);
 		}
@@ -931,11 +933,11 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 
 	/*checks*/
 
-	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("begin"));
+	printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("begin"));
 
 	if ( 0 == ((owiBusMask & bus_pattern) & 0xFF) )
 	{
-		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("passive (bus pattern 0x%x owiBusMask 0x%x)"), bus_pattern,owiBusMask);
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("passive (bus pattern %#x owiBusMask %#x)"), bus_pattern,owiBusMask);
 		return ((uint32_t) owiReadStatus_owi_bus_mismatch) << OWI_ADC_DS2450_MAX_RESOLUTION;
 	}
 
@@ -943,7 +945,7 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 	{
 		//conversion went into timeout
 		owiCreateIdString(owi_id_string, id);
-		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion Error id: %s (bus_pattern 0x%x)"), owi_id_string, bus_pattern);
+		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("OWI ADC Conversion Error id: %s (bus_pattern %#x)"), owi_id_string, bus_pattern);
 
 		return ((uint32_t) owiReadStatus_conversion_timeout) << OWI_ADC_DS2450_MAX_RESOLUTION;
 	}
@@ -1086,7 +1088,7 @@ uint32_t owiReadChannelsOfSingleADCs( unsigned char bus_pattern, unsigned char *
 				}
 			}
 		}
-		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, PSTR(__FILE__), PSTR("retrieved data and end"));
+		printDebug_p(debugLevelEventDebug, debugSystemOWIADC, __LINE__, filename, PSTR("retrieved data and end"));
 		returnValue = ((uint32_t) 0 ) | (((uint32_t)owiReadWriteStatus_OK) << OWI_ADC_DS2450_MAX_RESOLUTION);
 	}
 

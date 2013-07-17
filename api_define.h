@@ -80,8 +80,8 @@
 #define ONEHUNDERT_KBPS            100000UL
 
 /* confirmation of sending on the bus */
-#define  READY     "command will be carried out"
-#define  NOREADY   "command will not be carried out"
+#define  CAN_READY     "command will be carried out"
+
 /*define specific for gas_temp*/
 #define  THIGH    900
 #define  TLOW     100
@@ -128,6 +128,6 @@
       __typeof__ (b) _b = (b); \
     _a < _b ? _a : _b; })
 
-#define RESET_TIME_TO_WAIT_S 10
+#define RESET_TIME_TO_WAIT_S 3
 #endif
 

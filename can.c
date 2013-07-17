@@ -40,6 +40,12 @@
 #include "can.h"
 #include "mem-check.h"
 
+static const char filename[] 		                              PROGMEM = __FILE__;
+static const char string_setCanBitTimingColon[]                   PROGMEM = "setCanBitTiming:";
+static const char string_bit_rate_pre_scaler[]                    PROGMEM = "bit rate pre scaler";
+static const char string_ignoring_TX_calls_for_maxDot_Dot1f_s[]   PROGMEM = "ignoring TX calls for max. %.1f s";
+static const char string_selecting_mob_i_oBraceSRTRcBrace[]       PROGMEM = "selecting mob %i (%SRTR)";
+
 volatile unsigned char canUseOldRecvMessage_flag;
 volatile unsigned char canUseNewRecvMessage_flag;
 
@@ -201,7 +207,7 @@ void canSendMessage( struct uartStruct *ptr_uartStruct )
 
 	currentBusModeStatus = canGetCurrentBusModeStatus(); // output: CAN_DISABLED, BUS_OFF, ERROR_PASSIVE, ERROR_ACTIVE
 
-	printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+	printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
 			PSTR("bus mode: %S, bus state %S, changed: %S"),
 			(const char*) (pgm_read_word( &(canBusModes[currentBusModeStatus]))),
 			(const char*) (pgm_read_word( &(canBusModes[canBusStoredState]))),
@@ -219,7 +225,7 @@ void canSendMessage( struct uartStruct *ptr_uartStruct )
 			case canChannelMode_ERROR_PASSIVE:
 				currentBusModeStatus = canChannelMode_ERROR_ACTIVE;
 
-				printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+				printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
 						PSTR("coming from: %S, try to set bus state back to %S"),
 						(const char*) (pgm_read_word( &(canBusModes[canBusStoredState   ]))),
 						(const char*) (pgm_read_word( &(canBusModes[currentBusModeStatus])))
@@ -255,7 +261,9 @@ void canSendMessage( struct uartStruct *ptr_uartStruct )
 				if (currentBusModeStatus != canBusStoredState)
 				{
 					CommunicationError_p(ERRC, canErrorCode, TRUE,
-								         PSTR("ignoring TX calls for max. %.1f s, no further notification"), canBusStateResetInterval_seconds);
+								         PSTR("%S, no further notification"),
+								         string_ignoring_TX_calls_for_maxDot_Dot1f_s,
+								         canBusStateResetInterval_seconds);
 					canBusStoredState = currentBusModeStatus;
 
 				}
@@ -263,26 +271,30 @@ void canSendMessage( struct uartStruct *ptr_uartStruct )
 			else
 			{
 					CommunicationError_p(ERRC, canErrorCode, TRUE,
-							             PSTR("ignoring TX calls for max. %.1f s"), canBusStateResetInterval_seconds);
+							             PSTR("%S"),
+								         string_ignoring_TX_calls_for_maxDot_Dot1f_s,
+							             canBusStateResetInterval_seconds);
 			}
 		}
 		break;
 		case canChannelMode_ERROR_ACTIVE:
 		{
-			printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+			printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
 					PSTR("preparation of send message: id %x mask %x RTR %x length %x"), id, mask, rtr, length);
 
 			if (0 == rtr)
 			{
 				/* set channel number to 1 */
 				CANPAGE = (0x1 << MOBNB0);
-				printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("selecting mob 0 (no RTR)"));
+				printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
+						string_selecting_mob_i_oBraceSRTRcBrace, 0, PSTR("no"));
 			}
 			else /*RTR*/
 			{
 				/* set channel number to 0 */
 				CANPAGE = (0 << MOBNB0);
-				printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("selecting mob 1 (RTR)"));
+				printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
+						string_selecting_mob_i_oBraceSRTRcBrace, 1, PSTR(""));
 			}
 
 			CANSTMOB = 0x00; /* cancel pending operation */
@@ -343,7 +355,7 @@ void canSendMessage( struct uartStruct *ptr_uartStruct )
 			/*enable transmission mode*/
 			CANCDMOB |= ( 1 << CONMOB0 );
 
-			printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("waiting for send message to finish"));
+			printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename, PSTR("waiting for send message to finish"));
 
 			/*call the function to verify that the sending (and receiving) of data is complete*/
 			if ( 0 == rtr )
@@ -387,7 +399,7 @@ void canWaitForCanSendMessageFinished( void )
 		/* timeout */
 		canErrorCode = CAN_ERROR_CAN_communication_timeout;
 		CommunicationError_p(ERRC, canErrorCode, TRUE, PSTR("(%i us)"), CAN_TIMEOUT_US);
-		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("send w/o RTR: timeout"));
+		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename, PSTR("send w/o RTR: timeout"));
 	}
 	else
 	{
@@ -395,13 +407,13 @@ void canWaitForCanSendMessageFinished( void )
 		if ( debugLevelVerboseDebug <= globalDebugLevel && ( ( globalDebugSystemMask >> debugSystemCAN ) & 0x1 ) )
 		{
 			strncat_P(uart_message_string, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_RECV])) ), BUFFER_SIZE - 1);
-			strncat_P(uart_message_string, PSTR(READY), BUFFER_SIZE - 1 );
+			strncat_P(uart_message_string, PSTR(CAN_READY), BUFFER_SIZE - 1 );
 			UART0_Send_Message_String_p(NULL,0);
 		}
 	}
 
 	/* all parameter initializing */
-	printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("resetting CAN send parameters"));
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename, PSTR("resetting CAN send parameters"));
 	canResetParametersCANSend();
 
 }//END of canWaitForCanSendMessageFinished
@@ -423,7 +435,7 @@ void canWaitForCanSendRemoteTransmissionRequestMessageFinished( void )
 	{
 		canErrorCode = CAN_ERROR_CAN_communication_timeout;
 		CommunicationError_p(ERRC, canErrorCode, TRUE, PSTR("(%i us)"), CAN_TIMEOUT_US);
-		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("send w/ RTR: timeout"));
+		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename, PSTR("send w/ RTR: timeout"));
 		canTimeoutCounter = CAN_TIMEOUT_US;
 	}
 	else
@@ -576,8 +588,11 @@ uint8_t canSetCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2Baud
     if (!(( 0 < numberOfTimeQuanta ) ^ ( 0 < bitRatePreScaler)))
     {
 		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
-				PSTR("setCanBitTiming: no. of Time Quanta (%i) and bit rate scaler (%i) are both (un)set"),
-				numberOfTimeQuanta, bitRatePreScaler);
+				PSTR("%S no. of Time Quanta (%i) and %S (%i) are both (un)set"),
+				string_setCanBitTimingColon,
+				numberOfTimeQuanta,
+				string_bit_rate_pre_scaler,
+				bitRatePreScaler);
 		return 1;
     }
 
@@ -606,8 +621,9 @@ uint8_t canSetCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2Baud
 			a -= numberOfTimeQuanta;
 			bitRatePreScaler++;
 		}
-		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
-				PSTR("setCanBitTiming: bit rate pre scaler calculated: %i"),
+		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
+				PSTR("%S %S calculated: %i"),
+				string_setCanBitTimingColon, string_bit_rate_pre_scaler,
 				bitRatePreScaler);
 	}
 
@@ -621,8 +637,9 @@ uint8_t canSetCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2Baud
 			a -= bitRatePreScaler;
 			numberOfTimeQuanta++;
 		}
-		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
-				PSTR("setCanBitTiming: no. of Time Quanta calculated: %i"),
+		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
+				PSTR("%S no. of Time Quanta calculated: %i"),
+				string_setCanBitTimingColon,
 				numberOfTimeQuanta);
     }
 
@@ -631,11 +648,13 @@ uint8_t canSetCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2Baud
     {
     	if ( 8 > numberOfTimeQuanta || 25 < numberOfTimeQuanta)
     	{
-    		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
-    				PSTR("setCanBitTiming: no. of Time Quanta (%i) out of [8,25]"),
+    		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
+    				PSTR("%S no. of Time Quanta (%i) out of [8,25]"),
+    				string_setCanBitTimingColon,
     				numberOfTimeQuanta);
     		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
-    				PSTR("setCanBitTiming: no. of Time Quanta (%i) out of [8,25]"),
+    				PSTR("%S no. of Time Quanta (%i) out of [8,25]"),
+    				string_setCanBitTimingColon,
     				numberOfTimeQuanta);
     		return 1;
     	}
@@ -645,7 +664,8 @@ uint8_t canSetCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2Baud
 	if ( CAN_BIT_TIMING_BIT_RATE_PRESCALER_MIN > bitRatePreScaler || CAN_BIT_TIMING_BIT_RATE_PRESCALER_MAX < bitRatePreScaler)
 	{
 		CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
-				PSTR("setCanBitTiming: bit rate pre scaler (%i) out of [%i,%i]"),
+				PSTR("%S %S (%i) out of [%i,%i]"),
+				string_setCanBitTimingColon, string_bit_rate_pre_scaler,
 				CAN_BIT_TIMING_BIT_RATE_PRESCALER_MIN, CAN_BIT_TIMING_BIT_RATE_PRESCALER_MAX, bitRatePreScaler);
 		return 1;
 	}
@@ -661,7 +681,8 @@ uint8_t canSetCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2Baud
 		if ( 0 < syncJumpWidth )
 		{
 			CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
-					PSTR("setCanBitTiming: bit rate pre scaler (%i) forbids sync jump width (%i) > 0"),
+					PSTR("%S %S (%i) forbids sync jump width (%i) > 0"),
+					string_setCanBitTimingColon, string_bit_rate_pre_scaler,
 					bitRatePreScaler, syncJumpWidth);
 			return 1;
 		}
@@ -669,7 +690,8 @@ uint8_t canSetCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2Baud
 		if ( FALSE != multipleSamplePointSampling_flag )
 		{
 			CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
-					PSTR("setCanBitTiming: bit rate pre scaler (%i) forbids multiple sample points"),
+					PSTR("%S %S (%i) forbids multiple sample points"),
+					string_setCanBitTimingColon, string_bit_rate_pre_scaler,
 					bitRatePreScaler);
 			return 1;
 		}
@@ -677,8 +699,9 @@ uint8_t canSetCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2Baud
 		// apply corrections PHS1 + 1 TQ and PHS2 - 1 TQ
 		if ( FALSE != autoCorrectBaudRatePreScalerNull_flag)
 		{
-			printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
-					PSTR("setCanBitTiming: bit rate pre scaler (%i) auto corrected phase 1/2: %i/%i"),
+			printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
+					PSTR("%S %S (%i) auto corrected phase 1/2: %i/%i"),
+					string_setCanBitTimingColon, string_bit_rate_pre_scaler,
 					bitRatePreScaler, phaseSegment1, phaseSegment2);
 			phaseSegment1++;
 			phaseSegment2--;
@@ -695,8 +718,10 @@ uint8_t canSetCanBitTimingTQUnits(uint8_t numberOfTimeQuanta, uint16_t freq2Baud
 	CANBT2 = ( ( ((propagationTimeSegment -1 ) << PRS0) | (( syncJumpWidth -1 ) << SJW0) ) & 0xFF );
 	CANBT3 = ( ( (( phaseSegment2 -1 ) << PHS20) | (( phaseSegment1 -1 ) << PHS10) | ( ((FALSE != multipleSamplePointSampling_flag)?1:0) << SMP)) && 0xFF );
 
-	printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
-			PSTR("setCanBitTiming: register CANBT1/2/3: %x / %x / %x"), CANBT1, CANBT2, CANBT3);
+	printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
+			PSTR("%S register CANBT1/2/3: %x / %x / %x"),
+        			string_setCanBitTimingColon,
+        			CANBT1, CANBT2, CANBT3);
 
 	return 0;
 }
@@ -752,7 +777,7 @@ uint8_t canBitTimingTQBasicBoundaryChecks(uint8_t propagationTimeSegment, uint8_
 			 phaseSegment2 < syncJumpWidth)
 		{
 			CommunicationError_p(ERRC, dynamicMessage_ErrorIndex, FALSE,
-					PSTR(__FILE__), PSTR("setCanBitTiming: sync jump width (%i TQ) out of [%i,%i]"),
+					filename, PSTR("setCanBitTiming: sync jump width (%i TQ) out of [%i,%i]"),
 					syncJumpWidth, min(CAN_BIT_TIMING_SYNC_JUMP_WIDTH_TIME_MIN, min(phaseSegment1,phaseSegment2)));
 			return 1;
 		}
@@ -1117,13 +1142,13 @@ int8_t canGetFreeMob( void )
 
 void canShowGeneralStatusError( void )
 {
-	printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("entering canShowGeneralStatusError"));
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename, PSTR("entering canShowGeneralStatusError"));
 
 	if (canCurrentGeneralStatus & (1 << BOFF))
 	{
 		canErrorCode = CAN_ERROR_Bus_Off_Mode;
 		CommunicationError_p(ERRC, canErrorCode, FALSE,
-				PSTR("TEC: %i REC: %i CANGST: 0x%x"), canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter,
+				PSTR("TEC: %i REC: %i CANGST: %#x"), canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter,
 				canCurrentGeneralStatus);
 	}
 
@@ -1131,7 +1156,7 @@ void canShowGeneralStatusError( void )
 	{
 		canErrorCode = CAN_ERROR_Error_Passive_Mode;
 		CommunicationError_p(ERRC, canErrorCode, FALSE,
-				PSTR("TEC: %i REC: %i CANGST: 0x%x"), canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter,
+				PSTR("TEC: %i REC: %i CANGST: %#x"), canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter,
 				canCurrentGeneralStatus);
 	}
 
@@ -1139,31 +1164,31 @@ void canShowGeneralStatusError( void )
 	{
 		canErrorCode = CAN_ERROR_Bus_Off_Mode_interrupt;
 		CommunicationError_p(ERRC, canErrorCode, FALSE,
-				PSTR("TEC: %i REC: %i CANGIT: 0x%x"), canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter,
+				PSTR("TEC: %i REC: %i CANGIT: %#x"), canCurrentTransmitErrorCounter, canCurrentReceiveErrorCounter,
 				canCurrentGeneralInterruptRegister);
 	}
 	if (canCurrentGeneralInterruptRegister & (1 << SERG))
 	{
 		canErrorCode = CAN_ERROR_Stuff_Error_General;
-		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: 0x%x"),
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: %#x"),
 				canCurrentGeneralInterruptRegister);
 	}
 	if (canCurrentGeneralInterruptRegister & (1 << CERG))
 	{
 		canErrorCode = CAN_ERROR_CRC_Error_General;
-		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: 0x%x"),
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: %#x"),
 				canCurrentGeneralInterruptRegister);
 	}
 	if (canCurrentGeneralInterruptRegister & (1 << FERG))
 	{
 		canErrorCode = CAN_ERROR_Form_Error_General;
-		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: 0x%x"),
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: %#x"),
 				canCurrentGeneralInterruptRegister);
 	}
 	if (canCurrentGeneralInterruptRegister & (1 << AERG))
 	{
 		canErrorCode = CAN_ERROR_Acknowledgment_Error_General;
-		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: 0x%x"),
+		CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("CANGIT: %#x"),
 				canCurrentGeneralInterruptRegister);
 	}
 
@@ -1186,7 +1211,7 @@ void canShowMObError( void )
 
 	for (int8_t bit = 4; 0 <= bit; bit--)
 	{
-		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("canShowMObError: bit index: %i"), bit);
+		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename, PSTR("canShowMObError: bit index: %i"), bit);
 		if ( canCurrentMObStatus & ( 1 << bit ) )
 		{
 			//	• Bit 0 – AERR: Acknowledgment Error
@@ -1209,7 +1234,7 @@ void canShowMObError( void )
 			//		acknowledge slot detecting a dominant bit during the sending of an error frame.
 
 			canErrorCode = errorNumbers[bit];
-			CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("MOb#: %i CANSTMOB: 0x%x"), canMob,
+			CommunicationError_p(ERRC, canErrorCode, FALSE, PSTR("MOb#: %i CANSTMOB: %#x"), canMob,
 					canCurrentMObStatus);
 		}
 	}
@@ -1222,11 +1247,11 @@ uint8_t canErrorHandling( uint8_t error )
 	switch (error)
 	{
 	case canState_MOB_ERROR: /* mob */
-		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN error handling: mob status"), canReady);
+		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename, PSTR("CAN error handling: mob status"), canReady);
 		canShowMObError();
 		break;
 	case canState_GENERAL_ERROR: /* general */
-		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN error handling: general status"), canReady);
+		printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename, PSTR("CAN error handling: general status"), canReady);
 		canShowGeneralStatusError();
 		break;
 	default:
@@ -1250,7 +1275,9 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 		case 1:
 			if ( ( 0x7FFFFFF ) < ptr_uartStruct->Uart_Message_ID )
 			{
-				uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_ID_is_too_long, FALSE, NULL);
+				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1,
+						           PSTR("%lx, [%#lx ... %#lx]"),
+				                   ptr_uartStruct->Uart_Message_ID, 0, 0x7FFFFFF);
 				error = TRUE;
 				break;
 			}
@@ -1258,7 +1285,9 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 		case 2:
 			if ( ( 0x7FFFFFF ) < ptr_uartStruct->Uart_Mask )
 			{
-				uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_mask_is_too_long, FALSE, NULL);
+				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1,
+						           PSTR("%lx, [%#lx ... %#lx]"),
+				                   ptr_uartStruct->Uart_Mask, 0, 0x7FFFFFF);
 				error = TRUE;
 				break;
 			}
@@ -1266,7 +1295,9 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 		case 3:
 			if ( ( 1 ) < ptr_uartStruct->Uart_Rtr )
 			{
-				uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_rtr_is_too_long, FALSE, NULL);
+				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1,
+						           PSTR("%lx, [%#lx ... %#lx]"),
+				                   ptr_uartStruct->Uart_Rtr, 0, 1);
 				error = TRUE;
 				break;
 			}
@@ -1274,7 +1305,9 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 		case 4:
 			if ( ( 8 ) < ptr_uartStruct->Uart_Length )
 			{
-				uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_length_is_too_long, FALSE, NULL);
+				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1,
+						           PSTR("%lx, [%#lx ... %#lx]"),
+				                   ptr_uartStruct->Uart_Length, 0, 8);
 				error = TRUE;
 				break;
 			}
@@ -1289,9 +1322,11 @@ uint8_t canCheckInputParameterError( uartMessage *ptr_uartStruct )
 		case 12:
 			for ( uint8_t i = 0 ; i < 8 ; i++ )
 			{
-				if ( ( 0XFF ) < ptr_uartStruct->Uart_Data[i] )
+				if ( ( 0xFF ) < ptr_uartStruct->Uart_Data[i] )
 				{
-					uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_data_0_is_too_long + i, 0, NULL);
+					uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, 1,
+							        PSTR("%x, [%#x ... %#x]"),
+							        ptr_uartStruct->Uart_Data[i], 0, 0xFF);
 					error = TRUE;
 					break;
 				}
@@ -1423,7 +1458,7 @@ ISR(CANIT_vect)
 
 	static uint16_t ctr = 0;
 	ctr++;
-	/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
+	/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename,
 			PSTR("ISR (%i): CANIT_vect occurred, canReady: %i ---  BEGIN of ISR SREG=%x"), ctr, canReady, SREG ); */
 
 	// --- interrupt generated by a MOb
@@ -1441,27 +1476,27 @@ ISR(CANIT_vect)
 		// check whether MOb has an error Bit 4:0
 		if (0 != canIsMObErrorAndAcknowledge())
 		{
-			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-					PSTR("ISR (%i): CANIT_vect occurred, MOb (%i) error occurred, CANSTMOB before/after acknowledge: 0x%x/0x%x,"),
+			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename,
+					PSTR("ISR (%i): CANIT_vect occurred, MOb (%i) error occurred, CANSTMOB before/after acknowledge: %#x/%#x,"),
 					ctr, canMob, canCurrentMObStatus, CANSTMOB ); */
 
-			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
+			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename,
 					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, MOb (%i) error occurred, setting canReady to %i"),
 					ctr, canReady, canMob, canState_MOB_ERROR); */
 
 			canReady = canState_MOB_ERROR;
 
-			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
+			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename,
 					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i"), ctr, canReady); */
 
-			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-					PSTR("ISR (%i): CANIT_vect occurred, MOb (%i), CANCDMOB: 0x%x"), ctr, canMob, CANCDMOB ); */
+			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename,
+					PSTR("ISR (%i): CANIT_vect occurred, MOb (%i), CANCDMOB: %#x"), ctr, canMob, CANCDMOB ); */
 
 			// disable communication
 			CANCDMOB &= ~(1 << CONMOB1 | 1 << CONMOB0);
 
-			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
-					PSTR("ISR (%i): CANIT_vect occurred, MOb (%i), CANCDMOB: 0x%x"), ctr, canMob, CANCDMOB ); */
+			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename,
+					PSTR("ISR (%i): CANIT_vect occurred, MOb (%i), CANCDMOB: %#x"), ctr, canMob, CANCDMOB ); */
 		}
 		else if (CANSTMOB & (1 << TXOK)) // Bit 5
 		{
@@ -1472,7 +1507,7 @@ ISR(CANIT_vect)
 			// disable communication
 			CANCDMOB &= ~(1 << CONMOB1 | 1 << CONMOB0);
 
-			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
+			/* printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename,
 					PSTR("ISR (%i): CANIT_vect occurred, canReady: %i, TXOK received"), ctr, canReady); */
 		}
 		else if (CANSTMOB & (1 << RXOK)) // Bit 6
@@ -1554,7 +1589,7 @@ ISR(OVRIT_vect)
 	 * canBusStoredState to undefined
 	 * to allow for recovery */
 
-	printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__),
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename,
 			PSTR("bus state %S"), (const char*) (pgm_read_word( &(canBusModes[canBusStoredState]))));
 
 	switch (canBusStoredState)
@@ -1566,7 +1601,7 @@ ISR(OVRIT_vect)
 			break;
 		default:
 			canPeriodicCanTimerCanBusStateReset();
-			printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("bus state %S"),
+			printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename, PSTR("bus state %S"),
 					(const char*) (pgm_read_word( &(canBusModes[canBusStoredState]))));
 			break;
 	}

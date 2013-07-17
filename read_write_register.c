@@ -31,6 +31,8 @@
 #include "led.h"
 #include "mem-check.h"
 
+static const char filename[] 		PROGMEM = __FILE__;
+
 uint8_t writeInto8bitRegister(uint8_t address, uint8_t value)
 {
 	_MMIO_BYTE((address & 0xFF)) = (value & 0xFF);

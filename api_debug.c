@@ -31,6 +31,8 @@
 #include "api_show.h"
 #include "api_help.h"
 
+static const char filename[] 		PROGMEM = __FILE__;
+
 /* max length defined by MAX_LENGTH_PARAMETER */
 static const char commandDebugKeyword00[] PROGMEM = "all";
 static const char commandDebugKeyword01[] PROGMEM = "level";

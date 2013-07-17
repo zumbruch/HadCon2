@@ -41,6 +41,8 @@
 #include "OWIHighLevelFunctions.h"
 #include "OWIBitFunctions.h"
 
+static const char filename[] 		PROGMEM = __FILE__;
+
 #define ADC_CYCLES 3 /*the number of ADC conversions done to get an average voltage value*/
 #define ADC_TIMEOUT 1000 /*wait ADC_TIMEOUT clock cycles for a single ADC conversion*/
 
@@ -62,7 +64,7 @@ void atmelReadADCs( struct uartStruct *ptr_uartStruct)
       break;
       case 1:
       {
-     	  printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, PSTR(__FILE__), PSTR(""));
+     	  printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, filename, PSTR(""));
 
 
          /* read single channel */
@@ -88,7 +90,7 @@ void atmelReadADCs( struct uartStruct *ptr_uartStruct)
 
 uint8_t atmelCollectSingleADCChannel( int8_t channelIndex, uint8_t quiet )
 {
- 	printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, PSTR(__FILE__), PSTR("channel index %i"), channelIndex);
+ 	printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, filename, PSTR("channel index %i"), channelIndex);
 
    for ( uint8_t i = 0 ; i <= 1 ; i++ )
    {
@@ -159,7 +161,7 @@ uint8_t atmelCollectSingleADCChannel( int8_t channelIndex, uint8_t quiet )
       CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("error accessing ADC channel %i"), ptr_uartStruct->Uart_Message_ID);
       return status;
    }
-    printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, PSTR(__FILE__), PSTR("value %i"), atmelAdcValues[channelIndex]) ;
+    printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, filename, PSTR("value %i"), atmelAdcValues[channelIndex]) ;
 
    if ( ! quiet )
    {
@@ -225,7 +227,7 @@ int8_t atmelReadSingleADCChannelVoltage( unsigned int channel_nr )
 
       if ( Timeout == 0 )
       {
-     	  printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, PSTR(__FILE__), PSTR("Timeout"));
+     	  printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, filename, PSTR("Timeout"));
          return eADCTimeout;
       }
 
@@ -239,7 +241,7 @@ int8_t atmelReadSingleADCChannelVoltage( unsigned int channel_nr )
 
    /*save results*/
    atmelAdcValues[channel_nr] = (uint16_t) TotalValue;
-    printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, PSTR(__FILE__), PSTR("value = %i"), TotalValue) ;
+    printDebug_p(debugLevelEventDebug, debugSystemADC, __LINE__, filename, PSTR("value = %i"), TotalValue) ;
 
    return eNoError;
 }// END of atmelReadSingleADCChannelVoltage function

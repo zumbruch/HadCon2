@@ -22,13 +22,15 @@
 #include <avr/iocan128.h>
 #endif
 
-static const char filename[] 		PROGMEM = __FILE__;
-static const char dots[] 			PROGMEM = "...";
-//static const char empty[] 		PROGMEM = "";
-static const char stringBigHex[]   	PROGMEM = "%s%X";
-//static const char stringHex[]    	PROGMEM = "%s%x";
-static const char port[]           	PROGMEM = "PORT";
-static const char stringKommaHex[] 	PROGMEM = "%s,%x";
+static const char filename[] PROGMEM = __FILE__;
+
+static const char string_3dots[] 	PROGMEM = "...";
+//static const char string_empty[]  PROGMEM = "";
+static const char string_sX[]   	PROGMEM = "%s%X";
+//static const char string_sx[]     PROGMEM = "%s%x";
+static const char string_PORT[]     PROGMEM = "PORT";
+
+static const char string_sKommax[]  PROGMEM = "%s,%x";
 
 static char byte[3]= "00";
 
@@ -429,7 +431,7 @@ void spiApiSubCommandsFooter( uint16_t result )
 			}
 			break;
 		case spiApiCommandResult_FAILURE_NOT_A_SUB_COMMAND:
-			CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("not a sub command"));
+			CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name, true, PSTR("not a sub command"));
 			break;
 		case spiApiCommandResult_SUCCESS_QUIET:
 		case spiApiCommandResult_FAILURE_QUIET:
@@ -917,7 +919,7 @@ uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex)
 				case (int) &PORTF:
 				case (int) &PORTG:
 				{
-					strncat_P(uart_message_string, port, BUFFER_SIZE - 1);
+					strncat_P(uart_message_string, string_PORT, BUFFER_SIZE - 1);
 					switch((int) portPointer)
 					{
 						case (int) &PORTA:
@@ -949,7 +951,7 @@ uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex)
 					break;
 			}
 
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, stringKommaHex, uart_message_string,
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, string_sKommax, uart_message_string,
 					spiGetPinFromChipSelect(index));
 
 			if ( chipSelectIndex > 0 )
@@ -1311,7 +1313,7 @@ uint8_t spiApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct)
 			else
 			{
 				/* match "port/PORTx/X" ?*/
-				if (0 == strncasecmp_P(setParameter[parameterIndex], port, 3) && 5 == strlen(setParameter[parameterIndex]))
+				if (0 == strncasecmp_P(setParameter[parameterIndex], string_PORT, 3) && 5 == strlen(setParameter[parameterIndex]))
 				{
 					result = spiApiCommandResult_SUCCESS_QUIET;
 					switch(setParameter[parameterIndex][4])
@@ -1710,7 +1712,7 @@ uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataAr
 	/* data */
 	if (buffer->length)
 	{
-		maxMessageSize = BUFFER_SIZE - 1 - strlen_P(dots) - strlen(uart_message_string);
+		maxMessageSize = BUFFER_SIZE - 1 - strlen_P(string_3dots) - strlen(uart_message_string);
 
 		for (int16_t byteCtr = 0; byteIndex < buffer->length && byteCtr < nBytes; byteIndex++, byteCtr++)
 		{
@@ -1733,7 +1735,7 @@ uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataAr
 				/* attach "..." at the end, if there are more to come*/
 				if (byteCtr+1 < nBytes)
 				{
-					strncat_P(message, dots, BUFFER_SIZE -1 );
+					strncat_P(message, string_3dots, BUFFER_SIZE -1 );
 				}
 
 				strncat(uart_message_string, message, BUFFER_SIZE -1 );
@@ -1853,19 +1855,19 @@ uint8_t apiShowValue(char string[], void *value, uint8_t type )
 			strncat_P(string, *((bool*)value)?PSTR("HIGH"):PSTR("LOW"), BUFFER_SIZE - 1);
 			break;
 		case apiVarType_BOOL:
-			snprintf_P(string, BUFFER_SIZE - 1, stringBigHex , string, *((bool*)value));
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((bool*)value));
 			break;
 		case apiVarType_UINT8:
-			snprintf_P(string, BUFFER_SIZE - 1, stringBigHex , string, *((uint8_t*)value));
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint8_t*)value));
 			break;
 		case apiVarType_UINT16:
-			snprintf_P(string, BUFFER_SIZE - 1, stringBigHex , string, *((uint16_t*)value));
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint16_t*)value));
 			break;
 		case apiVarType_UINT32:
-			snprintf_P(string, BUFFER_SIZE - 1, stringBigHex , string, *((uint32_t*)value));
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint32_t*)value));
 			break;
 		case apiVarType_UINT64:
-			snprintf_P(string, BUFFER_SIZE - 1, stringBigHex , string, *((uint64_t*)value));
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint64_t*)value));
 			break;
 		default:
 			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);

@@ -15,7 +15,7 @@
 #include "twi_master.h"
 #include "api_show.h"
 
-
+static const char filename[] 		PROGMEM = __FILE__;
 
 /* max length defined by MAX_LENGTH_PARAMETER */
 static const char commandShowKeyword00[] PROGMEM = "unused_mem_start";
@@ -49,25 +49,25 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 	uint8_t index;
 	//int8_t (*func)(struct uartStruct);
     //struct showCommand_t
- 	printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("show begin"));
+ 	printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, filename, PSTR("show begin"));
 
 	switch(ptr_uartStruct->number_of_arguments)
 	{
 	case 0:
 		for (index = 0; index < commandShowKeyNumber_MAXIMUM_NUMBER; index++)
 		{
- 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("unused mem now %i "), get_mem_unused());
- 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("show all begin %i"),index);
+ 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, filename, PSTR("unused mem now %i "), get_mem_unused());
+ 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, filename, PSTR("show all begin %i"),index);
 
 			ptr_uartStruct->number_of_arguments = 1;
 			for (uint8_t i = 0; i < MAX_LENGTH_PARAMETER; i++) {setParameter[1][i]=STRING_END;}
 			snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (PGM_P) (pgm_read_word( &(commandShowKeywords[index]))));
 
- 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("recursive call of show with parameter \"%s\" (%p)"), &setParameter[1][0], &setParameter[1][0]);
+ 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, filename, PSTR("recursive call of show with parameter \"%s\" (%p)"), &setParameter[1][0], &setParameter[1][0]);
 
 			show(ptr_uartStruct);
 
- 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("show all end %i"), index);
+ 			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, filename, PSTR("show all end %i"), index);
 
 			ptr_uartStruct->number_of_arguments = 0;
 		}
@@ -84,7 +84,7 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 			   if ( debugLevelEventDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemSHOW) & 0x1))
 			   {
 		         strncat_P(uart_message_string,(const char*) (pgm_read_word( &(commandShowKeywords[index]))),BUFFER_SIZE -1);
- 		         printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("call showMem for: %s"), uart_message_string);
+ 		         printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, filename, PSTR("call showMem for: %s"), uart_message_string);
 			   }
 			   showMem(ptr_uartStruct, index);
 		      break;
@@ -106,7 +106,7 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		      showWatchdogIncarnationsCounter(FALSE);
 		      break;
 		   default:
- 		      printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("call Communication_Error"));
+ 		      printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, filename, PSTR("call Communication_Error"));
 
 		      CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("show:invalid argument"));
 		      return 1;
@@ -119,7 +119,7 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		      break;
 	}
 
-     printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, PSTR(__FILE__), PSTR("show end"));
+     printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, filename, PSTR("show end"));
 
 	return 0;
 }
@@ -253,7 +253,7 @@ void showResetSource(uint8_t startup_flag)
     	strncat_P(uart_message_string, PSTR(" system (re)started by: "), BUFFER_SIZE - 1);
     }
 
-	switch(resetSource)
+    switch(resetSource)
 	{
 	case resetSource_WATCHDOG:
 		strncat_P(uart_message_string, PSTR("Watchdog Reset"), BUFFER_SIZE - 1);
@@ -276,7 +276,7 @@ void showResetSource(uint8_t startup_flag)
 		break;
 	}
 
-	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s (MCUSR: 0x%x)"),uart_message_string, mcusr );
+	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s (MCUSR: %#x)"),uart_message_string, mcusr );
 
 	UART0_Send_Message_String_p(NULL,0);
 

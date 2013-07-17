@@ -18,6 +18,8 @@
 #include "one_wire_adc.h"
 #include "one_wire_api_settings.h"
 
+static const char filename[] 		PROGMEM = __FILE__;
+
 /* max length defined by MAX_LENGTH_PARAMETER */
 static const char owiApiCommandKeyword00[] PROGMEM = "common_temp_convert";
 static const char owiApiCommandKeyword01[] PROGMEM = "common_adc_convert";
@@ -40,24 +42,24 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
     //int8_t (*func)(struct uartStruct);
     //struct showCommand_t
 
-     printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("begin"));
+     printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, filename, PSTR("begin"));
 
     switch(ptr_uartStruct->number_of_arguments)
     {
     case 0:
         for (index = 0; index < owiApiCommandKeyNumber_MAXIMUM_NUMBER; index++)
         {
-            printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all begin %i"), index);
+            printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, filename, PSTR("all begin %i"), index);
             ptr_uartStruct->number_of_arguments = 1;
 
             clearString(setParameter[1], MAX_LENGTH_PARAMETER);
             snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (PGM_P) (pgm_read_word( &(owiApiCommandKeywords[index]))));
 
-            printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("recursive call of %s with parameter \"%s\" (%p)"), __func__, &setParameter[1][0], &setParameter[1][0]);
+            printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, filename, PSTR("recursive call of %s with parameter \"%s\" (%p)"), __func__, &setParameter[1][0], &setParameter[1][0]);
 
             owiApi(ptr_uartStruct);
 
-            printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("all end %i"), index);
+            printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, filename, PSTR("all end %i"), index);
 
             ptr_uartStruct->number_of_arguments = 0;
         }
@@ -79,7 +81,7 @@ int8_t owiApi(struct uartStruct *ptr_uartStruct)
         break;
     }
 
-     printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, PSTR(__FILE__), PSTR("end"));
+     printDebug_p(debugLevelEventDebug, debugSystemOWIApiSettings, __LINE__, filename, PSTR("end"));
 
     return 0;
 }

@@ -558,44 +558,18 @@ const uint8_t* commandImplementations[] PROGMEM= {
  };
 
 /* pointer of array for defined serial error number*/
-static const char se00[] PROGMEM = "no valid command name";
-static const char se01[] PROGMEM = "ID is too long";
-static const char se02[] PROGMEM = "mask is too long";
-static const char se03[] PROGMEM = "RTR is too long";
-static const char se04[] PROGMEM = "length is too long";
-static const char se05[] PROGMEM = "data 0 is too long";
-static const char se06[] PROGMEM = "data 1 is too long";
-static const char se07[] PROGMEM = "data 2 is too long";
-static const char se08[] PROGMEM = "data 3 is too long";
-static const char se09[] PROGMEM = "data 4 is too long";
-static const char se10[] PROGMEM = "data 5 is too long";
-static const char se11[] PROGMEM = "data 6 is too long";
-static const char se12[] PROGMEM = "data 7 is too long";
-static const char se13[] PROGMEM = "command is too long";
-static const char se14[] PROGMEM = "argument has invalid type";
-static const char se15[] PROGMEM = "ID has invalid type";
-static const char se16[] PROGMEM = "mask has invalid type";
-static const char se17[] PROGMEM = "RTR has invalid type";
-static const char se18[] PROGMEM = "length has invalid type";
-static const char se19[] PROGMEM = "data 0 has invalid type";
-static const char se20[] PROGMEM = "data 1 has invalid type";
-static const char se21[] PROGMEM = "data 2 has invalid type";
-static const char se22[] PROGMEM = "data 3 has invalid type";
-static const char se23[] PROGMEM = "data 4 has invalid type";
-static const char se24[] PROGMEM = "data 5 has invalid type";
-static const char se25[] PROGMEM = "data 6 has invalid type";
-static const char se26[] PROGMEM = "data 7 has invalid type";
-static const char se27[] PROGMEM = "undefined error type";
-static const char se28[] PROGMEM = "first value is too long";
-static const char se29[] PROGMEM = "second value is too long";
-static const char se30[] PROGMEM = "arguments have invalid type";
-static const char se31[] PROGMEM = "argument(s) exceed(s) allowed boundary";
-static const char se32[] PROGMEM = "too many arguments";
-static const char se33[] PROGMEM = "too few arguments";
+static const char se00[] PROGMEM = "no valid command name";                     // SERIAL_ERROR_no_valid_command_name = 0,
+static const char se01[] PROGMEM = "command is too long";                       // SERIAL_ERROR_command_is_too_long,
+static const char se02[] PROGMEM = "argument has invalid type";                 // SERIAL_ERROR_argument_has_invalid_type,
+static const char se03[] PROGMEM = "undefined error type";                      // SERIAL_ERROR_undefined_error_type,
+static const char se04[] PROGMEM = "argument(s) have invalid type";             // SERIAL_ERROR_arguments_have_invalid_type,
+static const char se05[] PROGMEM = "argument(s) exceed(s) allowed boundary";    // SERIAL_ERROR_arguments_exceed_boundaries,
+static const char se06[] PROGMEM = "too many arguments";                        // SERIAL_ERROR_too_many_arguments,
+static const char se07[] PROGMEM = "too few arguments";                         // SERIAL_ERROR_too_few_arguments,
+static const char se08[] PROGMEM = "invalid sub command name";                  // SERIAL_ERROR_invalid_sub_command_name,
+static const char se09[] PROGMEM = "argument string too long";                  // SERIAL_ERROR_argument_string_too_long,
 
-const char *serial_error[] PROGMEM = {
-		se00, se01, se02, se03, se04, se05, se06, se07, se08, se09, se10, se11, se12, se13, se14, se15, se16, se17, se18,
-		se19, se20, se21, se22, se23, se24, se25, se26, se27, se28, se29, se30, se31, se32, se33 };
+const char *serial_error[] PROGMEM = { se00, se01, se02, se03, se04, se05, se06, se07, se08, se09};
 
 static const char ge00[] PROGMEM = "init for timer0 failed";
 static const char ge01[] PROGMEM = "init for timer0A failed";
@@ -890,8 +864,7 @@ int8_t uartSplitUartString( char inputUartString[] )
 	{
 		if (MAX_LENGTH_PARAMETER < strlen(result_ptr))
 		{
-			/* TODO: create correct error code*/
-			CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
+			CommunicationError_p(ERRA, SERIAL_ERROR_argument_string_too_long, FALSE, NULL);
 			return -1;
 		}
 
@@ -1194,7 +1167,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
 
    if ( 0 > ptr_uartStruct->commandKeywordIndex )
    {
-      uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name,0,NULL);
+      CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name, 0, NULL);
       error = TRUE;
    }
    else
@@ -1203,7 +1176,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
       {
          if (0 != *ptr_setParameter[index])
          {
-            uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type + index, 0, NULL);
+            CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type, 1, PSTR("%s"), setParameter[index]);
             error = TRUE;
          }
          if ( TRUE == error )
@@ -1215,21 +1188,26 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
       {
     	  switch (ptr_uartStruct->commandKeywordIndex)
     	  {
-    	  case commandKeyNumber_SEND: /*CAN*/
-    	  case commandKeyNumber_SUBS: /*CAN*/
-    	  case commandKeyNumber_USUB: /*CAN*/
-    		  error = canCheckInputParameterError(ptr_uartStruct);
-    	  break;
-    	  case commandKeyNumber_I2C: /*I2C*/
-    	  case commandKeyNumber_TWIS: /*I2C*/
-    	  {
-    		  error = twiMasterCheckError(ptr_uartStruct);
-    	  }
-    	  break;
-    	  default: /*uncovered command keys*/
-    	  {
-    	  }
-    	  break;
+    		  case commandKeyNumber_SEND: /*CAN*/
+    		  case commandKeyNumber_CANT: /*CAN*/
+    		  case commandKeyNumber_SUBS: /*CAN*/
+    		  case commandKeyNumber_CANS: /*CAN*/
+    		  case commandKeyNumber_USUB: /*CAN*/
+    		  case commandKeyNumber_CANU: /*CAN*/
+    		  case commandKeyNumber_CAN:  /*CAN*/
+    		  case commandKeyNumber_CANP: /*CAN*/
+    			  error = canCheckInputParameterError(ptr_uartStruct);
+    			  break;
+    		  case commandKeyNumber_I2C: /*I2C*/
+    		  case commandKeyNumber_TWIS: /*I2C*/
+    		  {
+    			  error = twiMasterCheckError(ptr_uartStruct);
+    		  }
+    		  break;
+    		  default: /*uncovered command keys*/
+    		  {
+    		  }
+    		  break;
     	  }
       }
    }//end else
@@ -1840,8 +1818,10 @@ void Initialization( void )
    /* disable interrupts*/
    cli();
 
+   determineAndHandleResetSource();
+
    // if not watchdog reset
-   if (0 == (mcusr & (1 << WDRF)))
+   if (resetSource_WATCHDOG != resetSource)
    {
 	   watchdogIncarnationsCounter = 0;
    }
@@ -1999,12 +1979,12 @@ void InitIOPorts( void )
 
 #if HADCON_VERSION == 2
    /* use port G as output with deactivated pullups for lower pins (3 LEDs and PG3 for JTAG pull-ups*/
-   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, filename, PSTR("going to set ports for JTAG from: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, filename, PSTR("going to set ports for JTAG from: PING:%#x, PORTG:%#x"), PING&0xFF, PORTG&0xFF);
 
    DDRG  = (1 << DDG0)| (1 << DDG1)| (1 << DDG2)| (1 << DDG3) | (0 << DDG4);
    PORTG = (0 << PG0) | (0 << PG1) | (1 << PG2) | (1 << PG3)  | (1 << PG4);
 
-   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, filename, PSTR("having changed ports for JTAG to: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, filename, PSTR("having changed ports for JTAG to: PING:%#x, PORTG:%#x"), PING&0xFF, PORTG&0xFF);
 #endif
 
    /* enable ADC and set clock prescale factor to 64 (p.280)*/
@@ -2403,7 +2383,7 @@ int8_t getUnsignedNumericValueFromParameterString(const char string[], uint64_t 
     			strncpy(string2, string, strlen(string) - 8 );
     			*ptr_value += (((uint64_t)strtoul(string2, NULL, 16)) << 32);
     		}
-    		printDebug_p(debugLevelEventDebugVerbose, debugSystemApiMisc, __LINE__, (const char*)  ( filename ), PSTR("0x%x"), *ptr_value);
+    		printDebug_p(debugLevelEventDebugVerbose, debugSystemApiMisc, __LINE__, (const char*)  ( filename ), PSTR("%#x"), *ptr_value);
     	}
     }
 	else
@@ -2418,9 +2398,11 @@ void reset(struct uartStruct *ptr_uartStruct)
 {
 	for (uint8_t seconds = RESET_TIME_TO_WAIT_S; seconds > 0; --seconds)
 	{
+		wdt_enable(WDTO_500MS);
 		createReceiveHeader(NULL, NULL, 0);
 		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s--- %i seconds to reset (via watchdog)"),uart_message_string, seconds );
 		UART0_Send_Message_String_p(NULL,0);
+		wdt_disable();
 		_delay_ms(1000);
 	}
 

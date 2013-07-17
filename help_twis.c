@@ -18,6 +18,8 @@
 #include "api_debug.h"
 #include "help_twis.h"
 
+//static const char filename[] 		PROGMEM = __FILE__;
+
 void help_twis(char *currentReceiveHeader, char *currentCommandKeyword)
 {
 	if (NULL == currentReceiveHeader)  { return; }

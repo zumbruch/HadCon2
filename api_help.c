@@ -42,6 +42,8 @@
 #include "help_twis.h"
 #include "spiApi.h"
 
+static const char filename[] 		PROGMEM = __FILE__;
+
 static const char helpCommandKeyword00[] PROGMEM = "implemented";
 static const char helpCommandKeyword01[] PROGMEM = "all";
 static const char helpCommandKeyword02[] PROGMEM = "todo";
@@ -125,7 +127,7 @@ void help(struct uartStruct *ptr_uartStruct)
 						UART0_Send_Message_String_p(NULL,0);
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s       response     : <nothing> "), message );
 						UART0_Send_Message_String_p(NULL,0);
-						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s        [DEBG >=%i]  : %s CAN-Message-ID \"%s\""), message, debugLevelVerboseDebug, currentReceiveHeader, READY );
+						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s        [DEBG >=%i]  : %s CAN-Message-ID \"%s\""), message, debugLevelVerboseDebug, currentReceiveHeader, CAN_READY );
 						UART0_Send_Message_String_p(NULL,0);
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s    case RTR 1"), message );
 						UART0_Send_Message_String_p(NULL,0);

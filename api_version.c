@@ -16,6 +16,8 @@
 #include "api_show.h"
 #include "api_version.h"
 
+//static const char filename[] 		PROGMEM = __FILE__;
+
 void version(void)
 {
    if ( commandKeyNumber_MAXIMUM_NUMBER <= ptr_uartStruct->commandKeywordIndex)
