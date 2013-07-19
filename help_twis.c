@@ -13,6 +13,7 @@
 #include <avr/pgmspace.h>
 
 #include "api.h"
+#include "api_help.h"
 #include "api_define.h"
 #include "api_global.h"
 #include "api_debug.h"

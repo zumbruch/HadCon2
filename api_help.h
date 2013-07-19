@@ -7,8 +7,11 @@
 
 #ifndef API_HELP_H_
 #define API_HELP_H_
-void help(struct uartStruct *ptr_uartStruct);
-void helpAll(uint8_t mode, char prefix[]);
+enum helpCommandTypes
+{
+	helpCommandTypes_NO_ARGUMENTS = 0,
+	helpCommandTypes_MAXIMUM_NUMBER
+};
 
 enum helpMode
 {
@@ -26,5 +29,11 @@ enum helpCommandKeyNumber
       helpCommandKeyNumber_TODO,
       helpCommandKeyNumber_MAXIMUM_NUMBER
 };
+
+void help(struct uartStruct *ptr_uartStruct);
+void helpAll(uint8_t mode, char prefix[]);
+void helpShowAvailableSubCommands(int maximumIndex, const char* commandKeywords[]);
+void helpShowCommandOrResponse(char currentReceiveHeader[], PGM_P string,  PGM_P modifier);
+extern void (*helpShowCommandOrResponse_p)(char[], PGM_P,  PGM_P);
 
 #endif /* API_HELP_H_ */
