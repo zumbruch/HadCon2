@@ -18,29 +18,29 @@
 static const char filename[] 		PROGMEM = __FILE__;
 
 /* max length defined by MAX_LENGTH_PARAMETER */
-static const char commandShowKeyword00[] PROGMEM = "unused_mem_start";
-static const char commandShowKeyword01[] PROGMEM = "unused_mem";
-static const char commandShowKeyword02[] PROGMEM = "free_mem";
-static const char commandShowKeyword03[] PROGMEM = "mem";
-static const char commandShowKeyword04[] PROGMEM = "all_errors";
-static const char commandShowKeyword05[] PROGMEM = "reset_source";
-static const char commandShowKeyword06[] PROGMEM = "watchdog_counter";
+static const char showCommandKeyword00[] PROGMEM = "unused_mem_start";
+static const char showCommandKeyword01[] PROGMEM = "unused_mem";
+static const char showCommandKeyword02[] PROGMEM = "free_mem";
+static const char showCommandKeyword03[] PROGMEM = "mem";
+static const char showCommandKeyword04[] PROGMEM = "all_errors";
+static const char showCommandKeyword05[] PROGMEM = "reset_source";
+static const char showCommandKeyword06[] PROGMEM = "watchdog_counter";
 
 //const showCommand_t showCommands[] PROGMEM =
 //{
-//		{ (int8_t(*)(struct uartStruct)) showFreeMemNow, commandShowKeyword00 },
-//		{ (int8_t(*)(struct uartStruct)) showUnusedMemNow, commandShowKeyword01 },
-//		{ (int8_t(*)(struct uartStruct)) showUnusedMemStart, commandShowKeyword02 }
+//		{ (int8_t(*)(struct uartStruct)) showFreeMemNow, showCommandKeyword00 },
+//		{ (int8_t(*)(struct uartStruct)) showUnusedMemNow, showCommandKeyword01 },
+//		{ (int8_t(*)(struct uartStruct)) showUnusedMemStart, showCommandKeyword02 }
 //};
 
-const char* commandShowKeywords[] PROGMEM = {
-		commandShowKeyword00,
-		commandShowKeyword01,
-		commandShowKeyword02,
-		commandShowKeyword03,
-		commandShowKeyword04,
-		commandShowKeyword05,
-		commandShowKeyword06
+const char* showCommandKeywords[] PROGMEM = {
+		showCommandKeyword00,
+		showCommandKeyword01,
+		showCommandKeyword02,
+		showCommandKeyword03,
+		showCommandKeyword04,
+		showCommandKeyword05,
+		showCommandKeyword06
 };
 
 
@@ -61,7 +61,7 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 
 			ptr_uartStruct->number_of_arguments = 1;
 			for (uint8_t i = 0; i < MAX_LENGTH_PARAMETER; i++) {setParameter[1][i]=STRING_END;}
-			snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (PGM_P) (pgm_read_word( &(commandShowKeywords[index]))));
+			snprintf_P(setParameter[1],MAX_LENGTH_PARAMETER -1, (PGM_P) (pgm_read_word( &(showCommandKeywords[index]))));
 
  			printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, filename, PSTR("recursive call of show with parameter \"%s\" (%p)"), &setParameter[1][0], &setParameter[1][0]);
 
@@ -74,7 +74,7 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		break;
 	case 1:
 		// find matching show keyword
-        index = apiFindCommandKeywordIndex(setParameter[1], commandShowKeywords, commandShowKeyNumber_MAXIMUM_NUMBER);
+        index = apiFindCommandKeywordIndex(setParameter[1], showCommandKeywords, commandShowKeyNumber_MAXIMUM_NUMBER);
 
         switch (index)
 		{
@@ -83,13 +83,13 @@ int8_t show(struct uartStruct *ptr_uartStruct)
 		   case commandShowKeyNumber_UNUSED_MEM_START:
 			   if ( debugLevelEventDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemSHOW) & 0x1))
 			   {
-		         strncat_P(uart_message_string,(const char*) (pgm_read_word( &(commandShowKeywords[index]))),BUFFER_SIZE -1);
+		         strncat_P(uart_message_string,(const char*) (pgm_read_word( &(showCommandKeywords[index]))),BUFFER_SIZE -1);
  		         printDebug_p(debugLevelEventDebug, debugSystemSHOW, __LINE__, filename, PSTR("call showMem for: %s"), uart_message_string);
 			   }
 			   showMem(ptr_uartStruct, index);
 		      break;
 		   case commandShowKeyNumber_MEM:
-		      createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, index, commandShowKeywords);
+		      createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, index, showCommandKeywords);
 		      UART0_Send_Message_String_p(NULL,0);
 
 		      showMem(ptr_uartStruct, commandShowKeyNumber_FREE_MEM_NOW);
@@ -145,7 +145,7 @@ int8_t showMem(struct uartStruct * ptr_uartStruct, uint8_t index)
          break;
    }
 
-   createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, index, commandShowKeywords);
+   createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, index, showCommandKeywords);
 
    snprintf_P(uart_message_string,BUFFER_SIZE -1, PSTR("%s%i"), uart_message_string, memory);
 
@@ -190,11 +190,11 @@ void help_show(void)
    for (int i=0; i < commandShowKeyNumber_MAXIMUM_NUMBER; i++)
    {
       snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV HELP ***    "));
-      //              strncat_P(uart_message_string, (PGM_P) pgm_read_word( &(commandShowKeywords[i])), MAX_LENGTH_PARAMETER) ;
-      //              strncat_P(uart_message_string, commandShowKeywords[i], MAX_LENGTH_PARAMETER) ;
-      strncat_P(uart_message_string,(const char*) (pgm_read_word( &(commandShowKeywords[i]))),BUFFER_SIZE -1);
-      //              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandShowKeywords[i]))), MAX_LENGTH_PARAMETER) ;
-      //              strncmp_P(&setParameter[1][0], (const char*) (pgm_read_word( &(commandShowKeywords[index]))), MAX_LENGTH_PARAMETER);
+      //              strncat_P(uart_message_string, (PGM_P) pgm_read_word( &(showCommandKeywords[i])), MAX_LENGTH_PARAMETER) ;
+      //              strncat_P(uart_message_string, showCommandKeywords[i], MAX_LENGTH_PARAMETER) ;
+      strncat_P(uart_message_string,(const char*) (pgm_read_word( &(showCommandKeywords[i]))),BUFFER_SIZE -1);
+      //              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(showCommandKeywords[i]))), MAX_LENGTH_PARAMETER) ;
+      //              strncmp_P(&setParameter[1][0], (const char*) (pgm_read_word( &(showCommandKeywords[index]))), MAX_LENGTH_PARAMETER);
 
       UART0_Send_Message_String_p(NULL,0);
    }
@@ -211,7 +211,7 @@ void showErrors(struct uartStruct * ptr_uartStruct, uint8_t index)
     errmax[ERRT] = TWI_ERROR_MAXIMUM_INDEX;
     errmax[ERRU] = 0;
 
-    createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, index, commandShowKeywords);
+    createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, index, showCommandKeywords);
     strncat_P(uart_message_string,PSTR("following all default error messages:"),BUFFER_SIZE -1);
 
     for (int errType=0; errType < ERR_MAXIMUM_NUMBER; errType++)
@@ -244,7 +244,7 @@ void showResetSource(uint8_t startup_flag)
 
     if ( FALSE == startup_flag ) /*called by SHOW command*/
     {
-    	createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, commandShowKeyNumber_RESET_SOURCE, commandShowKeywords);
+    	createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, commandShowKeyNumber_RESET_SOURCE, showCommandKeywords);
 		strncat_P(uart_message_string, PSTR("- "), BUFFER_SIZE - 1);
     }
     else /* called at startup*/
@@ -286,7 +286,7 @@ void showWatchdogIncarnationsCounter(uint8_t startup_flag)
 {
 	if ( FALSE == startup_flag ) /*called by SHOW command*/
     {
-    	createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, commandShowKeyNumber_WATCHDOG_COUNTER, commandShowKeywords);
+    	createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_SHOW, commandShowKeyNumber_WATCHDOG_COUNTER, showCommandKeywords);
     }
     else /* called at startup*/
     {
