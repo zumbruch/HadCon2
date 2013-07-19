@@ -106,6 +106,7 @@ uint8_t spiAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNum
 	  }
     }
 
+  spiSetChipSelectInMask(chipSelectNumber);
   return 0;
 
 }
@@ -151,7 +152,6 @@ void spiInit(void) {
     }
 
   spiAddChipSelect(&PORTB, PB0, CHIPSELECT0);
-  spiSetChipSelectInMask(CHIPSELECT0);
 
   spiReleaseAllChipSelectLines();
 

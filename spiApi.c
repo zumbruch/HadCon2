@@ -1302,11 +1302,11 @@ uint8_t spiApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct)
 		case 2:
 		case 3: /*write*/
 		default:
-			/* 1st argument, either Address or string PORTA...G */
+			/* 1st argument, string PORTA...G */
 			parameterIndex = 2;
 			if ( isNumericArgument(setParameter[parameterIndex], MAX_LENGTH_PARAMETER) )
 			{
-				result = apiAssignParameterToValue(parameterIndex, &(cs.ptrPort), apiVarType_UINTPTR, 0, 0xFF);
+				result = apiAssignParameterToValue(parameterIndex, &(cs.ptrPort), apiVarType_UINTPTR, UINT64_C(0), UINT64_C(0xFF));
 			}
 			else
 			{
@@ -1364,7 +1364,7 @@ uint8_t spiApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct)
 
 			/* 2nd argument, pin */
 			parameterIndex = 3;
-			result = apiAssignParameterToValue(parameterIndex, &(cs.pinNumber), apiVarType_UINT8, 1, 8);
+			result = apiAssignParameterToValue(parameterIndex, &(cs.pinNumber), apiVarType_UINT8, 0, 7);
 			if ( spiApiCommandResult_FAILURE <= result )
 			{
 				break;
@@ -1795,7 +1795,8 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 	{
 		return spiApiCommandResult_FAILURE_QUIET;
 	}
-	if (min > inputValue || max < inputValue)
+
+	if ( (min > inputValue) || (max < inputValue) )
 	{
 		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
 		return spiApiCommandResult_FAILURE_QUIET;
