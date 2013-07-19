@@ -13,9 +13,9 @@
  * spiEnable(); // enables spi
  * spiPurgeWriteData(); // clean both data buffers for safety
  * spiPurgeReadData();
- * spiAddWriteData( value ) // adds one value to the writebuffer
- * spiWriteAndReadWithChipSelect(SPI_MSBYTE_FIRST, ( 1 << CHIPSELECT0 ) ); // sets CHIPSELECT0 to active and transmits the writebuffer
- * myData = spiGetReadData(); // the readbuffer is automatically filled by the WriteAndRead functions and can be accessed by spiGetReadData();
+ * spiAddWriteData( value ) // adds one value to the write buffer
+ * spiWriteAndReadWithChipSelect(SPI_MSBYTE_FIRST, ( 1 << CHIPSELECT0 ) ); // sets CHIPSELECT0 to active and transmits the write buffer
+ * myData = spiGetReadData(); // the read buffer is automatically filled by the WriteAndRead functions and can be accessed by spiGetReadData();
  *-------------------------------------------------
  *
  * Setting new configuration:
@@ -30,7 +30,6 @@
  * Add a new chipselect line to the chipSelectArray:
  *---------------------------
  * spiAddChipSelect(&PORTC, PC3, CHIPSELECT1); // adding PORTC3 as CHIPSELECT1. PORTB0 is CHIPSELECT0 by default but can be removed by spiRemoveChipSelect(CHIPSELECT0) and a new PORT and PIN can be assigned for CHIPSELECT0
- * spiSetChipSelectInMask(CHIPSELECT1); // sets new chipselect active in the internal chipselect mask
  *
  *
  * Which chipselects are used:
@@ -42,18 +41,18 @@
  * Which chipselects are masked by the internal mask:
  *---------------------------------------------------
  * uint8_t currentInternalMask;
- * curreentInternalMask = spiGetInternalChipSelectMask(); // returns one byte, if(bit0) -> chipselect0 is masked, if(bit1) -> chipselect1 is masked, etc...
+ * currentInternalMask = spiGetInternalChipSelectMask(); // returns one byte, if(bit0) -> chipselect0 is masked, if(bit1) -> chipselect1 is masked, etc...
  *-------------------------------------------------
  *
- * Manual influencion of the chipselect lines:
+ * Manual influence of the chipselect lines:
  *--------------------------------------------
- * spiReleaseAllChipSelectLines(); // releases all useable chipselect lines
- * // suppose CS0 to CS3 are internally masked and useable present in the chipSelectArray
+ * spiReleaseAllChipSelectLines(); // releases all usable chipselect lines
+ * // suppose CS0 to CS3 are internally masked and usable present in the chipSelectArray
  * spiSetChosenChipSelect(SPI_MASK_ALL_CHIPSELECTS); // all internally masked chipselects will be set to active
  * spiReleaseChosenChipSelect( (1<<CHIPSELECT3) | (1<<CHIPSELECT0) ); // only CS0 and CS3 are released, CS1 and CS2 are not influenced
  *-------------------------------------------------
  *
- * Manual byte per byte transmission and reading of the one byte reception buffern:
+ * Manual byte per byte transmission and reading of the one byte reception buffer:
  *---------------------------------------------------------------------------------
  * uint8_t receivedByte;
  * spiSetChosenChipSelect( 1 << CHIPSELECT0 ); // set CHIPSELECT0 (PORTB0) active
@@ -165,9 +164,9 @@ void spiSetChosenChipSelect(uint8_t externalChipSelectMask);
 uint8_t spiWriteWithoutChipSelect(uint8_t data);
 // reads the one byte read register of the internal SPI logic
 uint8_t spiReadByte(void);
-// transmits the writebuffer to chipselects which are masked by internalMask & externalMask. fills the readbuffer. byteOrder = SPI_MSBYTE_FIRST, SPI_LSBYTE_FIRST
+// transmits the write buffer to chipselects which are masked by internalMask & externalMask. fills the read buffer. byteOrder = SPI_MSBYTE_FIRST, SPI_LSBYTE_FIRST
 uint8_t spiWriteAndReadWithChipSelect(uint8_t byteOrder, uint8_t externalChipSelectMask);
-// transmits the writebuffer and fills the readbuffer. byteOrder = SPI_MSBYTE_FIRST, SPI_LSBYTE_FIRST
+// transmits the write buffer and fills the read buffer. byteOrder = SPI_MSBYTE_FIRST, SPI_LSBYTE_FIRST
 uint8_t spiWriteAndReadWithoutChipSelect(uint8_t byteOrder);
 
 
@@ -177,7 +176,7 @@ void spiSetConfiguration(spiConfigUnion);
 spiConfigUnion spiGetConfiguration(void);
 
 
-// fills the writebuffer which can be transmitted by spiWriteAndReadWithChipSelect()
+// fills the write buffer which can be transmitted by spiWriteAndReadWithChipSelect()
 // first byte added is the most significant byte, last byte the least significant
 static inline uint16_t spiAddWriteData(uint8_t value)
 {
@@ -188,17 +187,17 @@ static inline uint16_t spiAddWriteData(uint8_t value)
     }
   else
     {
-      // Error writebuffer full
+      CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, 0,  PSTR("write buffer full (max: %i)"), (MAX_LENGTH_COMMAND >> 1));
     }
   return spiWriteData.length;
 }
-// returns readbuffer
+// returns read buffer
 spiByteDataArray spiGetReadData(void);
 
 
-// erase writebuffer
+// erase write buffer
 void spiPurgeWriteData(void);
-// erase readbuffer
+// erase read buffer
 void spiPurgeReadData(void);
 
 
