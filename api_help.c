@@ -60,7 +60,7 @@ const char* helpCommandKeywords[] PROGMEM = {
 	helpCommandKeyword02
 };
 
-void (*helpShowCommandOrResponse_p)(char[], PGM_P,  PGM_P) = helpShowCommandOrResponse;
+void (*helpShowCommandOrResponse_p)(char[], PGM_P,  PGM_P, ...) = helpShowCommandOrResponse;
 
 void help(struct uartStruct *ptr_uartStruct)
 {
@@ -122,107 +122,111 @@ void help(struct uartStruct *ptr_uartStruct)
 				createReceiveHeader(NULL, currentReceiveHeader, LENGTH);
 				ptr_uartStruct->commandKeywordIndex = indexCopy;
 
+				//printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, filename, PSTR("receiveHeader: '%s'"), currentReceiveHeader);
+
 				switch (index)
 				{
 					case commandKeyNumber_CANT:
 					case commandKeyNumber_SEND:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("CAN-Message-ID ID-Range [RTR <Number of data bytes> Data0 ... Data7] "), PSTR("       "));
+						helpShowCommandOrResponse_p (NULL, PSTR("       "), PSTR("CAN-Message-ID ID-Range [RTR <Number of data bytes> Data0 ... Data7] "));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s case RTR 0"), message );
 						UART0_Send_Message_String_p(NULL,0);
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("CAN-Message-ID ID-Range 0 <Number of data bytes> Data0 ... Data7]"), PSTR("       "));
+						helpShowCommandOrResponse_p (NULL, PSTR("       "), PSTR("CAN-Message-ID ID-Range 0 <Number of data bytes> Data0 ... Data7]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, NULL, PSTR("(TODO)"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(TODO)"), NULL);
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s    [DEBG >=%i]   : %s CAN-Message-ID \"%s\""), message, debugLevelVerboseDebug, currentReceiveHeader, CAN_READY );
 						UART0_Send_Message_String_p(NULL,0);
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s case RTR 1"), message );
 						UART0_Send_Message_String_p(NULL,0);
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("CAN-Message-ID ID-Range 1 <Number of requested data bytes>]"), PSTR("       "));
+						helpShowCommandOrResponse_p (NULL, PSTR("       "), PSTR("CAN-Message-ID ID-Range 1 <Number of requested data bytes>]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("CAN_Mob CAN-Message-ID CAN-Length [Data0 ... Data7] "), PSTR("(now) "));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(now) "), PSTR("CAN_Mob CAN-Message-ID CAN-Length [Data0 ... Data7] "));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("CAN-Message-ID CAN-Length [Data0 ... Data7] "), PSTR("(TODO)"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(TODO)"), PSTR("CAN-Message-ID CAN-Length [Data0 ... Data7] "));
 						break;
 					case commandKeyNumber_SUBS:
 					case commandKeyNumber_CANS:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("CAN-Message-ID ID-Range"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("CAN-Message-ID ID-Range"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, NULL, NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, NULL);
 						break;
 					case commandKeyNumber_USUB:
 					case commandKeyNumber_CANU:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("CAN-Message-ID ID-Range"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("CAN-Message-ID ID-Range"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, NULL, NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, NULL);
 						break;
+#if 0
 					case commandKeyNumber_STAT:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[ID]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[ID]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("ID1 description1 status1"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("ID1 description1 status1"));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s           ..."), message );
 						UART0_Send_Message_String_p(NULL,0);
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("IDN descriptionN statusN"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("IDN descriptionN statusN"));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s originally ment to read the pressure in the bus"), message );
 						UART0_Send_Message_String_p(NULL,0);
 						break;
 					case commandKeyNumber_OWTP:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[ID [flag_conv] | <command_keyword> [arguments] ] "), PSTR("          "));
+						helpShowCommandOrResponse_p (NULL, PSTR("          "), PSTR("[ID [flag_conv] | <command_keyword> [arguments] ] "));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("ID1 value1"), PSTR("[ID]     "));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("[ID]     "), PSTR("ID1 value1"));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s ..."), message );
 						UART0_Send_Message_String_p(NULL,0);
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("IDx valueX "), PSTR("[ID]     "));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("[ID]     "), PSTR("IDx valueX "));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("command_key [<corresponding answer/acknowledge>]"), PSTR("<keyword>"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("<keyword>"), PSTR("command_key [<corresponding answer/acknowledge>]"));
 						/* available sub commands*/
 						helpShowAvailableSubCommands(owiTemperatureCommandKeyNumber_MAXIMUM_NUMBER, owiTemperatureCommandKeywords);
 						break;
 					case commandKeyNumber_RGWR:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("Register [Value] "), PSTR("      "));
+						helpShowCommandOrResponse_p (NULL, PSTR("      "), PSTR("Register [Value] "));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("the value %x has been written in Register "), PSTR("(now) "));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(now) "), PSTR("the value %x has been written in Register "));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("Register Value (OldValue) "), PSTR("(TODO)"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(TODO)"), PSTR("Register Value (OldValue) "));
 						//         writeRegister(ptr_uartStruct); /* call function with name writeRegister  */
 						break;
 					case commandKeyNumber_RGRE:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("Register"), PSTR("      "));
+						helpShowCommandOrResponse_p (NULL, PSTR("      "), PSTR("Register"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("the value %x has been written in Register "), PSTR("(now )"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(now )"), PSTR("the value %x has been written in Register "));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("Register Value "), PSTR("(TODO)"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(TODO)"), PSTR("Register Value "));
 						break;
 					case commandKeyNumber_RADC: /* read AVR's ADCs */
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[<ADC Channel>] "), PSTR("      "));
+						helpShowCommandOrResponse_p (NULL, PSTR("      "), PSTR("[<ADC Channel>] "));
 						break;
-					case commandKeyNumber_OWAD: /* one-wire adc */
+#endif
+						case commandKeyNumber_OWAD: /* one-wire adc */
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[ID [flag_conv [flag_init]]]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[ID [flag_conv [flag_init]]]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("ID1 value1.1 ... value1.n"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("ID1 value1.1 ... value1.n"));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s           ..."), message );
 						UART0_Send_Message_String_p(NULL,0);
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("IDx valueX.1 ... valueX.n"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("IDx valueX.1 ... valueX.n"));
 						break;
 					case commandKeyNumber_OWDS:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[ID]"), PSTR("(read)   "));
+						helpShowCommandOrResponse_p (NULL, PSTR("(read)   "), PSTR("[ID]"));
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[ID] value"), PSTR("(write)  "));
+						helpShowCommandOrResponse_p (NULL, PSTR("(write)  "), PSTR("[ID] value"));
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[ID] on/off/toggle"), PSTR("(keyword)"));
+						helpShowCommandOrResponse_p (NULL, PSTR("(keyword)"), PSTR("[ID] on/off/toggle"));
 						break;
 					case commandKeyNumber_RSET:
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s reset micro controller waiting %i s (via watchdog"), message, RESET_TIME_TO_WAIT_S );
@@ -234,57 +238,56 @@ void help(struct uartStruct *ptr_uartStruct)
 						break;
 					case commandKeyNumber_OWSS:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[ID]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[ID]"));
 						break;
 					case commandKeyNumber_OWLS:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[<Family Code>]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[<Family Code>]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("bus mask: 0x<bus mask> ID: <owi ID>"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("bus mask: 0x<bus mask> ID: <owi ID>"));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s           ..."), message );
 						UART0_Send_Message_String_p(NULL,0);
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("bus mask: 0x<bus mask> ID :<owi ID>"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("bus mask: 0x<bus mask> ID :<owi ID>"));
 						break;
 					case commandKeyNumber_PING:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR(""), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR(""));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: ALIV "), message );
 						UART0_Send_Message_String_p(NULL,0);
 						break;
 					case commandKeyNumber_OWSP: /*one-wire set active pins/bus mask*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("<bus mask>"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("<bus mask>"));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response: ... "), message );
 						UART0_Send_Message_String_p(NULL,0);
 						break;
 					case commandKeyNumber_OWRP: /*one-wire read active pins/bus mask*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, NULL, NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, NULL);
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("value "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("value "));
 						break;
 					case commandKeyNumber_CANP:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[keyword [value[s]]]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[keyword [value[s]]]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("keyword value[s] "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("keyword value[s] "));
 						break;
 					case commandKeyNumber_CAN:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[keyword [value[s]]]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[keyword [value[s]]]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("keyword value[s] "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("keyword value[s] "));
 						break;
-
 					case commandKeyNumber_DEBG: /*set/get debug level*/
 					{
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[level [mask]]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[level [mask]]"));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response (set): ..."), message );
 						UART0_Send_Message_String_p(NULL,0);
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("level mask"), PSTR("(get)"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(get)"), PSTR("level mask"));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s    "), message );
 						UART0_Send_Message_String_p(NULL,0);
 
@@ -327,29 +330,30 @@ void help(struct uartStruct *ptr_uartStruct)
 						}
 					}
 					break;
+#if 0
 					case commandKeyNumber_DBGL: /*set/get debug level*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[level]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[level]"));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response (set): ..."), message );
 						UART0_Send_Message_String_p(NULL,0);
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("level "), PSTR("(get)"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(get)"), PSTR("level "));
 						break;
 					case commandKeyNumber_DBGM: /*set/get only debug system mask*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[mask]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[mask]"));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s response (set): ..."), message );
 						UART0_Send_Message_String_p(NULL,0);
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("mask"), PSTR("(get)"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(get)"), PSTR("mask"));
 						break;
 					case commandKeyNumber_PARA:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[???]]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[???]]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("pins 0xXX have/has parasitic devices"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("pins 0xXX have/has parasitic devices"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("pins 0xXX have been pulled HIGH within XX ms"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("pins 0xXX have been pulled HIGH within XX ms"));
 						break;
 					case commandKeyNumber_JTAG: /*toggle/set JTAG availability*/
 						break;
@@ -359,96 +363,99 @@ void help(struct uartStruct *ptr_uartStruct)
 						break;
 					case commandKeyNumber_HELP: /*output some help*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[CMD]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[CMD]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("--- ... "), PSTR("(all)"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(all)"), PSTR("--- ... "));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("*** ... "), PSTR("(cmd)"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(cmd)"), PSTR("*** ... "));
 						/* available sub commands*/
 						helpShowAvailableSubCommands(helpCommandKeyNumber_MAXIMUM_NUMBER, helpCommandKeywords);
 						break;
-					case commandKeyNumber_SHOW: /*output some help*/
+#endif
+						case commandKeyNumber_SHOW: /*output some help*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[command_key]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[command_key]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("command_key1 ... "), PSTR("(all)"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(all)"), PSTR("command_key1 ... "));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s               ...               ... "), message );
 						UART0_Send_Message_String_p(NULL,0);
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s               %s command_keyN ... "), message, currentReceiveHeader );
 						UART0_Send_Message_String_p(NULL,0);
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("command_key"), PSTR("(cmd)"));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(cmd)"), PSTR("command_key"));
 						/* available sub commands*/
 						helpShowAvailableSubCommands(commandShowKeyNumber_MAXIMUM_NUMBER, showCommandKeywords);
 						break;
-					case commandKeyNumber_OWMR: /*one wire basics: match rom*/
+#if 0
+						case commandKeyNumber_OWMR: /*one wire basics: match rom*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("ID <pin_mask>"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("ID <pin_mask>"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("<acknowledge> "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("<acknowledge> "));
 						break;
 					case commandKeyNumber_OWPC: /*one wire basics: presence check*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[<pin_mask>]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[<pin_mask>]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("<bit mask of used channels> "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("<bit mask of used channels> "));
 						break;
 					case commandKeyNumber_OWRb: /*one wire basics: receive bit, wait for it*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("<pin_mask> <delay> <timeout: N (times delay)> "), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("<pin_mask> <delay> <timeout: N (times delay)> "));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("<count of delays, timeout: c<=0> "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("<count of delays, timeout: c<=0> "));
 						break;
 					case commandKeyNumber_OWRB: /*one wire basics: receive byte*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[<pin_mask>]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[<pin_mask>]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("<value> "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("<value> "));
 						break;
 					case commandKeyNumber_OWSC: /*one wire basics: send command*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("<command_key_word> [<pin_mask> [arguments ...]] "), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("<command_key_word> [<pin_mask> [arguments ...]] "));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("command_key [<corresponding answer/acknowledge>]"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("command_key [<corresponding answer/acknowledge>]"));
 						//helpShowAvailableSubCommands(owiSendCommandKeyNumber_MAXIMUM_NUMBER, owiSendCommandKeywords)
 						break;
 					case commandKeyNumber_OWSB: /*one wire basics: send byte*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("<byte> [<pin_mask>]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("<byte> [<pin_mask>]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("<byte> <acknowledge> "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("<byte> <acknowledge> "));
 						break;
 					case commandKeyNumber_OWSA: /*one wire API settings: set/get 1-wire specific API settings*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("<command_key_word> [arguments] "), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("<command_key_word> [arguments] "));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("command_key [<corresponding answer/acknowledge>]"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("command_key [<corresponding answer/acknowledge>]"));
 						/* available sub commands*/
 						helpShowAvailableSubCommands(owiApiCommandKeyNumber_MAXIMUM_NUMBER, owiApiCommandKeywords);
 						break;
 					case commandKeyNumber_WDOG: /*set/get watch dog status*/
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[???]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[???]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("[???]"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("[???]"));
 						break;
 					case commandKeyNumber_RLTH: /* relay threshold */
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[command_key_word]<"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[command_key_word]<"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("[command_key_word] <value> "), NULL);
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("command_key_word1 <value1> "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("[command_key_word] <value> "));
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("command_key_word1 <value1> "));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s              [...]              ... "), message );
 						UART0_Send_Message_String_p(NULL,0);
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("command_key_word <valueN> "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("command_key_word <valueN> "));
 						/* available sub commands*/
 						helpShowAvailableSubCommands(relayThresholdCommandKeyNumber_MAXIMUM_NUMBER, relayThresholdCommandKeywords);
 						break;
-					case commandKeyNumber_VERS: /* print code version */
+#endif
+						case commandKeyNumber_VERS: /* print code version */
 						/* command */
-						helpShowCommandOrResponse_p(NULL, NULL, NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, NULL);
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("<Version>"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("<Version>"));
 						break;
 					case commandKeyNumber_I2C: /* I2C / TWI */
 					case commandKeyNumber_TWIS: /* I2C / TWI */
@@ -462,40 +469,44 @@ void help(struct uartStruct *ptr_uartStruct)
 					case commandKeyNumber_CMD6: /* command (dummy name) */
 					case commandKeyNumber_CMD7: /* command (dummy name) */
 					case commandKeyNumber_CMD8: /* command (dummy name) */
+						/* command */
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[???]"));
+						/* response */
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("[???] "));
 						break;
-
 					case commandKeyNumber_SPI:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[???]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[???]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("[???] "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("[???] "));
 						/* available sub commands*/
 						helpShowAvailableSubCommands(spiApiCommandKeyNumber_MAXIMUM_NUMBER, spiApiCommandKeywords);
 						break;
-
+#if 2 == HADCON_VERSION
 						case commandKeyNumber_GNWR:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[???]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[???]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("[???] "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("[???] "));
 						break;
 					case commandKeyNumber_GNRE:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("[???]"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[???]"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("[???] "), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("[???] "));
 						break;
+#endif
 					case commandKeyNumber_OW8S:
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("- reads all switches and shows the IDs"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("- reads all switches and shows the IDs"));
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("<ID> - reads single switch"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("<ID> - reads single switch"));
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("<value> - writes <value> to all switches"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("<value> - writes <value> to all switches"));
 						/* command */
-						helpShowCommandOrResponse_p(NULL, PSTR("<ID> <value> - writes <value> to single switch"), NULL);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("<ID> <value> - writes <value> to single switch"));
 						/* response */
-						helpShowCommandOrResponse_p(currentReceiveHeader, PSTR("<current state of switch>"), NULL);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("<current state of switch>"));
 						break;
 					default:
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s %s --- unknown command"), message, header );
@@ -657,11 +668,12 @@ void helpShowAvailableSubCommands(int maximumIndex, const char* commandKeywords[
  * if modifier, or string are NULL, they are ignored
  */
 #warning TODO: extend to use vargs
-void helpShowCommandOrResponse(char currentReceiveHeader[], PGM_P string, PGM_P modifier)
+void helpShowCommandOrResponse(char* currentReceiveHeader, PGM_P modifier, PGM_P string, ...)
 {
+	/* header */
 	strncat(uart_message_string, message, BUFFER_SIZE - 1);
-	UART0_Send_Message_String_p(NULL, 0);
 
+	/* command / response */
 	if (NULL == currentReceiveHeader)
 	{
 		strncat_P(uart_message_string, PSTR(" command "), BUFFER_SIZE - 1);
@@ -671,24 +683,34 @@ void helpShowCommandOrResponse(char currentReceiveHeader[], PGM_P string, PGM_P 
 		strncat_P(uart_message_string, PSTR(" response"), BUFFER_SIZE - 1);
 	}
 
-	if (modifier)
+	/* cases/spaces */
+	if (NULL != modifier)
 	{
 		strncat_P(uart_message_string, modifier, BUFFER_SIZE - 1);
 	}
 
+	/* colon */
 	strncat_P(uart_message_string, PSTR(": "), BUFFER_SIZE - 1);
 
+	/* command / receive */
 	if (NULL == currentReceiveHeader)
 	{
 		strncat(uart_message_string, currentCommandKeyword, BUFFER_SIZE - 1);
 	}
 	else
 	{
-		strncat_P(uart_message_string, currentReceiveHeader, BUFFER_SIZE - 1);
+		strncat(uart_message_string, currentReceiveHeader, BUFFER_SIZE - 1);
 	}
+
+	/* arguments */
 	if (NULL != string)
 	{
-		strncat(uart_message_string, string, BUFFER_SIZE - 1);
+	       va_list argumentPointers;
+	       va_start (argumentPointers, string);
+	       vsnprintf_P(resultString, BUFFER_SIZE - 1, string, argumentPointers);
+	       va_end(argumentPointers);
+
+	       strncat(uart_message_string, resultString, BUFFER_SIZE -1);
 	}
 
 	UART0_Send_Message_String_p(NULL, 0);
