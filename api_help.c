@@ -161,7 +161,6 @@ void help(struct uartStruct *ptr_uartStruct)
 						/* response */
 						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, NULL);
 						break;
-#if 0
 					case commandKeyNumber_STAT:
 						/* command */
 						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[ID]"));
@@ -209,7 +208,6 @@ void help(struct uartStruct *ptr_uartStruct)
 						/* command */
 						helpShowCommandOrResponse_p (NULL, PSTR("      "), PSTR("[<ADC Channel>] "));
 						break;
-#endif
 						case commandKeyNumber_OWAD: /* one-wire adc */
 						/* command */
 						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[ID [flag_conv [flag_init]]]"));
@@ -330,7 +328,6 @@ void help(struct uartStruct *ptr_uartStruct)
 						}
 					}
 					break;
-#if 0
 					case commandKeyNumber_DBGL: /*set/get debug level*/
 						/* command */
 						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[level]"));
@@ -371,7 +368,6 @@ void help(struct uartStruct *ptr_uartStruct)
 						/* available sub commands*/
 						helpShowAvailableSubCommands(helpCommandKeyNumber_MAXIMUM_NUMBER, helpCommandKeywords);
 						break;
-#endif
 						case commandKeyNumber_SHOW: /*output some help*/
 						/* command */
 						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[command_key]"));
@@ -386,7 +382,7 @@ void help(struct uartStruct *ptr_uartStruct)
 						/* available sub commands*/
 						helpShowAvailableSubCommands(commandShowKeyNumber_MAXIMUM_NUMBER, showCommandKeywords);
 						break;
-#if 0
+
 						case commandKeyNumber_OWMR: /*one wire basics: match rom*/
 						/* command */
 						helpShowCommandOrResponse_p (NULL, NULL, PSTR("ID <pin_mask>"));
@@ -450,7 +446,6 @@ void help(struct uartStruct *ptr_uartStruct)
 						/* available sub commands*/
 						helpShowAvailableSubCommands(relayThresholdCommandKeyNumber_MAXIMUM_NUMBER, relayThresholdCommandKeywords);
 						break;
-#endif
 						case commandKeyNumber_VERS: /* print code version */
 						/* command */
 						helpShowCommandOrResponse_p (NULL, NULL, NULL);
