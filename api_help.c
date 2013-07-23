@@ -42,13 +42,23 @@
 #include "help_twis.h"
 #include "spiApi.h"
 
-//static const char filename[] 			PROGMEM = __FILE__;
-static const char string_command[] 		PROGMEM = "command";
-static const char string_response[]		PROGMEM = "response";
-static const char string_CANMessageID[]	PROGMEM = "CAN-Message-ID";
-static const char string_IDRange[]	    PROGMEM = "ID-Range";
-static const char string_register[]	    PROGMEM = "register";
-static const char string_value[]	    PROGMEM = "value";
+//static const char filename[] 					PROGMEM = __FILE__;
+static const char string_command[] 				PROGMEM = "command";
+static const char string_response[]				PROGMEM = "response";
+static const char string_CANMessageID[]			PROGMEM = "CAN-Message-ID";
+static const char string_IDRange[]	            PROGMEM = "ID-Range";
+static const char string_RTR[]	                PROGMEM = "RTR";
+static const char string_register[]	            PROGMEM = "register";
+static const char string_value[]	            PROGMEM = "value";
+static const char string_Data0_dots_Data7[]		PROGMEM = "Data0 ... Data7";
+static const char string_Number_of_data_bytes[]	PROGMEM = "<Number of data bytes>";
+static const char string_CAN_Mob[]          	PROGMEM = "CAN_Mob";
+static const char string_BLengthB[]	          	PROGMEM = "<Length>";
+static const char string_10x_[]	          	    PROGMEM = "          ";
+
+static const char string_s_case_S_i[]          	PROGMEM = "%s case %S %i";
+static const char string_S_S[]		          	PROGMEM = "%S %S";
+
 
 static const char helpCommandKeyword00[] PROGMEM = "implemented";
 static const char helpCommandKeyword01[] PROGMEM = "all";
@@ -129,35 +139,34 @@ void help(struct uartStruct *ptr_uartStruct)
 					case commandKeyNumber_CANT:
 					case commandKeyNumber_SEND:
 						/* command */
-						helpShowCommandOrResponse_p (NULL, PSTR("       "), PSTR("CAN-Message-ID ID-Range [RTR <Number of data bytes> Data0 ... Data7] "));
-						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s case RTR 0"), message );
+						helpShowCommandOrResponse_p (NULL, string_10x_, PSTR("%S %S [%S %S %S]"), string_CANMessageID, string_IDRange, string_RTR, string_Number_of_data_bytes, string_Data0_dots_Data7);
+						snprintf_P(uart_message_string, BUFFER_SIZE - 1, string_s_case_S_i, message, string_RTR, 0 );
 						UART0_Send_Message_String_p(NULL,0);
 						/* command */
-						helpShowCommandOrResponse_p (NULL, PSTR("       "), PSTR("CAN-Message-ID ID-Range 0 <Number of data bytes> Data0 ... Data7]"));
+						helpShowCommandOrResponse_p (NULL, string_10x_, PSTR("%S %S %i %S %S"), string_CANMessageID, string_IDRange, 0, string_Number_of_data_bytes, string_Data0_dots_Data7);
 						/* response */
-						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(TODO)"), NULL);
-						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s    [DEBG >=%i]   : %s CAN-Message-ID \"%s\""), message, debugLevelVerboseDebug, currentReceiveHeader, CAN_READY );
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("[DEBG > 0]"), PSTR("%S \"%S\""), string_CANMessageID, PSTR(CAN_READY) );
 						UART0_Send_Message_String_p(NULL,0);
-						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s case RTR 1"), message );
+						snprintf_P(uart_message_string, BUFFER_SIZE - 1, string_s_case_S_i, message, string_RTR, 1 );
 						UART0_Send_Message_String_p(NULL,0);
 						/* command */
-						helpShowCommandOrResponse_p (NULL, PSTR("       "), PSTR("CAN-Message-ID ID-Range 1 <Number of requested data bytes>]"));
+						helpShowCommandOrResponse_p (NULL, string_10x_, PSTR("%S %S %i %S"), string_CANMessageID, string_IDRange, 1, string_Number_of_data_bytes);
 						/* response */
-						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(now) "), PSTR("CAN_Mob CAN-Message-ID CAN-Length [Data0 ... Data7] "));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(now)     "), PSTR("%S %S %S [%S]"), string_CAN_Mob, string_CANMessageID, string_BLengthB, string_Data0_dots_Data7);
 						/* response */
-						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(TODO)"), PSTR("CAN-Message-ID CAN-Length [Data0 ... Data7] "));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(TODO)    "), PSTR("%S %S [%S]"), string_CANMessageID, string_BLengthB, string_Data0_dots_Data7);
 						break;
 					case commandKeyNumber_SUBS:
 					case commandKeyNumber_CANS:
 						/* command */
-						helpShowCommandOrResponse_p (NULL, NULL, PSTR("CAN-Message-ID ID-Range"));
+						helpShowCommandOrResponse_p (NULL, NULL, string_S_S, string_CANMessageID, string_IDRange);
 						/* response */
 						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, NULL);
 						break;
 					case commandKeyNumber_USUB:
 					case commandKeyNumber_CANU:
 						/* command */
-						helpShowCommandOrResponse_p (NULL, NULL, PSTR("CAN-Message-ID ID-Range"));
+						helpShowCommandOrResponse_p (NULL, NULL, string_S_S, string_CANMessageID, string_IDRange);
 						/* response */
 						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, NULL);
 						break;
@@ -175,7 +184,7 @@ void help(struct uartStruct *ptr_uartStruct)
 						break;
 					case commandKeyNumber_OWTP:
 						/* command */
-						helpShowCommandOrResponse_p (NULL, PSTR("          "), PSTR("[ID [flag_conv] | <command_keyword> [arguments] ] "));
+						helpShowCommandOrResponse_p (NULL, string_10x_, PSTR("[ID [flag_conv] | <command_keyword> [arguments] ] "));
 						/* response */
 						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("[ID]     "), PSTR("ID1 value1"));
 						snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s ..."), message );
@@ -681,6 +690,7 @@ void helpShowCommandOrResponse(char* currentReceiveHeader, PGM_P modifier, PGM_P
 	/* cases/spaces */
 	if (NULL != modifier)
 	{
+		strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1);
 		strncat_P(uart_message_string, modifier, BUFFER_SIZE - 1);
 	}
 
@@ -691,6 +701,7 @@ void helpShowCommandOrResponse(char* currentReceiveHeader, PGM_P modifier, PGM_P
 	if (NULL == currentReceiveHeader)
 	{
 		strncat(uart_message_string, currentCommandKeyword, BUFFER_SIZE - 1);
+		strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1);
 	}
 	else
 	{
