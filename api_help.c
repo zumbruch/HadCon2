@@ -54,6 +54,7 @@ static const char string_Data0_dots_Data7[]		PROGMEM = "Data0 ... Data7";
 static const char string_Number_of_data_bytes[]	PROGMEM = "<Number of data bytes>";
 static const char string_CAN_Mob[]          	PROGMEM = "CAN_Mob";
 static const char string_BLengthB[]	          	PROGMEM = "<Length>";
+static const char string_1x_[]	          	    PROGMEM = " ";
 static const char string_10x_[]	          	    PROGMEM = "          ";
 static const char string_6x_[]	          	    PROGMEM = "      ";
 static const char string_3questions[]	       	PROGMEM = "[???]";
@@ -102,7 +103,7 @@ void help(struct uartStruct *ptr_uartStruct)
 		case 0:
 		{
 			strncat(message, header, BUFFER_SIZE - 1 );
-			strncat_P(message, PSTR("---"), header);
+			strncat_P(message, PSTR("---"), BUFFER_SIZE - 1);
 			helpAll(helpMode_IMPLEMENTED, NULL);
 		}
 		break;
@@ -124,7 +125,7 @@ void help(struct uartStruct *ptr_uartStruct)
 				UART0_Send_Message_String_p(NULL,0);
 
 				strncat(uart_message_string, message, BUFFER_SIZE - 1 );
-				strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1 );
+				strncat_P(uart_message_string, string_1x_, BUFFER_SIZE - 1 );
 				strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandShortDescriptions[index]))), BUFFER_SIZE - 1);
 				UART0_Send_Message_String_p(NULL,0);
 
@@ -201,17 +202,15 @@ void help(struct uartStruct *ptr_uartStruct)
 						break;
 					case commandKeyNumber_RGWR:
 						/* command */
-						helpShowCommandOrResponse_p (NULL, string_6x_, PSTR("Register [Value] "));
+						helpShowCommandOrResponse_p (NULL, string_6x_, PSTR("Register [<Value>]"));
 						/* response */
-						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(now) "), PSTR("the value %x has been written in Register "));
+						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(now) "), PSTR("<Value> has been written in Register and ..."));
 						/* response */
 						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(TODO)"), PSTR("Register Value (OldValue) "));
 						break;
 					case commandKeyNumber_RGRE:
 						/* command */
 						helpShowCommandOrResponse_p (NULL, string_6x_, PSTR("Register"));
-						/* response */
-						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(now )"), PSTR("the value %x has been written in Register "));
 						/* response */
 						helpShowCommandOrResponse_p (currentReceiveHeader, PSTR("(TODO)"), PSTR("Register Value "));
 						break;
@@ -301,7 +300,7 @@ void help(struct uartStruct *ptr_uartStruct)
 
 						/* available debug levels*/
 						strncat(uart_message_string, message, BUFFER_SIZE -1) ;
-						strncat_P(uart_message_string, PSTR("available debug levels are:"), BUFFER_SIZE - 1 );
+						strncat_P(uart_message_string, PSTR(" available debug levels are:"), BUFFER_SIZE - 1 );
 						UART0_Send_Message_String_p(NULL,0);
 
 						size_t maxLength = getMaximumStringArrayLength_P(debugLevelNames, debugLevel_MAXIMUM_INDEX, BUFFER_SIZE);
@@ -314,13 +313,12 @@ void help(struct uartStruct *ptr_uartStruct)
 							/* add spaces before*/
 							for (size_t spaces = 0; spaces < (maxLength - strlen_P((const char*) (pgm_read_word( &(debugLevelNames[i]))))); spaces++)
 							{
-								strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE -1) ;
+								strncat_P(uart_message_string, string_1x_, BUFFER_SIZE -1) ;
 							}
 							strncat_P(uart_message_string, (const char*) (pgm_read_word( &(debugLevelNames[i]))), BUFFER_SIZE -1) ;
 							snprintf(uart_message_string, BUFFER_SIZE -1, "%s: 0x%X", uart_message_string, i);
 							UART0_Send_Message_String_p(NULL,0);
 						}
-						strncat(uart_message_string, message, BUFFER_SIZE -1) ;
 
 						/* available debug masks*/
 						strncat(uart_message_string, message, BUFFER_SIZE - 1 );
@@ -335,10 +333,10 @@ void help(struct uartStruct *ptr_uartStruct)
 							/* add spaces before*/
 							for (size_t spaces = 0; spaces < (maxLength - strlen_P((const char*) (pgm_read_word( &(debugSystemNames[i]))))); spaces++)
 							{
-								strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE -1) ;
+								strncat_P(uart_message_string, string_1x_, BUFFER_SIZE -1) ;
 							}
 							strncat_P(uart_message_string, (const char*) (pgm_read_word( &(debugSystemNames[i]))), BUFFER_SIZE -1) ;
-							snprintf(uart_message_string, BUFFER_SIZE -1, "%s: 0x%08lX", uart_message_string, ((int32_t) 0x1) << i);
+							snprintf(uart_message_string, BUFFER_SIZE -1, "%s: 0x%08lX", uart_message_string, (UINT32_C(0x1)) << i);
 							UART0_Send_Message_String_p(NULL,0);
 						}
 					}
@@ -481,9 +479,9 @@ void help(struct uartStruct *ptr_uartStruct)
 						break;
 					case commandKeyNumber_SPI:
 						/* command */
-						helpShowCommandOrResponse_p (NULL, NULL, string_3questions);
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[command]"));
 						/* response */
-						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, string_3questions);
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("command specific"));
 						/* available sub commands*/
 						helpShowAvailableSubCommands(spiApiCommandKeyNumber_MAXIMUM_NUMBER, spiApiCommandKeywords);
 						break;
@@ -499,6 +497,13 @@ void help(struct uartStruct *ptr_uartStruct)
 						helpShowCommandOrResponse_p (NULL, NULL, string_3questions);
 						/* response */
 						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, string_3questions);
+						break;
+#else
+					case commandKeyNumber_GNRE:
+					case commandKeyNumber_GNWR:
+						strncat(uart_message_string, message, BUFFER_SIZE -1);
+						strncat_P(uart_message_string, PSTR(" --- only for HADCON_VERSION 2"), BUFFER_SIZE - 1 );
+						UART0_Send_Message_String_p(NULL,0);
 						break;
 #endif
 					case commandKeyNumber_OW8S:
@@ -608,7 +613,7 @@ void helpAll(uint8_t mode, char prefix[])
 			/* prepare spaces */
 			while ( MAX_LENGTH_KEYWORD - strLength > strlen(spaces))
 			{
-				strncat_P(spaces, PSTR(" "), MAX_LENGTH_KEYWORD -1) ;
+				strncat_P(spaces, string_1x_, MAX_LENGTH_KEYWORD -1) ;
 			}
 		}
 
@@ -619,7 +624,7 @@ void helpAll(uint8_t mode, char prefix[])
 
 		// short description
 		strncat(uart_message_string, prefix, BUFFER_SIZE - 1 );
-		strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1 );
+		strncat_P(uart_message_string, string_1x_, BUFFER_SIZE - 1 );
 
 		strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandKeywords[index]))), BUFFER_SIZE - 1);
 		if (strLength < MAX_LENGTH_KEYWORD)
@@ -640,16 +645,16 @@ void helpAll(uint8_t mode, char prefix[])
 		{
 			if ( 0 == strlen_P( (const char*) (pgm_read_word( syntaxes_p[var])) ) ) { break; }
 			strncat(uart_message_string, prefix, BUFFER_SIZE - 1 );
-			strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1 );
+			strncat_P(uart_message_string, string_1x_, BUFFER_SIZE - 1 );
 
 			for (size_t var = 0; var < MAX_LENGTH_KEYWORD + 3; ++var)
 			{
-				strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE -1 ) ;
+				strncat_P(uart_message_string, string_1x_, BUFFER_SIZE -1 ) ;
 			}
 
 			strncat_P(uart_message_string, PSTR(" \t"), BUFFER_SIZE -1 ) ;
 			strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandKeywords[index]))), BUFFER_SIZE - 1);
-			strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE -1 ) ;
+			strncat_P(uart_message_string, string_1x_, BUFFER_SIZE -1 ) ;
 			strncat_P(uart_message_string, (const char*) (pgm_read_word( syntaxes_p[var])), BUFFER_SIZE - 1);
 			UART0_Send_Message_String_p(NULL, 0);
 		}
@@ -659,7 +664,7 @@ void helpAll(uint8_t mode, char prefix[])
 void helpShowAvailableSubCommands(int maximumIndex, const char* commandKeywords[])
 {
 	strncat(uart_message_string, message, BUFFER_SIZE -1) ;
-	strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1 );
+	strncat_P(uart_message_string, string_1x_, BUFFER_SIZE - 1 );
 	strncat(uart_message_string, currentCommandKeyword, BUFFER_SIZE - 1 );
 	strncat_P(uart_message_string, PSTR(" available commands"), BUFFER_SIZE - 1 );
 
@@ -667,6 +672,7 @@ void helpShowAvailableSubCommands(int maximumIndex, const char* commandKeywords[
 
 	for (int i=0; i < maximumIndex; i++)
 	{
+		strncat(uart_message_string, message, BUFFER_SIZE -1) ;
 		strncat_P(uart_message_string, PSTR("    "), BUFFER_SIZE - 1 );
 		strncat_P(uart_message_string, (const char*) (pgm_read_word( &(commandKeywords[i]))), BUFFER_SIZE - 1 );
 		UART0_Send_Message_String_p(NULL,0);
@@ -682,8 +688,7 @@ void helpShowAvailableSubCommands(int maximumIndex, const char* commandKeywords[
  * 		command is chosen, else response
  * if modifier, or string are NULL, they are ignored
  */
-#warning TODO: extend to use vargs
-//void helpShowCommandOrResponse(int type, char* currentReceiveHeader, PGM_P modifier, PGM_P string, ...)
+
 void helpShowCommandOrResponse(char* currentReceiveHeader, PGM_P modifier, PGM_P string, ...)
 {
 	/* header */
@@ -703,7 +708,7 @@ void helpShowCommandOrResponse(char* currentReceiveHeader, PGM_P modifier, PGM_P
 	/* cases/spaces */
 	if (NULL != modifier)
 	{
-		strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1);
+		strncat_P(uart_message_string, string_1x_, BUFFER_SIZE - 1);
 		strncat_P(uart_message_string, modifier, BUFFER_SIZE - 1);
 	}
 
@@ -714,7 +719,7 @@ void helpShowCommandOrResponse(char* currentReceiveHeader, PGM_P modifier, PGM_P
 	if (NULL == currentReceiveHeader)
 	{
 			strncat(uart_message_string, currentCommandKeyword, BUFFER_SIZE - 1);
-			strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1);
+			strncat_P(uart_message_string, string_1x_, BUFFER_SIZE - 1);
 	}
 	else
 	{
