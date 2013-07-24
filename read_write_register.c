@@ -55,11 +55,15 @@ void writeRegister(struct uartStruct *ptr_uartStruct)
 
 	if (0XFF < ptr_uartStruct->Uart_Message_ID)
 	{
-		generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_value_has_invalid_type, TRUE, NULL);
+		CommunicationError_p(ERRA, GENERAL_ERROR_value_has_invalid_type, TRUE, NULL);
 	}
-	if (0XFF < ptr_uartStruct->Uart_Mask)
+	else if (0XFF < ptr_uartStruct->Uart_Mask)
 	{
-		generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_adress_has_invalid_type, TRUE, NULL);
+		CommunicationError_p(ERRA, GENERAL_ERROR_address_has_invalid_type, TRUE, NULL);
+	}
+	else if (2 > ptr_uartStruct->number_of_arguments)
+	{
+		CommunicationError_p(ERRA, SERIAL_ERROR_too_few_arguments, TRUE, NULL);
 	}
 	else
 	{
@@ -90,8 +94,8 @@ void writeRegister(struct uartStruct *ptr_uartStruct)
 
 } //END of writeRegisterfunction
 
-/*this function reads the status of a register with the of his adress
- * as input parameters the function needs a keyword and an adress
+/*this function reads the status of a register with the of his address
+ * as input parameters the function needs a keyword and an address
  * the function has no return parameter
  */
 
@@ -99,12 +103,15 @@ void readRegister(struct uartStruct *ptr_uartStruct)
 {
 	if (0XFF < ptr_uartStruct->Uart_Message_ID)
 	{
-		generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_value_has_invalid_type, FALSE, NULL);
+		CommunicationError_p(ERRG, GENERAL_ERROR_value_has_invalid_type, FALSE, NULL);
 	}
-
-	if (0XFF < ptr_uartStruct->Uart_Mask)
+	else if (0XFF < ptr_uartStruct->Uart_Mask)
 	{
-		generalErrorCode = CommunicationError_p(ERRG, GENERAL_ERROR_adress_has_invalid_type, FALSE, NULL);
+		CommunicationError_p(ERRG, GENERAL_ERROR_address_has_invalid_type, FALSE, NULL);
+	}
+	else if (1 > ptr_uartStruct->number_of_arguments)
+	{
+		CommunicationError_p(ERRA, SERIAL_ERROR_too_few_arguments, TRUE, NULL);
 	}
 	else
 	{
