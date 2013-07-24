@@ -290,7 +290,7 @@ void showWatchdogIncarnationsCounter(uint8_t startup_flag)
     }
     else /* called at startup*/
     {
-    	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("SYST watch dog incarnation no.: "));
+		strncat_P(uart_message_string, PSTR("SYST watch dog incarnation no.: "), BUFFER_SIZE - 1 );
     }
 
 	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i"), uart_message_string, watchdogIncarnationsCounter);
