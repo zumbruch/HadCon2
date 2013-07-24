@@ -12,7 +12,7 @@
 #define STRING_END 0
 
 /* threshold for CommunicationError, below this value the global variable message
- * is used instead of the constand alternative text */
+ * is used instead of the constant alternative text */
 
 #define F_CPU 10000000UL
 
@@ -46,7 +46,7 @@
 #define MAX_LENGTH_CAN_DATA  41
 
 /*maximum length of command with CAN standard 2.0A*/
-#define MAX_LENGTH_COMMAND  BUFFER_SIZE
+#define MAX_LENGTH_COMMAND  (BUFFER_SIZE - 1)
 
 /*maximum length of various error*/
 #define MAX_LENGTH_ERROR  50
@@ -80,8 +80,8 @@
 #define ONEHUNDERT_KBPS            100000UL
 
 /* confirmation of sending on the bus */
-#define  READY     "command will be carried out"
-#define  NOREADY   "command will not be carried out"
+#define  CAN_READY     "command will be carried out"
+
 /*define specific for gas_temp*/
 #define  THIGH    900
 #define  TLOW     100
@@ -119,8 +119,15 @@
 
 #define OWI_ADC_DS2450_MAX_RESOLUTION 16
 
-#define min(a,b) ( ((a)<(b))?(a):(b) )
+#define max(a,b) \
+  ({ __typeof__ (a) _a = (a); \
+      __typeof__ (b) _b = (b); \
+    _a > _b ? _a : _b; })
+#define min(a,b) \
+  ({ __typeof__ (a) _a = (a); \
+      __typeof__ (b) _b = (b); \
+    _a < _b ? _a : _b; })
 
-#define RESET_TIME_TO_WAIT_S 10
+#define RESET_TIME_TO_WAIT_S 3
 #endif
 

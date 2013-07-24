@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include "api_define.h"
 #include "api_global.h"
@@ -30,6 +31,8 @@ typedef struct uartStruct
 extern struct uartStruct uartFrame;
 extern struct uartStruct *ptr_uartStruct;
 
+extern bool uartInputBufferExceeded;
+
 /* Implemented functions
  * and
  * corresponding function pointers*/
@@ -46,7 +49,7 @@ void apiConvertUartDataToCanUartStruct( uint8_t offset ); /*converting the decom
 
 void keep_alive( struct uartStruct *PtrFrame ); /*this function checks the functionality of the software*/
 
-int8_t uartSplitUartString( void ); /*CPU-cutting format in various parameters */
+int8_t uartSplitUartString( char inputUartString[] ); /*CPU-cutting format in various parameters */
 
 void Initialization( void ); /*this function initialize all init functions again and actives the interrupt*/
 
@@ -61,12 +64,17 @@ int8_t UART0_Init( void ); /* initialize serial communication */
 void UART0_Transmit( unsigned char c );/* function send  data direction to cpu */
 extern void (*UART0_Transmit_p)( uint8_t );
 
-int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize );/* help function for the output of register contents in CPU */
+int16_t UART0_Send_Message_String( char *outputString, uint16_t maxSize );/* help function for the output of register contents in CPU */
 extern int16_t (*UART0_Send_Message_String_p)( char *, uint16_t );
 
-int8_t UART0_Send_Message_String_woLF( char *tmp_str, uint32_t maxSize );/* help function for the output of register contents in CPU */
+int8_t UART0_Send_Message_String_woLF( char *outputString, uint32_t maxSize );/* help function for the output of register contents in CPU */
 
-int Parse_Keyword( char string[] ); /* find matching command keyword and return its index*/
+int8_t apiFindCommandKeywordIndex(const char string[], PGM_P commandKeywords[], size_t commandMaximumIndex ); /* find matching command keyword and return its index*/
+
+static inline bool isKeywordIndex( int index, int maximumIndex )
+{
+	 return ( -1 < index && index < maximumIndex);
+}
 
 void Reset_SetParameter( void ); /* resets/clears all values of setParameter */
 
@@ -91,9 +99,11 @@ uint8_t createReceiveHeader( struct uartStruct *ptr_uartStruct, char message_str
 
 void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct, int8_t keyNumber, int8_t index,  PGM_P commandKeyword[]);
 
-uint16_t getNumericLength(const char string[], const uint16_t maxLenght);
+uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLenght);
+bool isNumericArgument(const char string[], const uint16_t maxLength);
 
-int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value);
+int8_t getUnsignedNumericValueFromParameterIndex(uint8_t parameterIndex, uint64_t *ptr_value);
+int8_t getUnsignedNumericValueFromParameterString(const char string[], uint64_t *ptr_value);
 
 void reset(struct uartStruct *ptr_uartStruct);
 void init(struct uartStruct *ptr_uartStruct);
@@ -103,6 +113,11 @@ size_t getMaximumStringArrayLength_P(PGM_P array[], size_t maxIndex, size_t maxR
 size_t getMaximumStringArrayLength(const char* array[], size_t maxIndex, size_t maxResult);
 
 void determineAndHandleResetSource(void);
+
+bool isNumericalConstantOne(const char string[]);
+bool isNumericalConstantZero(const char string[]);
+
+
 
 #ifndef API_CONSTANTS_H_
 
@@ -117,7 +132,7 @@ enum ge_index
    GENERAL_ERROR_undefined_bus,
    GENERAL_ERROR_channel_undefined,
    GENERAL_ERROR_value_has_invalid_type,
-   GENERAL_ERROR_adress_has_invalid_type,
+   GENERAL_ERROR_address_has_invalid_type,
    GENERAL_ERROR_undefined_family_code,
    GENERAL_ERROR_invalid_argument,
    GENERAL_ERROR_MAXIMUM_INDEX
@@ -128,38 +143,15 @@ extern const char *serial_error[] PROGMEM;
 enum se_index
 {
    SERIAL_ERROR_no_valid_command_name = 0,
-   SERIAL_ERROR_ID_is_too_long,
-   SERIAL_ERROR_mask_is_too_long,
-   SERIAL_ERROR_rtr_is_too_long,
-   SERIAL_ERROR_length_is_too_long,
-   SERIAL_ERROR_data_0_is_too_long,
-   SERIAL_ERROR_data_1_is_too_long,
-   SERIAL_ERROR_data_2_is_too_long,
-   SERIAL_ERROR_data_3_is_too_long,
-   SERIAL_ERROR_data_4_is_too_long,
-   SERIAL_ERROR_data_5_is_too_long,
-   SERIAL_ERROR_data_6_is_too_long,
-   SERIAL_ERROR_data_7_is_too_long,
    SERIAL_ERROR_command_is_too_long,
    SERIAL_ERROR_argument_has_invalid_type,
-   SERIAL_ERROR_ID_has_invalid_type,
-   SERIAL_ERROR_mask_has_invalid_type,
-   SERIAL_ERROR_rtr_has_invalid_type,
-   SERIAL_ERROR_length_has_invalid_type,
-   SERIAL_ERROR_data_0_has_invalid_type,
-   SERIAL_ERROR_data_1_has_invalid_type,
-   SERIAL_ERROR_data_2_has_invalid_type,
-   SERIAL_ERROR_data_3_has_invalid_type,
-   SERIAL_ERROR_data_4_has_invalid_type,
-   SERIAL_ERROR_data_5_has_invalid_type,
-   SERIAL_ERROR_data_6_has_invalid_type,
-   SERIAL_ERROR_data_7_has_invalid_type,
    SERIAL_ERROR_undefined_error_type,
-   SERIAL_ERROR_first_value_is_too_long,
-   SERIAL_ERROR_second_value_is_too_long,
    SERIAL_ERROR_arguments_have_invalid_type,
    SERIAL_ERROR_arguments_exceed_boundaries,
    SERIAL_ERROR_too_many_arguments,
+   SERIAL_ERROR_too_few_arguments,
+   SERIAL_ERROR_invalid_sub_command_name,
+   SERIAL_ERROR_argument_string_too_long,
    SERIAL_ERROR_MAXIMUM_INDEX
 };
 

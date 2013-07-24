@@ -4,6 +4,7 @@
  * modified (heavily rather rebuild): Peter Zumbruch
  * modified: Florian Feldbauer
  * modified: Peter Zumbruch, Oct 2011
+ * modified: Peter Zumbruch, May 2013
  */
 
 #include <stdint.h>
@@ -53,7 +54,12 @@
 #include "api_define.h"
 #include "api_global.h"
 #include "api.h"
+#ifdef TESTING_ENABLE
+#include "testing.h"
+#endif
 
+static const char filename[] PROGMEM = __FILE__;
+static const char string_s_i_[] PROGMEM = "%s %i ";
 
 #warning TODO: combine responseKeyword and other responses error into one set of responses
 
@@ -241,7 +247,7 @@ static const uint8_t commandImplementation22   PROGMEM = TRUE;
 static const char commandKeyword23[]           PROGMEM = "JTAG"; /*get/set JTAG availability*/
 static const char commandSyntax23[]            PROGMEM = "[0|1]";
 static const char commandSyntaxAlternative23[] PROGMEM = "";
-static const char commandShortDescription23[]  PROGMEM = "set/get JTAG availability";
+static const char commandShortDescription23[]  PROGMEM = "set/get JTAG availability, switch off/enable 4 more ADC channels";
 static const uint8_t commandImplementation23   PROGMEM = TRUE;
 
 // index: 24
@@ -397,7 +403,7 @@ static const uint8_t commandImplementation43   PROGMEM = FALSE;
 static const char commandKeyword44[]           PROGMEM = "SPI"; /* SPI master */
 static const char commandSyntax44[]            PROGMEM = "[data]";
 static const char commandSyntaxAlternative44[] PROGMEM = "<cmd> <arguments>";
-static const char commandShortDescription44[]  PROGMEM = "experimental SPI master (slave)";
+static const char commandShortDescription44[]  PROGMEM = "SPI master (slave)";
 static const uint8_t commandImplementation44   PROGMEM = TRUE;
 
 // index: 45
@@ -495,7 +501,7 @@ const char* commandSyntaxes[] PROGMEM = {
 		commandSyntax31, commandSyntax32, commandSyntax33, commandSyntax34, commandSyntax35, commandSyntax36,
 		commandSyntax37, commandSyntax38, commandSyntax39, commandSyntax40, commandSyntax41, commandSyntax42,
 		commandSyntax43, commandSyntax44, commandSyntax45, commandSyntax46, commandSyntax47, commandSyntax48,
-		commandSyntax49, commandSyntax50, commandSyntax51, commandSyntax52, commandSyntax53, commandKeyword54
+		commandSyntax49, commandSyntax50, commandSyntax51, commandSyntax52, commandSyntax53, commandSyntax54
  };
 
 /* this is the corresponding command key array, beware of the same order*/
@@ -552,43 +558,18 @@ const uint8_t* commandImplementations[] PROGMEM= {
  };
 
 /* pointer of array for defined serial error number*/
-static const char se00[] PROGMEM = "no valid command name";
-static const char se01[] PROGMEM = "ID is too long";
-static const char se02[] PROGMEM = "mask is too long";
-static const char se03[] PROGMEM = "RTR is too long";
-static const char se04[] PROGMEM = "length is  too long";
-static const char se05[] PROGMEM = "data 0 is too long";
-static const char se06[] PROGMEM = "data 1 is too long";
-static const char se07[] PROGMEM = "data 2 is too long";
-static const char se08[] PROGMEM = "data 3 is too long";
-static const char se09[] PROGMEM = "data 4 is too long";
-static const char se10[] PROGMEM = "data 5 is too long";
-static const char se11[] PROGMEM = "data 6 is too long";
-static const char se12[] PROGMEM = "data 7 is too long";
-static const char se13[] PROGMEM = "command is too long";
-static const char se14[] PROGMEM = "argument has invalid type";
-static const char se15[] PROGMEM = "ID has invalid type";
-static const char se16[] PROGMEM = "mask has invalid type";
-static const char se17[] PROGMEM = "RTR has invalid type";
-static const char se18[] PROGMEM = "length has invalid type";
-static const char se19[] PROGMEM = "data 0 has invalid type";
-static const char se20[] PROGMEM = "data 1 has invalid type";
-static const char se21[] PROGMEM = "data 2 has invalid type";
-static const char se22[] PROGMEM = "data 3 has invalid type";
-static const char se23[] PROGMEM = "data 4 has invalid type";
-static const char se24[] PROGMEM = "data 5 has invalid type";
-static const char se25[] PROGMEM = "data 6 has invalid type";
-static const char se26[] PROGMEM = "data 7 has invalid type";
-static const char se27[] PROGMEM = "undefined error type";
-static const char se28[] PROGMEM = "first value is too long";
-static const char se29[] PROGMEM = "second value is too long";
-static const char se30[] PROGMEM = "arguments have invalid type";
-static const char se31[] PROGMEM = "argument(s) exceed(s) allowed boundary";
-static const char se32[] PROGMEM = "too many arguments";
+static const char se00[] PROGMEM = "no valid command name";                     // SERIAL_ERROR_no_valid_command_name = 0,
+static const char se01[] PROGMEM = "command is too long";                       // SERIAL_ERROR_command_is_too_long,
+static const char se02[] PROGMEM = "argument has invalid type";                 // SERIAL_ERROR_argument_has_invalid_type,
+static const char se03[] PROGMEM = "undefined error type";                      // SERIAL_ERROR_undefined_error_type,
+static const char se04[] PROGMEM = "argument(s) have invalid type";             // SERIAL_ERROR_arguments_have_invalid_type,
+static const char se05[] PROGMEM = "argument(s) exceed(s) allowed boundary";    // SERIAL_ERROR_arguments_exceed_boundaries,
+static const char se06[] PROGMEM = "too many arguments";                        // SERIAL_ERROR_too_many_arguments,
+static const char se07[] PROGMEM = "too few arguments";                         // SERIAL_ERROR_too_few_arguments,
+static const char se08[] PROGMEM = "invalid sub command name";                  // SERIAL_ERROR_invalid_sub_command_name,
+static const char se09[] PROGMEM = "argument string too long";                  // SERIAL_ERROR_argument_string_too_long,
 
-const char *serial_error[] PROGMEM = {
-		se00, se01, se02, se03, se04, se05, se06, se07, se08, se09, se10, se11, se12, se13, se14, se15, se16, se17, se18,
-		se19, se20, se21, se22, se23, se24, se25, se26, se27, se28, se29, se30, se31, se32 };
+const char *serial_error[] PROGMEM = { se00, se01, se02, se03, se04, se05, se06, se07, se08, se09};
 
 static const char ge00[] PROGMEM = "init for timer0 failed";
 static const char ge01[] PROGMEM = "init for timer0A failed";
@@ -724,20 +705,31 @@ int8_t Timer0A_Init( void )
 
 void Process_Uart_Event(void)
 {
+	if ( true == uartInputBufferExceeded)
+	{
+		/* maximum length check of input */
+
+		CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, PSTR("max: %i"), MAX_LENGTH_COMMAND);
+
+		clearString(uartString, BUFFER_SIZE);
+		uartInputBufferExceeded = false;
+		return;
+	}
+
 	/* copy string into (buffer) uartString*/
 	strncpy(decrypt_uartString, uartString, BUFFER_SIZE - 1);
     /* clear uartString, avoiding memset*/
     clearString(uartString, BUFFER_SIZE);
 
-    printDebug_p(debugLevelEventDebug, debugSystemUART, __LINE__, PSTR(__FILE__), PSTR("UART string received:%s"), decrypt_uartString);
+    printDebug_p(debugLevelEventDebug, debugSystemUART, __LINE__, filename, PSTR("UART string received:%s"), decrypt_uartString);
 
 
 	/* split uart string into its elements */
 
 	int8_t number_of_elements = -1;
-	number_of_elements = uartSplitUartString();
+	number_of_elements = uartSplitUartString(decrypt_uartString);
 
- 	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, PSTR(__FILE__),
+ 	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, filename,
  			PSTR("number of string elements found: %i"), number_of_elements);
 
 	if ( 0 < number_of_elements  )
@@ -746,9 +738,9 @@ void Process_Uart_Event(void)
 		ptr_uartStruct->number_of_arguments = number_of_elements -1;
 
 		/* Find matching command keyword */
-		ptr_uartStruct->commandKeywordIndex = Parse_Keyword(setParameter[0]);
+		ptr_uartStruct->commandKeywordIndex = apiFindCommandKeywordIndex(setParameter[0], commandKeywords, commandKeyNumber_MAXIMUM_NUMBER);
 
- 		printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keywordIndex of %s is %i"), setParameter[0], ptr_uartStruct->commandKeywordIndex);
+ 		printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, filename, PSTR("keywordIndex of %s is %i"), setParameter[0], ptr_uartStruct->commandKeywordIndex);
 
 		/* no matching keyword ?*/
 		if ( 0 > ptr_uartStruct->commandKeywordIndex )
@@ -829,10 +821,7 @@ void Process_Uart_Event(void)
 			}
 		}
 	}
-	else
-	{
-		   CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, FALSE, PSTR("API Parsing failed") );
-	}
+
 	/*clear the variables*/
 	Reset_SetParameter();
 	Reset_UartStruct(ptr_uartStruct);
@@ -851,80 +840,55 @@ void Process_Uart_Event(void)
  * no direct output: use of global variable setParameter
  * return value:
  *          number of found elements,
- *          0 else
+ *          -1 else
  */
 
-int8_t uartSplitUartString( void )
+int8_t uartSplitUartString( char inputUartString[] )
 {
 	uint8_t parameterIndex;
 
-	/* maximum length check of input */
-
-	if ( MAX_LENGTH_COMMAND < strlen(decrypt_uartString) )
-	{
-		CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
-
-		/* reset */
-		clearString(decrypt_uartString, BUFFER_SIZE);
-		/* "reset": decrypt_uartString[0] = '\0'; */
-
-		return 0;
-	}
-
 	/*
-	 * disassemble the decrypt_uartString into stringlets
+	 * disassemble the inputUartString into stringlets
 	 * separated by delimiters UART_DELIMITER
 	 * into elements of array setParameter
 	 */
 
 	char *save_ptr = NULL;
-	char *result = NULL; /* pointer init */
+	char *result_ptr = NULL; /* pointer init */
 
 	/* initial iteration */
-	result = strtok_rP(decrypt_uartString, PSTR(UART_DELIMITER), &save_ptr); /*search spaces in string */
+	result_ptr = strtok_r(inputUartString, UART_DELIMITER, &save_ptr); /*search spaces in string */
 	parameterIndex = 0; /* pointer of setParameter*/
 
-	while ( result != NULL )
+	while ( result_ptr != NULL )
 	{
-		if (MAX_LENGTH_PARAMETER < strlen(result))
+		if (MAX_LENGTH_PARAMETER < strlen(result_ptr))
 		{
-			/* TODO: create correct error code*/
-			CommunicationError_p(ERRA, SERIAL_ERROR_command_is_too_long, FALSE, NULL);
-		    clearString(decrypt_uartString, BUFFER_SIZE);
-		    /* "reset": decrypt_uartString[0] = '\0'; */
-
-			return 0;
+			CommunicationError_p(ERRA, SERIAL_ERROR_argument_string_too_long, FALSE, NULL);
+			return -1;
 		}
 
 		/* only copy the first MAX_PARAMETER elements
 		 * if there are more, still count the elements
-		 * and copy the rest into decrypt_uartString_remainder*/
+		 * and copy the rest into inputUartString_remainder*/
 		if ( MAX_PARAMETER > parameterIndex )
 		{
-			strncpy(setParameter[parameterIndex], result, MAX_LENGTH_PARAMETER);
+			strncpy(setParameter[parameterIndex], result_ptr, MAX_LENGTH_PARAMETER);
 		}
 		if (MAX_PARAMETER == parameterIndex)
 		{
 			clearString(decrypt_uartString_remainder, BUFFER_SIZE);
-			strncpy(decrypt_uartString_remainder, save_ptr, BUFFER_SIZE);
+			strncpy(decrypt_uartString_remainder, result_ptr, BUFFER_SIZE -1 );
+			strncat(decrypt_uartString_remainder, UART_DELIMITER, BUFFER_SIZE -1 );
+			strncat(decrypt_uartString_remainder, save_ptr, BUFFER_SIZE -1 );
+			printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, filename, PSTR("remainder '%s'"), decrypt_uartString_remainder);
 		}
 
-		result = strtok_rP(NULL, PSTR(UART_DELIMITER), &save_ptr);
+		result_ptr = strtok_r(NULL, UART_DELIMITER, &save_ptr);
 		parameterIndex++;
-
-		//		if ( MAX_PARAMETER < parameterIndex )
-		//		{
-		//			CommunicationError_p(ERRA, SERIAL_ERROR_too_many_arguments, FALSE, NULL);
-		//	        clearString(decrypt_uartString, BUFFER_SIZE);
-		//	        /* "reset": decrypt_uartString[0] = '\0'; */
-		//			return 0;
-		//		}
 	}
 
- 	printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, PSTR(__FILE__), PSTR("found %i arguments "), parameterIndex-1);
-
-    clearString(decrypt_uartString, BUFFER_SIZE);
-     /* "reset": decrypt_uartString[0] = '\0'; */
+ 	printDebug_p(debugLevelEventDebug, debugSystemDecrypt, __LINE__, filename, PSTR("found %i strings"), parameterIndex);
 
 	return parameterIndex;
 
@@ -1099,39 +1063,48 @@ void apiConvertUartDataToCanUartStruct( uint8_t offset )
 
 } // END of function Convert_UartFormat_to_CanFormat
 
-/* this function parses for all valid command matching keyword
+/*
+ * int8_t apiFindCommandKeywordIndex(const char string[], PGM_P keywords[], size_t keywordMaximumIndex )
+ *
+ * this function parses for all valid command matching keyword
+ * of the keyword array keywords
  * on the first MAX_LENGTH_PARAMETER characters of the string
  *
  * it has an char pointer as input
  * it returns
- *     the commandKeyNumber of the corresponding command key word
+ *     the commandKeyIndex of the corresponding command key word
  *     -1 if not found
  *     -99 on error
  */
 
-int Parse_Keyword(char string[])
+int8_t apiFindCommandKeywordIndex(const char string[], PGM_P keywords[], size_t keywordMaximumIndex )
 {
-	static int8_t keywordNumber;
+	if (NULL == string )          {return -99;} /* NULL pointer */
+	if (NULL == keywords )        {return -99;} /* NULL pointer */
+	if (STRING_END == string[0] ) {return -99;} /* empty string */
 
-	if (NULL == string   ) {return -99;}
-	if (STRING_END  == string[0]) {return -99;}
+ 	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, filename, PSTR("get index of keyword: %s"), string);
 
- 	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("Parse_Keyword %s"), string);
-	for ( keywordNumber = 0; keywordNumber < commandKeyNumber_MAXIMUM_NUMBER ; keywordNumber++ )
+	// find matching command keyword
+
+ 	size_t keywordIndex = 0;
+	while ( keywordIndex < keywordMaximumIndex )
 	{
-		if ( 0 == strncmp_P(&string[0], (const char*) (pgm_read_word( &(commandKeywords[keywordNumber]))), MAX_LENGTH_PARAMETER) )
+		if ( 0 == strncasecmp_P(string, (const char*) ( pgm_read_word( &(keywords[keywordIndex])) ), MAX_LENGTH_PARAMETER) )
 		{
- 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches "), string);
-			return keywordNumber;
+ 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, filename, PSTR("keyword %s matches, index %i "), string, keywordIndex);
+			return keywordIndex;
 		}
         else
-          {
-         	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), string);
-          }
-
+        {
+         	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, filename, PSTR("keyword %s doesn't match"), string);
+			keywordIndex++;
+        }
 	}
+
 	return -1;
 }
+
 
 /* this function checks whether all the received parameters are valid
  * the function has a pointer of the serial structure as input and
@@ -1194,7 +1167,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
 
    if ( 0 > ptr_uartStruct->commandKeywordIndex )
    {
-      uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name,0,NULL);
+      CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name, 0, NULL);
       error = TRUE;
    }
    else
@@ -1203,7 +1176,7 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
       {
          if (0 != *ptr_setParameter[index])
          {
-            uartErrorCode = CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type + index, 0, NULL);
+            CommunicationError_p(ERRA, SERIAL_ERROR_argument_has_invalid_type, 1, PSTR("%s"), setParameter[index]);
             error = TRUE;
          }
          if ( TRUE == error )
@@ -1215,21 +1188,26 @@ int8_t Check_Error( struct uartStruct *ptr_uartStruct )
       {
     	  switch (ptr_uartStruct->commandKeywordIndex)
     	  {
-    	  case commandKeyNumber_SEND: /*CAN*/
-    	  case commandKeyNumber_SUBS: /*CAN*/
-    	  case commandKeyNumber_USUB: /*CAN*/
-    		  error = canCheckInputParameterError(ptr_uartStruct);
-    	  break;
-    	  case commandKeyNumber_I2C: /*I2C*/
-    	  case commandKeyNumber_TWIS: /*I2C*/
-    	  {
-    		  error = twiMasterCheckError(ptr_uartStruct);
-    	  }
-    	  break;
-    	  default: /*uncovered command keys*/
-    	  {
-    	  }
-    	  break;
+    		  case commandKeyNumber_SEND: /*CAN*/
+    		  case commandKeyNumber_CANT: /*CAN*/
+    		  case commandKeyNumber_SUBS: /*CAN*/
+    		  case commandKeyNumber_CANS: /*CAN*/
+    		  case commandKeyNumber_USUB: /*CAN*/
+    		  case commandKeyNumber_CANU: /*CAN*/
+    		  case commandKeyNumber_CAN:  /*CAN*/
+    		  case commandKeyNumber_CANP: /*CAN*/
+    			  error = canCheckInputParameterError(ptr_uartStruct);
+    			  break;
+    		  case commandKeyNumber_I2C: /*I2C*/
+    		  case commandKeyNumber_TWIS: /*I2C*/
+    		  {
+    			  error = twiMasterCheckError(ptr_uartStruct);
+    		  }
+    		  break;
+    		  default: /*uncovered command keys*/
+    		  {
+    		  }
+    		  break;
     	  }
       }
    }//end else
@@ -1266,7 +1244,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		 * response  now: RECV CAN_Mob CAN-Message-ID CAN-Length [Data0 ... Data7] */
 		/* response TODO: RECV SEND CAN-Message-ID CAN-Length [Data0 ... Data7] */
 		canSendMessage(ptr_uartStruct); /* call function with name canSendMessage */
-		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("Choose_Function: call finished"));
+		printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename, PSTR("Choose_Function: call finished"));
 		break;
 	case commandKeyNumber_SUBS:
 	case commandKeyNumber_CANS:
@@ -1495,7 +1473,11 @@ ISR (SIG_UART0_RECV)
 		uartReady = 1; /* mark, that we got an CAN_interrupt, to be handled by main */
 		nextCharPos = 0;
 	}
-	else
+	else if ( BUFFER_SIZE - 1 == nextCharPos ) /* string exceeds length, skip remainder, set flag */
+	{
+		uartInputBufferExceeded = true;
+	}
+	else /* add character and trailing '\0' */
 	{
 		uartString[nextCharPos] = c;
 		nextCharPos++;
@@ -1509,7 +1491,7 @@ ISR (SIG_UART0_RECV)
  *(single character) this function will send  8 bits from the at90can128
  */
 
-#warning UART add timeout ? Add check for USART0 init ?
+#warning UART add timeout or transmit interrupt? Add check for USART0 init ?
 
 void UART0_Transmit( uint8_t data )
 {
@@ -1523,22 +1505,22 @@ void UART0_Transmit( uint8_t data )
 	UDR0 = data;
 }
 
-#warning TODO: UART change UART activities into interrupt based one, q.v. https://www.mikrocontroller.net/articles/Interrupt
+#warning TODO: UART also change UART send activities into interrupt based one, q.v. https://www.mikrocontroller.net/articles/Interrupt
 /*
  *this function sends a string to serial communication
- * the input parameter is a defined global variable tmp_str
+ * the input parameter is a defined global variable outputString
  * the output parameter is an integer
  * 0 -> the message is sent
  */
 
-int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize )
+int16_t UART0_Send_Message_String( char *outputString, uint16_t maxSize )
 {
-	/* this function sends the string pointed to by tmp_str to UART
+	/* this function sends the string pointed to by outputString to UART
 	 * this happens char by char until STRING_END is found
 	 * afterwards the message string is cleared up to the size maxSize
 	 *
-	 * if tmp_str is NULL
-	 *    - tmp_str is set to the global variable uart_message_string
+	 * if outputString is NULL
+	 *    - outputString is set to the global variable uart_message_string
 	 *    - and maxSize is set to BUFFER_SIZE
 	 * else if maxSize is 0
 	 *    - maxSize is assumed to be BUFFER_SIZE
@@ -1552,12 +1534,12 @@ int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize )
 	if (FALSE != uart0_init)
 	{
 
-		/* if tmp_str is NULL, take as default uart_message_string and its size BUFFER_SIZE */
-		if (NULL == tmp_str)
+		/* if outputString is NULL, take as default uart_message_string and its size BUFFER_SIZE */
+		if (NULL == outputString)
 		{
 			if (NULL != uart_message_string)
 			{
-				tmp_str = uart_message_string;
+				outputString = uart_message_string;
 				maxSize = BUFFER_SIZE;
 			}
 			else
@@ -1574,12 +1556,12 @@ int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize )
 
 		static uint16_t index;
 
-		for ( index = 0; STRING_END != tmp_str[index] && index < maxSize ; index++ )
+		for ( index = 0; STRING_END != outputString[index] && index < maxSize ; index++ )
 		{
-			UART0_Transmit_p(tmp_str[index]);
+			UART0_Transmit_p(outputString[index]);
 		}
 		UART0_Transmit_p('\n');
-		clearString(tmp_str, maxSize); /*clear tmp_str variable*/
+		clearString(outputString, maxSize); /*clear outputString variable*/
 		return index;
 	}
 	else
@@ -1592,19 +1574,19 @@ int16_t UART0_Send_Message_String( char *tmp_str, uint16_t maxSize )
 
 /*
  *this function sends a string to serial communication
- * the input parameter is a defined global variable tmp_str
+ * the input parameter is a defined global variable outputString
  * the output parameter is an integer
  * 0 -> the message is sent
  * only use for the function owiFindFamilyDevicesAndAccessValues in one_wire.c
  */
-int8_t UART0_Send_Message_String_woLF( char *tmp_str, uint32_t maxSize )
+int8_t UART0_Send_Message_String_woLF( char *outputString, uint32_t maxSize )
 {
-	for ( uint16_t j = 0 ; j < strlen((char *) tmp_str) && j < maxSize ; j++ )
+	for ( uint16_t j = 0 ; j < strlen((char *) outputString) && j < maxSize ; j++ )
 	{
-		UART0_Transmit_p(tmp_str[j]);
+		UART0_Transmit_p(outputString[j]);
 	}
 
-	clearString(tmp_str, maxSize); /*clear tmp_str variable*/
+	clearString(outputString, maxSize); /*clear outputString variable*/
 	return 0;
 }//END of UART0_Send_Message_String_woLF
 
@@ -1677,7 +1659,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
           flag_UseOnlyAlternatives = TRUE;
           break;
        default:
-     	   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("wrong error index ... returning"));
+     	   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, filename, PSTR("wrong error index ... returning"));
           return 1; /*shouldn't happen*/
           break;
     }
@@ -1685,7 +1667,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
     /* check alternative pointer, return if empty*/
     if ( TRUE == flag_UseOnlyAlternatives && NULL == alternativeErrorMessage)
     {
-     	printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("alternatives: NULL ... returning"));
+     	printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, filename, PSTR("alternatives: NULL ... returning"));
     	return 1;
     }
 
@@ -1728,30 +1710,30 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
        switch (errorType)
        {
           case ERRG:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(general_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRC:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(can_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRA:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(serial_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRM:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(mob_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRT:
-              snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+              snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
               strncat_P(uart_message_string, (const char*) (pgm_read_word( &(twi_error[errorIndex]))), BUFFER_SIZE -1);
               break;
           case ERRU:
-              snprintf_P(uart_message_string, BUFFER_SIZE -1 , PSTR("%s %i "), uart_message_string, (errorType * 100) + errorIndex);
+              snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
               break;
           default:
-         	  printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, PSTR(__FILE__), PSTR("wrong error type %i... returning"), errorType);
+         	  printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, filename, PSTR("wrong error type %i... returning"), errorType);
         	  return 1;
              break;
        }
@@ -1761,7 +1743,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
     {
        if (TRUE == flag_UseOnlyAlternatives)
        {
-          snprintf_P(uart_message_string,  BUFFER_SIZE - 1 , PSTR("%s %i "), uart_message_string, errorIndex);
+          snprintf_P(uart_message_string,  BUFFER_SIZE - 1 , string_s_i_, uart_message_string, errorIndex);
        }
        else
        {
@@ -1836,8 +1818,10 @@ void Initialization( void )
    /* disable interrupts*/
    cli();
 
+   determineAndHandleResetSource();
+
    // if not watchdog reset
-   if (0 == (mcusr & (1 << WDRF)))
+   if (resetSource_WATCHDOG != resetSource)
    {
 	   watchdogIncarnationsCounter = 0;
    }
@@ -1874,7 +1858,6 @@ void Initialization( void )
 
    owiBusMask = 0xFF;
    adcBusMask = 0x0F;
-
 
    uart0_init = UART0_Init();
 
@@ -1944,6 +1927,15 @@ void Initialization( void )
 	   }
    }
 
+   // SPI
+   spiInit();
+   spiEnable(true);
+
+#ifdef TESTING_ENABLE
+   // Testing
+   testingInit();
+#endif
+
 # warning remove it
 //PORTG |= (1<<PG2);
 
@@ -1987,12 +1979,12 @@ void InitIOPorts( void )
 
 #if HADCON_VERSION == 2
    /* use port G as output with deactivated pullups for lower pins (3 LEDs and PG3 for JTAG pull-ups*/
-   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("going to set ports for JTAG from: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, filename, PSTR("going to set ports for JTAG from: PING:%#x, PORTG:%#x"), PING&0xFF, PORTG&0xFF);
 
    DDRG  = (1 << DDG0)| (1 << DDG1)| (1 << DDG2)| (1 << DDG3) | (0 << DDG4);
    PORTG = (0 << PG0) | (0 << PG1) | (1 << PG2) | (1 << PG3)  | (1 << PG4);
 
-   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("having changed ports for JTAG to: PING:0x%x, PORTG:0x%x"), PING&0xFF, PORTG&0xFF);
+   printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, filename, PSTR("having changed ports for JTAG to: PING:%#x, PORTG:%#x"), PING&0xFF, PORTG&0xFF);
 #endif
 
    /* enable ADC and set clock prescale factor to 64 (p.280)*/
@@ -2033,8 +2025,8 @@ void InitIOPorts( void )
 void keep_alive( struct uartStruct *ptr_uartStruct )
 {
 	flag_pingActive = ( 0 != ptr_uartStruct->Uart_Message_ID );
-
-	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV PING mechanism is %s"), ( flag_pingActive ) ? "enabled" : "disabled");
+	strncat_P(uart_message_string, PSTR("RECV PING mechanism is "), BUFFER_SIZE - 1 );
+	strncat_P(uart_message_string, ( flag_pingActive ) ? PSTR("enabled") : PSTR("disabled"), BUFFER_SIZE - 1 );
 	UART0_Send_Message_String_p(NULL,0);
 }//END of keep_alive
 
@@ -2139,66 +2131,113 @@ void toggle_pin( unsigned char pin_number )
  * input: uart container
  *  - key index number of primary command, or -1 for current
  *  - command Keyword of sub command
+ *  output: uart_message_string
  */
 
+#warning TODO: make uart_message_string optional buffer to write to
+
 void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct,
-                                                   int8_t keyNumber, int8_t index, PGM_P commandKeywords[])
+                                                   int8_t commandKeywordIndex, int8_t subCommandKeywordIndex, PGM_P commandKeywords[])
 {
-   /* make sure keyNumber is shown */
+   /* make sure commandKeywordIndex is shown */
    int8_t keywordIndex = ptr_uartStruct->commandKeywordIndex;
 
-   if (0 <= keyNumber) {ptr_uartStruct->commandKeywordIndex = keyNumber;}
+   if (0 <= commandKeywordIndex) {ptr_uartStruct->commandKeywordIndex = commandKeywordIndex;}
 
    createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
 
-   /* reset index to original value */
+   /* reset commandKeywordIndex to original value */
    ptr_uartStruct->commandKeywordIndex = keywordIndex;
 
-   if (-1 < index && NULL != commandKeywords)
+   if (-1 < subCommandKeywordIndex && NULL != commandKeywords)
    {
-	   strncat_P(uart_message_string, (const char*) ( pgm_read_word( &(commandKeywords[index])) ), BUFFER_SIZE - 1);
+	   strncat_P(uart_message_string, (const char*) ( pgm_read_word( &(commandKeywords[subCommandKeywordIndex])) ), BUFFER_SIZE - 1);
 	   strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1);
    }
 }
 
 /*
- * getNumericLength(const char *string, const uint16_t maxLenght)
+ * getNumberOfHexDigits(const char *string, const uint16_t maxLength)
  *
- * return number of leading characters of string
- * being an digit (0x/0X of hex numbers are ignored) up to the maximum maxLength-1
+ * returns
+ *	 		- number of hex digits of string,
+ *	 			if it is a number with hexadecimal digits
+ *	 			(0x/0X of hex numbers are ignored) up to the maximum maxLength-1
+ * 				NOTE:
+ * 					if numeric value is not separated from next word
+ * 					nor isn't followed by '\0',
+ * 					it isn't a number
+ * 		or
+ * 			- "1"
+ * 				in case of an case insensitive numerical constant name for 0/1 resulting in length 1:
+ * 					using the definitions in isNumericalConstantOne() and isNumericalConstantZero()
+ *		or
+ *			- "0"
+ *				else
+ *
+ * why not using strtoul(l)(string, NULL, 16) ?
+ *		- numerical constants not supported
+ *		- 64 bit not supported
+ *		- string could represent a very long hex number > 16 digits
  */
 
-uint16_t getNumericLength(const char string[], const uint16_t maxLength)
+uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLength)
 {
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, filename, PSTR("input: '%s' maxLength %i"), string, maxLength);
+
+    uint16_t length = 0;
+    bool prefixSet = false;
+
+    /* first check for strings, which stand for 0/1 */
+    if ( isNumericalConstantZero( string ) || isNumericalConstantOne( string ) )
+    {
+    	length = 1;
+    }
+    else
+    {
     /* check if argument contains of digits */
-    uint16_t index = 0;
-    if (
-             0 == strncmp_P( string, PSTR("0x"),2) ||
-             0 == strncmp_P( string, PSTR("0X"),2)
-        )
-    {
-       index = 2;
+    	if ( 0 == strncasecmp_P( string, PSTR("0x"),2) )
+    	{
+    		length = 2;
+    		prefixSet = true;
+    	}
+
+    	/* calculate length of argument and check if all of them are hex numbers */
+    	while (length < maxLength && isxdigit(string[length])) {length++;}
+
+    	/* check if numeric value is not separated from next word nor isn't followed by '\0', so it isn't a number, */
+    	if (length+1 < maxLength)
+    	{
+    		if   ( ! ( isspace(string[length+1]) || ('\0' == string[length+1] ) ) )
+    		{
+    			printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, filename, PSTR("not a number - value followed by non-space character: %i, '%c'"), string[length+1], string[length+1]);
+    			length = 0;
+    		}
+    	}
     }
 
-    /* calculate length of argument and check if all of them are hex numbers */
-    while (index < maxLength && isxdigit(string[index])) {index++;}
-     printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("found length is %i"), index);
-
-
-    if (index+1 < maxLength)
-    {
-       if   ( ! ( isspace(string[index+1]) || ('\0' == string[index+1] ) ) )
-       {
-           printDebug_p(debugLevelEventDebug, debugSystemApi, __LINE__, PSTR(__FILE__), PSTR("length 0 - value is followed by non-space character ASCII: %i, '%c'"), string[index+1], string[index+1]);
-
-          index = 0; /* numeric value is not separated from next word nor isn't followed by '\0', so it isn't a number, */
-       }
-    }
-
-    return index;
+	if (prefixSet)
+	{
+		length -= 2;
+	}
+	printDebug_p(debugLevelEventDebugVerbose, debugSystemApi, __LINE__, filename, PSTR("length of \"%s\" is %i"), string, length);
+   	return length;
 }
 
-int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value)
+/*
+ *	int8_t getUnsignedNumericValueFromParameterIndex(uint8_t parameterIndex, uint64_t *ptr_value)
+ *
+ * 	gets from string parameter array "setParameter" string at position "parameterIndex"
+ * 		and converts it to an unsigned number stored in "ptr_value"
+ *
+ *	returns
+ *		- -1
+ *			in case of errors
+ *		- 0
+ *			else (success)
+ */
+
+int8_t getUnsignedNumericValueFromParameterIndex(uint8_t parameterIndex, uint64_t *ptr_value)
 {
 	if ( MAX_PARAMETER < parameterIndex || NULL == ptr_value)
 	{
@@ -2206,22 +2245,150 @@ int8_t getNumericValueFromParameter(uint8_t parameterIndex, uint32_t *ptr_value)
 		return -1;
 	}
 
-    /* T,F,t,f : T(RUE)/F(ALSE) */
-    if ( 0 == strcmp_P(setParameter[parameterIndex], PSTR("TRUE")) || 0 == strcmp_P(setParameter[parameterIndex], PSTR("true")) )
-    {
-    	*ptr_value = TRUE;
-    }
-    else if ( 0 == strcmp_P(setParameter[parameterIndex], PSTR("FALSE")) || 0 == strcmp_P(setParameter[parameterIndex], PSTR("false")) )
-    {
-    	*ptr_value = FALSE;
-    }
-    else if ( 0 < getNumericLength(setParameter[parameterIndex], MAX_LENGTH_PARAMETER) )
+	if ( -1 == getUnsignedNumericValueFromParameterString(setParameter[parameterIndex], ptr_value) )
 	{
-		*ptr_value = strtoul(setParameter[parameterIndex], &ptr_setParameter[parameterIndex], 16);
+		CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("command argument position %i (\"%s\") not a numeric value"), parameterIndex, setParameter[parameterIndex]);
+		return -1;
 	}
+
+	return 0;
+}
+
+/*
+ * bool isNumericArgument(const char string[])
+ *
+ * returns
+ * 		true
+ * 			in case of an case insensitive numerical constant name for 0/1 resulting in length 1:
+ * 				using the definitions in isNumericalConstantOne() and isNumericalConstantZero()
+ * 			or
+ * 			string is a hex number
+ * else
+ * 		false
+ * */
+
+bool isNumericArgument(const char string[], const uint16_t maxLength)
+{
+	return (0 < getNumberOfHexDigits(string, maxLength)) ? true : false;
+}
+
+/*
+ * bool isNumericalConstantOne(const char string[])
+ *
+ * returns true
+ * 		if string matches case insensitively
+ * 			TRUE, T not allowed due to ambiguity of 'F' with 0xF
+ * 			H(IGH)
+ * 			ON
+ * else
+ * 		false
+ * */
+
+bool isNumericalConstantOne(const char string[])
+{
+	if ( NULL == string )
+	{
+		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("isNumericalConstantOne: NULL input"));
+		return false;
+	}
+
+	return (
+    		//( 0 == strcasecmp_P(string, PSTR("T")   )) ||
+    		( 0 == strcasecmp_P(string, PSTR("TRUE"))) ||
+    		( 0 == strcasecmp_P(string, PSTR("ON")  )) ||
+    		( 0 == strcasecmp_P(string, PSTR("H")   )) ||
+    		( 0 == strcasecmp_P(string, PSTR("HIGH")))
+    );
+}
+
+/*
+ * bool isNumericalConstantZero(const char string[])
+ *
+ * returns true
+ * 		if string matches case insensitively
+ * 			FALSE , F not allowed due to ambiguity with 0xF
+ *	 		L(LOW)
+ *	 		OFF
+ * else
+ * 		false
+ */
+
+bool isNumericalConstantZero(const char string[])
+{
+	if ( NULL == string )
+	{
+		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("isNumericalConstantOne: NULL input"));
+		return false;
+	}
+    return (
+    		//( 0 == strcasecmp_P(string, PSTR("F")   )) ||
+    		( 0 == strcasecmp_P(string, PSTR("FALSE"))) ||
+    		( 0 == strcasecmp_P(string, PSTR("OFF")  )) ||
+    		( 0 == strcasecmp_P(string, PSTR("L")   )) ||
+    		( 0 == strcasecmp_P(string, PSTR("LOW")))
+    );
+}
+
+/*
+ *	int8_t getUnsignedNumericValueFromParameterString(uint8_t parameterIndex, uint64_t *ptr_value)
+ *
+ * 	gets from string parameter array "setParameter" string at position "parameterIndex"
+ * 		and converts it to an unsigned number stored in "ptr_value"
+ *
+ *	returns
+ *		- -1
+ *			in case of errors
+ *		- 0
+ *			else (success)
+ */
+
+int8_t getUnsignedNumericValueFromParameterString(const char string[], uint64_t *ptr_value)
+{
+	if ( NULL == string || NULL == ptr_value)
+	{
+		CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("getUnsignedNumericValueFromParameterString: NULL input parameters"));
+		return -1;
+	}
+
+    if ( isNumericArgument(string, MAX_LENGTH_PARAMETER))
+    {
+
+    	#warning TODO: resolve ambiguity between shortcut "F" and Hex 0xF, by using varTypes?
+
+    	/* ON,OFF,H(IGH),L(OW) : TRUE/FALSE */
+    	if ( isNumericalConstantOne( string ) )
+    	{
+    		*ptr_value = TRUE;
+    	}
+    	else if ( isNumericalConstantZero( string ) )
+    	{
+    		*ptr_value = FALSE;
+    	}
+    	else
+    	{
+    		/* unsigned long */
+    		if ( 8 >= getNumberOfHexDigits(string, MAX_LENGTH_PARAMETER) )
+    		{
+    			*ptr_value = strtoul(string, NULL, 16);
+    		}
+    		else
+    		{
+    			/* unsigned long long */
+    			/* lower 8 digits, i.e. 32 bits */
+    			*ptr_value = strtoul(&string[strlen(string) - 8], NULL, 16);
+
+    			/* remaining higher digits*/
+
+    			char string2[19] = "";
+    			strncpy(string2, string, strlen(string) - 8 );
+    			*ptr_value += (((uint64_t)strtoul(string2, NULL, 16)) << 32);
+    		}
+    		printDebug_p(debugLevelEventDebugVerbose, debugSystemApiMisc, __LINE__, (const char*)  ( filename ), PSTR("%#x"), *ptr_value);
+    	}
+    }
 	else
 	{
-		CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("command argument not a numeric value"));
+		CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("command argument position (\"%s\") not a numeric value"), string);
 		return -1;
 	}
 	return 0;
@@ -2231,9 +2398,11 @@ void reset(struct uartStruct *ptr_uartStruct)
 {
 	for (uint8_t seconds = RESET_TIME_TO_WAIT_S; seconds > 0; --seconds)
 	{
+		wdt_enable(WDTO_500MS);
 		createReceiveHeader(NULL, NULL, 0);
 		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s--- %i seconds to reset (via watchdog)"),uart_message_string, seconds );
 		UART0_Send_Message_String_p(NULL,0);
+		wdt_disable();
 		_delay_ms(1000);
 	}
 
@@ -2246,7 +2415,7 @@ void reset(struct uartStruct *ptr_uartStruct)
 void init(struct uartStruct *ptr_uartStruct)
 {
 	createReceiveHeader(NULL, NULL, 0);
-	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s(re)init of system"), uart_message_string);
+	strncat_P(uart_message_string, PSTR("(re)init of system"), BUFFER_SIZE - 1 );
     UART0_Send_Message_String_p(NULL,0);
 
     Initialization();
@@ -2308,6 +2477,10 @@ uint8_t initUartStruct(struct uartStruct *ptr_myUartStruct)
 
 void startMessage(void)
 {
+	clearString(uart_message_string, BUFFER_SIZE);
+	strncat_P(uart_message_string, (const char*) ( pgm_read_word( &(responseKeywords[responseKeyNumber_SYST])) ), BUFFER_SIZE - 1);
+	UART0_Send_Message_String_p(NULL,0);
+
 	showResetSource(TRUE);
 
 	version();

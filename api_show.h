@@ -16,13 +16,14 @@
 /*
 typedef struct {
 	int8_t (*func)(struct uartStruct);
-	char* commandShowKeyword;
+	char* showCommandKeyword;
 } showCommand_t;
 
 extern const showCommand_t showCommands[] PROGMEM;
 */
+
 extern unsigned short unusedMemoryStart;
-extern const char* commandShowKeywords[] PROGMEM;
+extern const char* showCommandKeywords[] PROGMEM;
 enum cmdShowKeyNumber
 {
       commandShowKeyNumber_UNUSED_MEM_START = 0,

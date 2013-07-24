@@ -106,7 +106,15 @@ SRC += twi_mpx_functions.c
 SRC += twi_ow_functions.c
 SRC += help_twis.c
 SRC += waveform_generator_registers.c
+SRC += spi.c
+SRC += spiApi.c
+ifdef TESTING_ENABLE
+SRC += testing.c
+ifdef FB_SPI_TEST
+SRC += spiTest.c
+endif
 
+endif
 
 # List C++ source files here. (C dependencies are automatically generated.)
 CPPSRC = 
@@ -124,8 +132,8 @@ ASRC =
 # Optimization level, can be [0, 1, 2, 3, s]. 
 #     0 = turn off optimization. s = optimize for size.
 #     (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
-#OPT = s
-OPT = 2
+OPT = s
+#OPT = 2
 
 # Debugging format.
 #     Native formats for AVR-GCC's -g are dwarf-2 [default] or stabs.

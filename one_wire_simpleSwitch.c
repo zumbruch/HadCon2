@@ -37,6 +37,8 @@
 #include "OWIHighLevelFunctions.h"
 #include "OWIBitFunctions.h"
 
+static const char filename[] 		PROGMEM = __FILE__;
+
 /*this function contains all the functions that are necessary
  *to read state of simple switch
  */

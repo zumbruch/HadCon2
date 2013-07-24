@@ -48,6 +48,7 @@
 #warning TODO: make this max value switchable
 #define OWI_OCTAL_SWITCHES_MAXIMUM_WRITE_ACCESS_COUNTS 100
 
+static const char filename[] 		PROGMEM = __FILE__;
 
 uint16_t owiOctalSwitchMask = 0x00;
 uint16_t* p_owiOctalSwitchMask = &owiOctalSwitchMask;
@@ -71,20 +72,20 @@ void owiOctalSwitches( struct uartStruct *ptr_uartStruct )
          switch(ptr_uartStruct->number_of_arguments)
          {
             case 0: /*read all*/
-                printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, PSTR(__FILE__), PSTR("OW8S read all"));
+                printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, filename, PSTR("OW8S read all"));
 
                owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2408_OCTAL_SWITCH, NULL);
                break;
             case 1: /*read single ID / write all / invalid */
             	if (TRUE == ptr_owiStruct->idSelect_flag) /* read ID */
                {
-                   printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, PSTR(__FILE__), PSTR("OW8S read ID"));
+                   printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, filename, PSTR("OW8S read ID"));
 
                   owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2408_OCTAL_SWITCH, NULL);
                }
                else /* write value / invalid */
                {
-                   printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, PSTR(__FILE__), PSTR("OW8S write all: 0x%x, pointer (%p)" ), ptr_owiStruct->value, ptr_owiStruct->ptr_value);
+                   printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, filename, PSTR("OW8S write all: %#x, pointer (%p)" ), ptr_owiStruct->value, ptr_owiStruct->ptr_value);
 
                   if ( DS2408_MAX_WRITE_VALUE >= ptr_owiStruct->value)
                   {
@@ -92,7 +93,7 @@ void owiOctalSwitches( struct uartStruct *ptr_uartStruct )
                   }
                   else
                   {
-                     CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping"), ptr_owiStruct->value, DS2408_MAX_WRITE_VALUE);
+                     CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: %#x is out of range [0,%#x] ... skipping"), ptr_owiStruct->value, DS2408_MAX_WRITE_VALUE);
                      return;
                   }
                }
@@ -100,14 +101,14 @@ void owiOctalSwitches( struct uartStruct *ptr_uartStruct )
             case 2: /* write ID value / invalid */
             	if (TRUE == ptr_owiStruct->idSelect_flag) /* write ID value*/
                {
-                   printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, PSTR(__FILE__), PSTR("OWDS write ID: 0x%x pointer (%p)"),  __LINE__, __FILE__, ptr_owiStruct->value, ptr_owiStruct->ptr_value);
+                   printDebug_p(debugLevelEventDebug, debugSystemOWIOctalSwitches, __LINE__, filename, PSTR("OWDS write ID: %#x pointer (%p)"),  __LINE__, __FILE__, ptr_owiStruct->value, ptr_owiStruct->ptr_value);
                   if ( DS2408_MAX_WRITE_VALUE >= ptr_owiStruct->value)
                   {
                      owiFindFamilyDevicesAndAccessValues(BUSES, NumDevicesFound, OWI_FAMILY_DS2408_OCTAL_SWITCH, ptr_owiStruct->ptr_value);
                   }
                   else
                   {
-                     CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: 0x%x is out of range [0,0x%x] ... skipping"), ptr_owiStruct->value, DS2408_MAX_WRITE_VALUE);
+                     CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, TRUE, PSTR("write argument: %#x is out of range [0,%#x] ... skipping"), ptr_owiStruct->value, DS2408_MAX_WRITE_VALUE);
                      return;
                   }
                }

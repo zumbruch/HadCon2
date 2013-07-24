@@ -64,6 +64,8 @@
 #define TWI_NO_STATE		        0xF8  // No relevant state information available; TWINT = �0�
 #define TWI_BUS_ERROR			    0x00  // Bus error due to an illegal START or STOP condition
 
+static const char filename[] 		PROGMEM = __FILE__;
+
 static const char tw00[] PROGMEM = "Error Initiating TWI interface";
 static const char tw01[] PROGMEM = "Could not start TWI Bus for WRITE";
 static const char tw02[] PROGMEM = "Could not start TWI Bus for READ";
@@ -91,12 +93,12 @@ const char *twi_error[] PROGMEM = { tw00, tw01, tw02, tw03, tw04,
 void twiMaster(struct uartStruct *ptr_uartStruct)
 {
 	int status = -1;
- 	printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("entered twiMaster"));
+ 	printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("entered twiMaster"));
 
 	status = twiMasterParseUartStruct(ptr_uartStruct);
 	if ( 0 != status )
 	{
- 		printDebug_p(debugLevelEventDebug, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("argument parsing failed"));
+ 		printDebug_p(debugLevelEventDebug, debugSystemTWI, __LINE__, filename, PSTR("argument parsing failed"));
 
 		Check_Error(ptr_uartStruct);
 
@@ -108,12 +110,12 @@ void twiMaster(struct uartStruct *ptr_uartStruct)
     switch(ptr_uartStruct->Uart_Message_ID)
     {
     case TWIM_READ:
- 		printDebug_p(debugLevelEventDebug, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("going to read from twi/i2c"));
+ 		printDebug_p(debugLevelEventDebug, debugSystemTWI, __LINE__, filename, PSTR("going to read from twi/i2c"));
 
 		Read_from_slave(ptr_uartStruct);
     	break;
     case TWIM_WRITE:
- 		printDebug_p(debugLevelEventDebug, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("going to write to twi/i2c"));
+ 		printDebug_p(debugLevelEventDebug, debugSystemTWI, __LINE__, filename, PSTR("going to write to twi/i2c"));
 
 		Write_to_slave(ptr_uartStruct);
     	break;
@@ -122,16 +124,16 @@ void twiMaster(struct uartStruct *ptr_uartStruct)
     	break;
     }
 
-     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("leaving twiMaster"));
+     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("leaving twiMaster"));
     return;
 }
 
 uint8_t twiMasterParseUartStruct(struct uartStruct *ptr_uartStruct)
 {
-     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("parsing UartStruct"));
+     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("parsing UartStruct"));
 	/* convert char in hexadecimal*/
 
-     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("number of arguments %i"), ptr_uartStruct->number_of_arguments);
+     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("number of arguments %i"), ptr_uartStruct->number_of_arguments);
 
 	if (
 			( TWIM_WRITE == ptr_uartStruct->Uart_Message_ID && TWIS_MIN_NARGS > ptr_uartStruct->number_of_arguments )
@@ -139,7 +141,7 @@ uint8_t twiMasterParseUartStruct(struct uartStruct *ptr_uartStruct)
 			( TWIM_READ == ptr_uartStruct->Uart_Message_ID && TWIS_MIN_NARGS -1 > ptr_uartStruct->number_of_arguments )
 		)
 	{
- 		printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("too few arguments (%i) %i"), TWIS_MIN_NARGS, ptr_uartStruct->number_of_arguments);
+ 		printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("too few arguments (%i) %i"), TWIS_MIN_NARGS, ptr_uartStruct->number_of_arguments);
 
 #warning TODO: implement check on 1st argument if it is a number or a sub-keyword
 #warning TODO: ... to change/read e.g. the proporties of the interface (speed, timeouts, etc ...)
@@ -332,15 +334,15 @@ void Twim_Stop(void)
 void Write_to_slave(struct uartStruct *ptr_uartStruct)
 {
 	uint8_t status = FALSE;
-     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("entering 'Write to Slave'"));
+     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("entering 'Write to Slave'"));
 
-     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("address is:0x%x"), ptr_uartStruct->Uart_Mask);
+     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("address is:%#x"), ptr_uartStruct->Uart_Mask);
 
     status = Twim_Write_Data(ptr_uartStruct->Uart_Mask, ptr_uartStruct->Uart_Length, &(ptr_uartStruct->Uart_Data[0]));
 
 	if ( TWI_success == status )
 	{
-     	printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("write success"));
+     	printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("write success"));
 
     	twiCreateRecvString(ptr_uartStruct, ptr_uartStruct->Uart_Length, ptr_uartStruct->Uart_Data);
 	}
@@ -348,7 +350,7 @@ void Write_to_slave(struct uartStruct *ptr_uartStruct)
 	{
 		TWI_errorAnalysis(status);
 	}
-     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("leaving 'Write to Slave'"));
+     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("leaving 'Write to Slave'"));
 }
 
 uint8_t twiCreateRecvString(struct uartStruct *ptr_uartStruct, uint32_t length, uint16_t array[TWI_MAX_DATA_ELEMENTS])
@@ -390,7 +392,7 @@ uint8_t twiCreateRecvString(struct uartStruct *ptr_uartStruct, uint32_t length, 
 
 void Read_from_slave(struct uartStruct *ptr_uartStruct)
 {
-     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("entering 'Read from Slave'"));
+     printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("entering 'Read from Slave'"));
 
     uint8_t status;
 
@@ -400,7 +402,7 @@ void Read_from_slave(struct uartStruct *ptr_uartStruct)
 	if ( TWI_success == status )
 	{
 
-     	printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("read success"));
+     	printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("read success"));
 
     	twiCreateRecvString(ptr_uartStruct, ptr_uartStruct->Uart_Length, twi_data);
 	}
@@ -409,7 +411,7 @@ void Read_from_slave(struct uartStruct *ptr_uartStruct)
 		TWI_errorAnalysis(status);
 	}
 
- 	printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("leaving 'Read from Slave'"));
+ 	printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("leaving 'Read from Slave'"));
 }
 
 void TWI_errorAnalysis(uint8_t status)
@@ -417,7 +419,7 @@ void TWI_errorAnalysis(uint8_t status)
 	switch (status)
 	{
 	case TWI_success:
-     	printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, PSTR(__FILE__), PSTR("read/write success"));
+     	printDebug_p(debugLevelEventDebugVerbose, debugSystemTWI, __LINE__, filename, PSTR("read/write success"));
 		break;
 	case TWI_start_condition_read_fail:
 		twiErrorCode = CommunicationError_p(ERRT, TWI_ERROR_Could_not_start_TWI_Bus_for_READ, FALSE, NULL);
