@@ -132,7 +132,7 @@ enum ge_index
    GENERAL_ERROR_undefined_bus,
    GENERAL_ERROR_channel_undefined,
    GENERAL_ERROR_value_has_invalid_type,
-   GENERAL_ERROR_adress_has_invalid_type,
+   GENERAL_ERROR_address_has_invalid_type,
    GENERAL_ERROR_undefined_family_code,
    GENERAL_ERROR_invalid_argument,
    GENERAL_ERROR_MAXIMUM_INDEX
