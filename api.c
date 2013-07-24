@@ -59,7 +59,7 @@
 #endif
 
 static const char filename[] PROGMEM = __FILE__;
-static const char stringSpaceIntSpace[] PROGMEM = "%s %i ";
+static const char string_s_i_[] PROGMEM = "%s %i ";
 
 #warning TODO: combine responseKeyword and other responses error into one set of responses
 
@@ -1710,27 +1710,27 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
        switch (errorType)
        {
           case ERRG:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(general_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRC:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(can_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRA:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(serial_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRM:
-             snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
+             snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
              strncat_P(uart_message_string, (const char*) (pgm_read_word( &(mob_error[errorIndex]))), BUFFER_SIZE -1);
              break;
           case ERRT:
-              snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
+              snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
               strncat_P(uart_message_string, (const char*) (pgm_read_word( &(twi_error[errorIndex]))), BUFFER_SIZE -1);
               break;
           case ERRU:
-              snprintf_P(uart_message_string, BUFFER_SIZE -1 , stringSpaceIntSpace, uart_message_string, (errorType * 100) + errorIndex);
+              snprintf_P(uart_message_string, BUFFER_SIZE -1 , string_s_i_, uart_message_string, (errorType * 100) + errorIndex);
               break;
           default:
          	  printDebug_p(debugLevelEventDebug, debugSystemApiMisc, __LINE__, filename, PSTR("wrong error type %i... returning"), errorType);
@@ -1743,7 +1743,7 @@ uint8_t CommunicationError( uint8_t errorType, const int16_t errorIndex, const u
     {
        if (TRUE == flag_UseOnlyAlternatives)
        {
-          snprintf_P(uart_message_string,  BUFFER_SIZE - 1 , stringSpaceIntSpace, uart_message_string, errorIndex);
+          snprintf_P(uart_message_string,  BUFFER_SIZE - 1 , string_s_i_, uart_message_string, errorIndex);
        }
        else
        {
@@ -2025,8 +2025,8 @@ void InitIOPorts( void )
 void keep_alive( struct uartStruct *ptr_uartStruct )
 {
 	flag_pingActive = ( 0 != ptr_uartStruct->Uart_Message_ID );
-
-	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("RECV PING mechanism is %s"), ( flag_pingActive ) ? "enabled" : "disabled");
+	strncat_P(uart_message_string, PSTR("RECV PING mechanism is "), BUFFER_SIZE - 1 );
+	strncat_P(uart_message_string, ( flag_pingActive ) ? PSTR("enabled") : PSTR("disabled"), BUFFER_SIZE - 1 );
 	UART0_Send_Message_String_p(NULL,0);
 }//END of keep_alive
 
@@ -2415,7 +2415,7 @@ void reset(struct uartStruct *ptr_uartStruct)
 void init(struct uartStruct *ptr_uartStruct)
 {
 	createReceiveHeader(NULL, NULL, 0);
-	snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s(re)init of system"), uart_message_string);
+	strncat_P(uart_message_string, PSTR("(re)init of system"), BUFFER_SIZE - 1 );
     UART0_Send_Message_String_p(NULL,0);
 
     Initialization();
