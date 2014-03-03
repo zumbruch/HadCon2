@@ -1,7 +1,5 @@
 HadCon2 is a credit-card sized general purpose I/O module for detector and experiment controls as well as for small data acquisition systems.
 
-hadcon2
-
 It is the successor of the discontinued first version HadCon ( HADControl/HadShoPoMo general purpose board, HadCon @ Epics Wiki).
 
 The module has an ATMEL AT90CAN128 microcontroller providing a multitude of connectivity:
@@ -30,3 +28,5 @@ It doesn't have any CPU on board, but a USB connector to directly allow communic
         2 × Rotary Code Switches, hexadecimal coding
         Reset Button for ATMEL
         11 × LED's, free programmable 
+
+https://wiki.gsi.de/EE/HadCon2
