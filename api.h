@@ -224,7 +224,7 @@ enum cmdKeyNumber
                commandKeyNumber_OW8S,
                commandKeyNumber_WDOG,
                commandKeyNumber_VERS,
-               commandKeyNumber_CMD5,
+               commandKeyNumber_IDN,
                commandKeyNumber_CMD6,
                commandKeyNumber_CMD7,
                commandKeyNumber_CMD8,

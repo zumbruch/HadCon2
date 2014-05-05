@@ -48,6 +48,7 @@
 #include "can.h"
 #include "mem-check.h"
 #include "api_version.h"
+#include "api_identification.h"
 #include "twi_master.h"
 
 #include "adc.h"
@@ -442,11 +443,11 @@ static const char commandShortDescription49[]  PROGMEM = "code version";
 static const uint8_t commandImplementation49   PROGMEM = TRUE;
 
 // index: 50
-static const char commandKeyword50[]           PROGMEM = "CMD5"; /* command (dummy name) */
-static const char commandSyntax50[]            PROGMEM = "[???]";
+static const char commandKeyword50[]           PROGMEM = "IDN"; /* command (dummy name) */
+static const char commandSyntax50[]            PROGMEM = "";
 static const char commandSyntaxAlternative50[] PROGMEM = "";
-static const char commandShortDescription50[]  PROGMEM = "";
-static const uint8_t commandImplementation50   PROGMEM = FALSE;
+static const char commandShortDescription50[]  PROGMEM = "returns device IDN";
+static const uint8_t commandImplementation50   PROGMEM = TRUE;
 
 // index: 51
 static const char commandKeyword51[]           PROGMEM = "CMD6"; /* command (dummy name) */
@@ -829,6 +830,7 @@ void Process_Uart_Event(void)
 			case commandKeyNumber_GNWR:
 			case commandKeyNumber_GNRE:
 			case commandKeyNumber_VERS:
+			case commandKeyNumber_IDN:
 			default:
 				/* call the function for the conversion frame format into CAN format*/
 				apiConvertUartDataToCanUartStruct(0);
@@ -1436,6 +1438,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
        break;
     case commandKeyNumber_VERS: /* version */
     	version();
+       break;
+    case commandKeyNumber_IDN: /* version */
+    	identification();
        break;
     default:
 		ptr_uartStruct->commandKeywordIndex = -1;

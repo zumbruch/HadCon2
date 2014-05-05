@@ -2,10 +2,21 @@
 #define API_DEFINE__H
 /*the define.h header file contents all define variable*/
 
+
 #define CODE_VERSION "4.6.3"
 
 #ifndef HADCON_VERSION
 #define HADCON_VERSION 2
+#endif
+
+#if HADCON_VERSION == 1
+#define IDENTIFICATION "HadCon"
+#else
+  #if HADCON_VERSION == 2
+  #define IDENTIFICATION "HadCon2"
+  #else
+  #define IDENTIFICATION "unknown HadCon"
+  #endif
 #endif
 
 /*string ending sign: '0':48 "\0"==0? => yes, string ending=="\0"? => yes */
