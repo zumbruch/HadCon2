@@ -111,12 +111,12 @@ uint8_t usercommand;
 
 char* ptr_setParameter[MAX_PARAMETER];
 
-volatile unsigned char timer0Ready;/*variable for Timer0  Interrupt*/
-volatile unsigned char timer1Ready;/*variable for Timer1  Interrupt*/
-volatile unsigned char timer0AReady;/*variable for Timer0 Output Compare A  Interrupt*/
-volatile unsigned char timer0ASchedulerReady;/*variable for Timer0 Output Compare A  Interrupt*/
+volatile unsigned char timer0Ready = 0;/*variable for Timer0  Interrupt*/
+volatile unsigned char timer1Ready = 0;/*variable for Timer1  Interrupt*/
+volatile unsigned char timer0AReady = 0;/*variable for Timer0 Output Compare A  Interrupt*/
+volatile unsigned char timer0ASchedulerReady = 0;/*variable for Timer0 Output Compare A  Interrupt*/
 
-volatile unsigned char canReady; /*variable for can interrupt*/
+volatile unsigned char canReady = 0; /*variable for can interrupt*/
 volatile unsigned char canTimerOverrun; /*variable for can timer overrun interrupt*/
 volatile unsigned char canCurrentGeneralStatus;/*variable for can interrupt*/
 volatile unsigned char canCurrentGeneralInterruptRegister;/*variable for can interrupt*/
@@ -126,7 +126,7 @@ volatile unsigned char canCurrentReceiveErrorCounter;/*variable for can error ha
 
 char canStoreString[MAX_LENGTH_CAN_DATA];
 
-volatile unsigned char uartReady;/*variable for Uart interrupt*/
+volatile unsigned char uartReady = 0;/*variable for Uart interrupt*/
 
 char uartString[BUFFER_SIZE]; /* variable for storage received a complete string via UART */
 char decrypt_uartString[BUFFER_SIZE];

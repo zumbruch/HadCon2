@@ -1589,7 +1589,7 @@ ISR(OVRIT_vect)
 	 * canBusStoredState to undefined
 	 * to allow for recovery */
 
-	printDebug_p(debugLevelEventDebugVerbose, debugSystemCAN, __LINE__, filename,
+	printDebug_p(debugLevelPeriodicDebug, debugSystemCAN, __LINE__, filename,
 			PSTR("bus state %S"), (const char*) (pgm_read_word( &(canBusModes[canBusStoredState]))));
 
 	switch (canBusStoredState)
@@ -1601,7 +1601,7 @@ ISR(OVRIT_vect)
 			break;
 		default:
 			canPeriodicCanTimerCanBusStateReset();
-			printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename, PSTR("bus state %S"),
+			printDebug_p(debugLevelPeriodicDebug, debugSystemCAN, __LINE__, filename, PSTR("bus state %S"),
 					(const char*) (pgm_read_word( &(canBusModes[canBusStoredState]))));
 			break;
 	}
