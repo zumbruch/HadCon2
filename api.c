@@ -721,8 +721,28 @@ void Process_Uart_Event(void)
     /* clear uartString, avoiding memset*/
     clearString(uartString, BUFFER_SIZE);
 
-    printDebug_p(debugLevelEventDebug, debugSystemUART, __LINE__, filename, PSTR("UART string received:%s"), decrypt_uartString);
+    printDebug_p(debugLevelEventDebug, debugSystemUART, __LINE__, filename, PSTR("UART string received:'%s'"), decrypt_uartString);
 
+    if (globalDebugLevel >= debugLevelEventDebugVerbose)
+    {
+    	clearString(message, BUFFER_SIZE);
+    	char uartCurrentCharacter;
+    	size_t index=0;
+    	while( decrypt_uartString[index] )
+    	{
+    		uartCurrentCharacter = decrypt_uartString[index];
+    		if (!iscntrl(uartCurrentCharacter))
+    		{
+    			snprintf_P(message, BUFFER_SIZE -1, PSTR("%s%c"), message, uartCurrentCharacter);
+    		}
+    		else
+    		{
+    			snprintf_P(message, BUFFER_SIZE -1, PSTR("%s^[%#o"), message, uartCurrentCharacter);
+    		}
+    		index++;
+    	}
+        printDebug_p(debugLevelEventDebugVerbose, debugSystemUART, __LINE__, filename, PSTR("UART string received:'%s'"), decrypt_uartString);
+    }
 
 	/* split uart string into its elements */
 
@@ -1088,16 +1108,25 @@ int8_t apiFindCommandKeywordIndex(const char string[], PGM_P keywords[], size_t 
 	// find matching command keyword
 
  	size_t keywordIndex = 0;
-	while ( keywordIndex < keywordMaximumIndex )
+
+ 	/*first find max non control length*/
+ 	size_t length = 0;
+ 	for (length = 0; length < strlen(string) && length < MAX_LENGTH_PARAMETER; length++)
+ 	{
+ 		if (iscntrl(string[length])) break;
+ 	}
+	printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, filename, PSTR("keyword length: %i, strlen: %i "), length, strlen(string));
+
+ 	while ( keywordIndex < keywordMaximumIndex )
 	{
-		if ( 0 == strncasecmp_P(string, (const char*) ( pgm_read_word( &(keywords[keywordIndex])) ), MAX_LENGTH_PARAMETER) )
+		if ( 0 == strncasecmp_P(string, (const char*) ( pgm_read_word( &(keywords[keywordIndex])) ), length) )
 		{
- 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, filename, PSTR("keyword %s matches, index %i "), string, keywordIndex);
+ 			printDebug_p(debugLevelEventDebug, debugSystemCommandKey, __LINE__, filename, PSTR("keyword '%s' matches, index %i "), string, keywordIndex);
 			return keywordIndex;
 		}
         else
         {
-         	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, filename, PSTR("keyword %s doesn't match"), string);
+         	printDebug_p(debugLevelEventDebugVerbose, debugSystemCommandKey, __LINE__, filename, PSTR("keyword '%s' doesn't match '%S'"), string, (const char*) ( pgm_read_word( &(keywords[keywordIndex])) ));
 			keywordIndex++;
         }
 	}
@@ -1467,10 +1496,10 @@ ISR (SIG_UART0_RECV)
 {
 	unsigned char c = UDR0;
 
-	if ( c == '\n' ) /* the string is complete? */
+	if ( c == '\n' || c == '\r' ) /* the string is complete? */
 	{
 		uartString[nextCharPos] = '\0';
-		uartReady = 1; /* mark, that we got an CAN_interrupt, to be handled by main */
+		uartReady = 1; /* mark, that we got an UART_interrupt, to be handled by main */
 		nextCharPos = 0;
 	}
 	else if ( BUFFER_SIZE - 1 == nextCharPos ) /* string exceeds length, skip remainder, set flag */
