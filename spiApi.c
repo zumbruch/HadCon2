@@ -764,7 +764,7 @@ void spiApiShowChipSelectStatus(uint8_t mask, bool invert)
 {
 	bool status = 0;
 	uint8_t statusArray = spiGetCurrentChipSelectBarStatus();
-	uint8_t activeMask = getChipSelectArrayStatus();
+	uint8_t activeMask = spiGetChipSelectArrayStatus();
 	for (int chipSelectIndex = 0; chipSelectIndex < CHIPSELECT_MAXIMUM; ++chipSelectIndex)
 	{
 		if (mask & (0x1 << chipSelectIndex))
@@ -896,7 +896,7 @@ uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex)
 		return spiApiCommandResult_FAILURE_QUIET;
 	}
 
-	uint8_t activeMask = getChipSelectArrayStatus();
+	uint8_t activeMask = spiGetChipSelectArrayStatus();
 	for (int index = 0; index < CHIPSELECT_MAXIMUM; ++index)
 	{
 		if ( 0 < chipSelectIndex && index != chipSelectIndex -1 )

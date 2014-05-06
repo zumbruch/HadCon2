@@ -47,7 +47,7 @@ spiPin spiChipSelectArray[CHIPSELECT_MAXIMUM] = { { 0 , 0 , false  },
 
 uint8_t spiInternalChipSelectMask = 0;
 
-uint8_t getChipSelectArrayStatus(void)
+uint8_t spiGetChipSelectArrayStatus(void)
 {
 	uint8_t status = 0, i = 0;
 	for (i = CHIPSELECT0; i < CHIPSELECT_MAXIMUM; i++)

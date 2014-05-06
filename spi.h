@@ -141,7 +141,7 @@ uint8_t spiAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNum
 // removes the chipselect line and sets corresponding pin as input pin
 uint8_t spiRemoveChipSelect(uint8_t chipSelectNumber);
 // returns one byte showing used status of the chipselect array. if bit0 is set so chipselect0 in the array is in use
-uint8_t getChipSelectArrayStatus(void);
+uint8_t spiGetChipSelectArrayStatus(void);
 
 
 // sets chipSelectNumber in internal mask active
