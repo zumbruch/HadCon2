@@ -117,6 +117,9 @@ void determineAndHandleResetSource(void);
 bool isNumericalConstantOne(const char string[]);
 bool isNumericalConstantZero(const char string[]);
 
+uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max, bool report, char message[]);
+uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max);
+uint8_t apiShowValue(char string[], void *value, uint8_t type );
 
 
 #ifndef API_CONSTANTS_H_
@@ -265,5 +268,32 @@ enum resetSources
 	resetSource_UNDEFINED_REASON,
 	resetSource_MAXIMUM_NUMBER
 };
+
+enum apiCommandResults
+{
+	apiCommandResult_SUCCESS_WITH_OUTPUT 			= 0,
+	apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT,
+	apiCommandResult_SUCCESS_QUIET,
+	apiCommandResult_FAILURE 						= 100,
+	apiCommandResult_FAILURE_NOT_A_SUB_COMMAND,
+	apiCommandResult_FAILURE_QUIET,
+	apiCommandResult_UNDEFINED,
+	apiCommandResult_MAXIMUM_INDEX
+};
+
+enum apiVarTypes
+{
+	apiVarType_BOOL,
+	apiVarType_BOOL_TrueFalse,
+	apiVarType_BOOL_OnOff,
+	apiVarType_BOOL_HighLow,
+	apiVarType_UINT8,
+	apiVarType_UINT16,
+	apiVarType_UINT32,
+	apiVarType_UINT64,
+	apiVarType_UINTPTR,
+	apiVarType_MAXIMUM_INDEX,
+};
+
 #endif
 #endif
