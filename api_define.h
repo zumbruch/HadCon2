@@ -26,7 +26,7 @@
 
 #define F_CPU 10000000UL
 
-#define MAX_LENGTH_KEYWORD   4
+#define MAX_LENGTH_KEYWORD  5
 /* maximum length of their respective parameters of the strings via UART */
 
 /*  Formula for calculating UBBR0:

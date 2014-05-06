@@ -474,14 +474,14 @@ void help(struct uartStruct *ptr_uartStruct)
 					case commandKeyNumber_CMD2: /* command (dummy name) */
 					case commandKeyNumber_CMD3: /* command (dummy name) */
 						//case commandKeyNumber_CMD4: /* command (dummy name) */
-					case commandKeyNumber_CMD7: /* command (dummy name) */
 					case commandKeyNumber_CMD8: /* command (dummy name) */
 						/* command */
 						helpShowCommandOrResponse_p (NULL, NULL, string_3questions);
 						/* response */
 						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, string_3questions);
 						break;
-					case commandKeyNumber_APWI: /* command (dummy name) */
+					case commandKeyNumber_APWI:
+					case commandKeyNumber_APFEL:
 						/* command */
 						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[command]"));
 						/* response */

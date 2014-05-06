@@ -460,11 +460,11 @@ static const char commandShortDescription51[]  PROGMEM = "APFEL ASIC command set
 static const uint8_t commandImplementation51   PROGMEM = TRUE;
 
 // index: 52
-static const char commandKeyword52[]           PROGMEM = "CMD7"; /* command (dummy name) */
-static const char commandSyntax52[]            PROGMEM = "[???]";
+static const char commandKeyword52[]           PROGMEM = "APFEL"; /* command (dummy name) */
+static const char commandSyntax52[]            PROGMEM = "<command> <portID> <posID> <chipID> [<Arguments>]";
 static const char commandSyntaxAlternative52[] PROGMEM = "";
-static const char commandShortDescription52[]  PROGMEM = "";
-static const uint8_t commandImplementation52   PROGMEM = FALSE;
+static const char commandShortDescription52[]  PROGMEM = "APFEL ASIC command set";
+static const uint8_t commandImplementation52   PROGMEM = TRUE;
 
 // index: 53
 static const char commandKeyword53[]           PROGMEM = "CMD8"; /* command (dummy name) */
@@ -474,7 +474,7 @@ static const char commandShortDescription53[]  PROGMEM = "";
 static const uint8_t commandImplementation53   PROGMEM = FALSE;
 
 // index: 54
-static const char commandKeyword54[]           PROGMEM = "CMD8"; /* command (dummy name) */
+static const char commandKeyword54[]           PROGMEM = "CMD9"; /* command (dummy name) */
 static const char commandSyntax54[]            PROGMEM = "[???]";
 static const char commandSyntaxAlternative54[] PROGMEM = "";
 static const char commandShortDescription54[]  PROGMEM = "";
@@ -785,6 +785,7 @@ void Process_Uart_Event(void)
 			case commandKeyNumber_DEBG:
 			case commandKeyNumber_SPI:
 			case commandKeyNumber_APWI:
+			case commandKeyNumber_APFEL:
 				Choose_Function(ptr_uartStruct);
 				break;
 				/*use 1-wire parsing*/
@@ -1428,6 +1429,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
     	spiApi(ptr_uartStruct);
     	break;
     case commandKeyNumber_APWI: /* command (dummy name) */
+    case commandKeyNumber_APFEL: /* command (dummy name) */
     	apfelApi(ptr_uartStruct);
     	break;
     case commandKeyNumber_GNWR: /* generator write */

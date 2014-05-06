@@ -230,7 +230,7 @@ enum cmdKeyNumber
                commandKeyNumber_VERS,
                commandKeyNumber_IDN,
                commandKeyNumber_APWI,
-               commandKeyNumber_CMD7,
+               commandKeyNumber_APFEL,
                commandKeyNumber_CMD8,
                commandKeyNumber_MAXIMUM_NUMBER
 };
