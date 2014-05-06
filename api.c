@@ -43,6 +43,7 @@
 #include "one_wire_octalSwitch.h"
 #include "relay.h"
 #include "spiApi.h"
+#include "apfelApi.h"
 
 #include "api_debug.h"
 #include "api_show.h"
@@ -456,11 +457,11 @@ static const char commandShortDescription50[]  PROGMEM = "returns device IDN";
 static const uint8_t commandImplementation50   PROGMEM = TRUE;
 
 // index: 51
-static const char commandKeyword51[]           PROGMEM = "CMD6"; /* command (dummy name) */
-static const char commandSyntax51[]            PROGMEM = "[???]";
+static const char commandKeyword51[]           PROGMEM = "APWI"; /* command (dummy name) */
+static const char commandSyntax51[]            PROGMEM = "<command> <portID> <posID> <chipID> [<Arguments>]";
 static const char commandSyntaxAlternative51[] PROGMEM = "";
-static const char commandShortDescription51[]  PROGMEM = "";
-static const uint8_t commandImplementation51   PROGMEM = FALSE;
+static const char commandShortDescription51[]  PROGMEM = "APFEL ASIC command set";
+static const uint8_t commandImplementation51   PROGMEM = TRUE;
 
 // index: 52
 static const char commandKeyword52[]           PROGMEM = "CMD7"; /* command (dummy name) */
@@ -787,6 +788,7 @@ void Process_Uart_Event(void)
 			case commandKeyNumber_I2C:
 			case commandKeyNumber_DEBG:
 			case commandKeyNumber_SPI:
+			case commandKeyNumber_APWI:
 				Choose_Function(ptr_uartStruct);
 				break;
 				/*use 1-wire parsing*/
@@ -1428,6 +1430,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
        break;
     case commandKeyNumber_SPI: /* command (dummy name) */
     	spiApi(ptr_uartStruct);
+    	break;
+    case commandKeyNumber_APWI: /* command (dummy name) */
+    	apfelApi(ptr_uartStruct);
     	break;
     case commandKeyNumber_GNWR: /* generator write */
       waveformGeneratorWriteRegister(ptr_uartStruct);

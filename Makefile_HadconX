@@ -109,6 +109,8 @@ SRC += help_twis.c
 SRC += waveform_generator_registers.c
 SRC += spi.c
 SRC += spiApi.c
+SRC += apfel.c
+SRC += apfelApi.c
 ifdef TESTING_ENABLE
 SRC += testing.c
 ifdef FB_SPI_TEST

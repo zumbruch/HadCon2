@@ -477,13 +477,20 @@ void help(struct uartStruct *ptr_uartStruct)
 					case commandKeyNumber_CMD2: /* command (dummy name) */
 					case commandKeyNumber_CMD3: /* command (dummy name) */
 						//case commandKeyNumber_CMD4: /* command (dummy name) */
-					case commandKeyNumber_CMD6: /* command (dummy name) */
 					case commandKeyNumber_CMD7: /* command (dummy name) */
 					case commandKeyNumber_CMD8: /* command (dummy name) */
 						/* command */
 						helpShowCommandOrResponse_p (NULL, NULL, string_3questions);
 						/* response */
 						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, string_3questions);
+						break;
+					case commandKeyNumber_APWI: /* command (dummy name) */
+						/* command */
+						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[command]"));
+						/* response */
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("command specific"));
+						/* available sub commands*/
+						helpShowAvailableSubCommands(apfelApiCommandKeyNumber_MAXIMUM_NUMBER, apfelApiCommandKeywords);
 						break;
 					case commandKeyNumber_SPI:
 						/* command */
