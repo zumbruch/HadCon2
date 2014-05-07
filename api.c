@@ -1312,13 +1312,13 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		/* command      : RGWR Register Value */
 		/* response now : RECV the value %x has been written in Register */
 		/* response TODO: RECV RGWR Register Value (OldValue) */
-		writeRegister(ptr_uartStruct); /* call function with name writeRegister  */
+		registerWriteRegister(ptr_uartStruct); /* call function with name registerWriteRegister  */
 		break;
 	case commandKeyNumber_RGRE:
 		/* command      : RGRE Register*/
 		/* response now : RECV the value %x has been written in Register */
 		/* response TODO: RECV RGWR Register Value */
-		readRegister(ptr_uartStruct); /* call function with name  readRegister */
+		registerReadRegister(ptr_uartStruct); /* call function with name  registerReadRegister */
 		break;
 	case commandKeyNumber_RADC: /* read AVR's ADCs */
 		atmelReadADCs(ptr_uartStruct);
@@ -1341,7 +1341,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
         init(ptr_uartStruct);
 		break;
 	case commandKeyNumber_OWSS:
-		read_status_simpleSwitches(ptr_uartStruct); /* call function with name  readRegister */
+		read_status_simpleSwitches(ptr_uartStruct); /* call function with name  registerReadRegister */
 		break;
 	case commandKeyNumber_OWLS:
        /* command : OWLS
