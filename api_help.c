@@ -41,6 +41,7 @@
 #include "relay.h"
 #include "help_twis.h"
 #include "spiApi.h"
+#include "apfelApi.h"
 
 //static const char filename[] 					PROGMEM = __FILE__;
 static const char string_command[] 				PROGMEM = "command";
