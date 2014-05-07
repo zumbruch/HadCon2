@@ -34,68 +34,39 @@ static const char string_sKommax[]  PROGMEM = "%s,%x";
 
 static char byte[3]= "00";
 
-static const char apfelApiCommandKeyword00[] PROGMEM = "add"; 					/* add <args> to write buffer*/
-static const char apfelApiCommandKeyword01[] PROGMEM = "a";
-static const char apfelApiCommandKeyword02[] PROGMEM = "control_bits";       		/* get/set APFEL control bits*/
-static const char apfelApiCommandKeyword03[] PROGMEM = "c";
-static const char apfelApiCommandKeyword04[] PROGMEM = "purge";					/* purge write/read buffer*/
-static const char apfelApiCommandKeyword05[] PROGMEM = "p";
-static const char apfelApiCommandKeyword06[] PROGMEM = "read";					/* read read Buffer*/
-static const char apfelApiCommandKeyword07[] PROGMEM = "r";
-static const char apfelApiCommandKeyword08[] PROGMEM = "status";					/* show apfel status of control bits and operation settings*/
-static const char apfelApiCommandKeyword09[] PROGMEM = "s";
-static const char apfelApiCommandKeyword10[] PROGMEM = "transmit"; 				/* transmit write buffer auto set of CS controlled via cs_auto_enable*/
-static const char apfelApiCommandKeyword11[] PROGMEM = "t";
-static const char apfelApiCommandKeyword12[] PROGMEM = "write";					/* write <args>, directly setting automatically CS */
-static const char apfelApiCommandKeyword13[] PROGMEM = "w";
-static const char apfelApiCommandKeyword14[] PROGMEM = "write_buffer";		 	/* write_buffer <args>, directly setting automatically CS */
-static const char apfelApiCommandKeyword15[] PROGMEM = "wb";
-static const char apfelApiCommandKeyword16[] PROGMEM = "purge_write_buffer"; 		/* purge write buffer*/
-static const char apfelApiCommandKeyword17[] PROGMEM = "pw";
-static const char apfelApiCommandKeyword18[] PROGMEM = "purge_read_buffer";  		/* purge read buffer*/
-static const char apfelApiCommandKeyword19[] PROGMEM = "pr";
-static const char apfelApiCommandKeyword20[] PROGMEM = "show_write_buffer";  		/* show content of write buffer, detailed when increasing DEBG level */
-static const char apfelApiCommandKeyword21[] PROGMEM = "sw";
-static const char apfelApiCommandKeyword22[] PROGMEM = "show_read_buffer";   		/* show content of read buffer, detailed when increasing DEBG level */
-static const char apfelApiCommandKeyword23[] PROGMEM = "sr";
-static const char apfelApiCommandKeyword24[] PROGMEM = "cs";            	   		/* set chip select: cs <0|1|H(IGH)|L(OW)|T(RUE)|F(ALSE)>, CS is low active */
-static const char apfelApiCommandKeyword25[] PROGMEM = "cs_bar";        	   		/* same as cs but inverse logic*/
-static const char apfelApiCommandKeyword26[] PROGMEM = "csb";
-static const char apfelApiCommandKeyword27[] PROGMEM = "cs_set";        	     	/* set cs, optionally only for <cs mask>*/
-static const char apfelApiCommandKeyword28[] PROGMEM = "css";
-static const char apfelApiCommandKeyword29[] PROGMEM = "cs_release";    	     	/* releases cs, optionally only for <cs mask>*/
-static const char apfelApiCommandKeyword30[] PROGMEM = "csr";
-static const char apfelApiCommandKeyword31[] PROGMEM = "cs_select_mask";	   		/* chip select output pin byte mask */
-static const char apfelApiCommandKeyword32[] PROGMEM = "cs_pins";       	   		/* set/get hardware addresses of multiple CS outputs*/
-static const char apfelApiCommandKeyword33[] PROGMEM = "cs_add_pin";  	      	/* set new cs address*/
-static const char apfelApiCommandKeyword34[] PROGMEM = "csap";
-static const char apfelApiCommandKeyword35[] PROGMEM = "cs_remove_pin";       	/* remove cs address*/
-static const char apfelApiCommandKeyword36[] PROGMEM = "csrp";
-static const char apfelApiCommandKeyword37[] PROGMEM = "apfel_enable";				/* get/set enable APFEL*/
-static const char apfelApiCommandKeyword38[] PROGMEM = "data_order";         		/* get/set bit endianess*/
-static const char apfelApiCommandKeyword39[] PROGMEM = "master";             		/* get/set master mode*/
-static const char apfelApiCommandKeyword40[] PROGMEM = "clock_polarity";     		/* get/set clock polarity*/
-static const char apfelApiCommandKeyword41[] PROGMEM = "clock_phase";        		/* get/set clock phase*/
-static const char apfelApiCommandKeyword42[] PROGMEM = "speed";              		/* get/set speed */
-static const char apfelApiCommandKeyword43[] PROGMEM = "speed_divider";      		/* get/set speed divider*/
-static const char apfelApiCommandKeyword44[] PROGMEM = "double_speed";       		/* get/set double speed*/
-static const char apfelApiCommandKeyword45[] PROGMEM = "transmit_byte_order";		/* MSB/LSB, big endian */
-static const char apfelApiCommandKeyword46[] PROGMEM = "reset";              		/* reset to default*/
-static const char apfelApiCommandKeyword47[] PROGMEM = "transmit_report";    		/* report send bytes*/
-static const char apfelApiCommandKeyword48[] PROGMEM = "auto_purge_write_buffer";	/* automatic purge of write buffer after write commands */
-static const char apfelApiCommandKeyword49[] PROGMEM = "auto_purge_read_buffer";	/* automatic purge of read buffer before write commands */
+static const char apfelApiCommandKeyword00[] PROGMEM = "dac";
+static const char apfelApiCommandKeyword01[] PROGMEM = "d";
+static const char apfelApiCommandKeyword02[] PROGMEM = "incr";
+static const char apfelApiCommandKeyword03[] PROGMEM = "+";
+static const char apfelApiCommandKeyword04[] PROGMEM = "decr";
+static const char apfelApiCommandKeyword05[] PROGMEM = "-";
+static const char apfelApiCommandKeyword06[] PROGMEM = "testpulse";
+static const char apfelApiCommandKeyword07[] PROGMEM = "t";
+static const char apfelApiCommandKeyword08[] PROGMEM = "autocalib";
+static const char apfelApiCommandKeyword09[] PROGMEM = "a";
+static const char apfelApiCommandKeyword10[] PROGMEM = "ampl";
+static const char apfelApiCommandKeyword11[] PROGMEM = "list";
+static const char apfelApiCommandKeyword12[] PROGMEM = "l";
+static const char apfelApiCommandKeyword13[] PROGMEM = "status";
+static const char apfelApiCommandKeyword14[] PROGMEM = "s";
+static const char apfelApiCommandKeyword15[] PROGMEM = "chipIdIgnoreMask";
+static const char apfelApiCommandKeyword16[] PROGMEM = "cim";
+static const char apfelApiCommandKeyword17[] PROGMEM = "addPortAddressSet";
+static const char apfelApiCommandKeyword18[] PROGMEM = "apas";
+static const char apfelApiCommandKeyword19[] PROGMEM = "removePortAddressSet";
+static const char apfelApiCommandKeyword20[] PROGMEM = "rpas";
+static const char apfelApiCommandKeyword21[] PROGMEM = "usToSleep";
+static const char apfelApiCommandKeyword22[] PROGMEM = "uts";
+static const char apfelApiCommandKeyword23[] PROGMEM = "apfel_enable";
+static const char apfelApiCommandKeyword24[] PROGMEM = "reset";
 
 const char* apfelApiCommandKeywords[] PROGMEM = {
         apfelApiCommandKeyword00, apfelApiCommandKeyword01, apfelApiCommandKeyword02, apfelApiCommandKeyword03, apfelApiCommandKeyword04,
 		apfelApiCommandKeyword05, apfelApiCommandKeyword06, apfelApiCommandKeyword07, apfelApiCommandKeyword08, apfelApiCommandKeyword09,
 		apfelApiCommandKeyword10, apfelApiCommandKeyword11, apfelApiCommandKeyword12, apfelApiCommandKeyword13, apfelApiCommandKeyword14,
 		apfelApiCommandKeyword15, apfelApiCommandKeyword16, apfelApiCommandKeyword17, apfelApiCommandKeyword18, apfelApiCommandKeyword19,
-		apfelApiCommandKeyword20, apfelApiCommandKeyword21, apfelApiCommandKeyword22, apfelApiCommandKeyword23, apfelApiCommandKeyword24,
-		apfelApiCommandKeyword25, apfelApiCommandKeyword26, apfelApiCommandKeyword27, apfelApiCommandKeyword28, apfelApiCommandKeyword29,
-		apfelApiCommandKeyword30, apfelApiCommandKeyword31, apfelApiCommandKeyword32, apfelApiCommandKeyword33, apfelApiCommandKeyword34,
-		apfelApiCommandKeyword35, apfelApiCommandKeyword36, apfelApiCommandKeyword37, apfelApiCommandKeyword38, apfelApiCommandKeyword39,
-		apfelApiCommandKeyword40, apfelApiCommandKeyword41, apfelApiCommandKeyword42, apfelApiCommandKeyword43, apfelApiCommandKeyword44,
-		apfelApiCommandKeyword45, apfelApiCommandKeyword46, apfelApiCommandKeyword47, apfelApiCommandKeyword48, apfelApiCommandKeyword49 };
+		apfelApiCommandKeyword20, apfelApiCommandKeyword21, apfelApiCommandKeyword22, apfelApiCommandKeyword23, apfelApiCommandKeyword24
+};
 
 apfelApiConfig apfelApiConfiguration;
 bool apfelApiInitialized = false;
@@ -104,11 +75,6 @@ apfelApiConfig *ptr_apfelApiConfiguration = &apfelApiConfiguration;
 void apfelApiInit(void)
 {
 	/* initial configuration*/
-	ptr_apfelApiConfiguration->transmitByteOrder    = apfelApiTransmitByteOrder_MSB;
-	ptr_apfelApiConfiguration->reportTransmit       = false;
-	ptr_apfelApiConfiguration->csExternalSelectMask = 0xFF;
-	ptr_apfelApiConfiguration->autoPurgeReadBuffer  = true;
-	ptr_apfelApiConfiguration->autoPurgeWriteBuffer = false;
 	ptr_apfelApiConfiguration->hardwareInit         = false;
 	ptr_apfelApiConfiguration->apfelConfiguration     = apfelGetConfiguration();
 }
@@ -138,10 +104,6 @@ void apfelApi(struct uartStruct *ptr_uartStruct)
 				{
 					apfelApiSubCommands(ptr_uartStruct, subCommandIndex, 2);
 				}
-				else if (isNumericArgument(setParameter[1], MAX_LENGTH_PARAMETER)) /*write*/
-				{
-					apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_WRITE, 1);
-				}
 				else
 				{
 					CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name, true, NULL);
@@ -165,7 +127,7 @@ void apfelApi(struct uartStruct *ptr_uartStruct)
 
 uint8_t apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandIndex, uint8_t parameterIndex)
 {
-	uint8_t result = apfelApiCommandResult_UNDEFINED;
+	uint8_t result = apiCommandResult_UNDEFINED;
 	// find matching command keyword
 
 	if ( 0 > subCommandIndex )
@@ -196,207 +158,97 @@ uint8_t apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subComman
 			/* show apfel status of control bits and operation settings*/
 			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_STATUS, 0);
 			break;
-		case apfelApiCommandKeyNumber_WRITE:
-			/* write <args>, directly setting automatically CS */
-			result = apfelApiSubCommandWrite(ptr_uartStruct, parameterIndex);
+
+		case apfelApiCommandKeyNumber_DAC:
+			result = apfelApiSubCommandDac();
 			break;
-		case apfelApiCommandKeyNumber_W:
-			/* write <args>, directly setting automatically CS */
-			clearString(uart_message_string, BUFFER_SIZE); /* hack: since parameterIndex is only used here */
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_WRITE, parameterIndex);
-			result = apfelApiCommandResult_SUCCESS_QUIET; /* hack: output already generated by recursive call */
+
+		case apfelApiCommandKeyNumber_D:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_DAC, 0);
 			break;
-		case apfelApiCommandKeyNumber_ADD:
-			/* add <args> to write buffer*/
-			result = apfelApiSubCommandAdd(ptr_uartStruct);
+
+		case apfelApiCommandKeyNumber_INCR:
+			result = apfelApiSubCommandIncrementDac();
 			break;
-		case apfelApiCommandKeyNumber_A:
-			/* add <args> to write buffer*/
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_ADD, 0);
+
+		case apfelApiCommandKeyNumber_PLUS:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_INCR, 0);
 			break;
-		case apfelApiCommandKeyNumber_TRANSMIT:
-			/* transmit write buffer auto set of CS controlled via cs_auto_enable*/
-			result = apfelApiSubCommandTransmit();
+
+		case apfelApiCommandKeyNumber_DECR:
+			result = apfelApiSubCommandDecrementDac();
 			break;
+
+		case apfelApiCommandKeyNumber_MINUS:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_DECR, 0);
+			break;
+
+		case apfelApiCommandKeyNumber_TESTPULSE:
+			result = apfelApiSubCommandTestPulse();
+			break;
+
 		case apfelApiCommandKeyNumber_T:
-			/* transmit write buffer auto set of CS controlled via cs_auto_enable*/
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_TRANSMIT, 0);
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_TESTPULSE, 0);
 			break;
-		case apfelApiCommandKeyNumber_WRITE_BUFFER:
-			result = apfelApiSubCommandWriteBuffer();
+
+		case apfelApiCommandKeyNumber_AUTOCALIB:
+			result = apfelApiSubCommandAutoCalib();
 			break;
-		case apfelApiCommandKeyNumber_WB:
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_WRITE_BUFFER, 0);
+
+		case apfelApiCommandKeyNumber_A:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_AUTOCALIB, 0);
 			break;
-		case apfelApiCommandKeyNumber_READ:
-			/* read read Buffer*/
-			result = apfelApiSubCommandRead();
+
+		case apfelApiCommandKeyNumber_AMPL:
+			result = apfelApiSubCommandAmplification();
 			break;
-		case apfelApiCommandKeyNumber_R:
-			/* read read Buffer*/
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_READ, 0);
+
+		case apfelApiCommandKeyNumber_LIST:
+			result = apfelApiSubCommandListIds();
 			break;
-		case apfelApiCommandKeyNumber_CS:
-			/* set chip select: cs <0|1|H(IGH)|L(OW)|T(RUE)|F(ALSE)>, CS is low active */
-			result = apfelApiSubCommandCsStatus(ptr_uartStruct);
+
+		case apfelApiCommandKeyNumber_L:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_LIST, 0);
 			break;
-		case apfelApiCommandKeyNumber_CS_BAR:
-			/* same as cs but inverse logic*/
-			result = apfelApiSubCommandCsBarStatus(ptr_uartStruct);
+
+		case apfelApiCommandKeyNumber_CHIPIDIGNOREMASK:
+			result = apfelApiSubCommandChipIdIgnoreMask();
 			break;
-		case apfelApiCommandKeyNumber_CSB:
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_CS_BAR, 0);
+
+		case apfelApiCommandKeyNumber_CIM:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_CHIPIDIGNOREMASK, 0);
 			break;
-		case apfelApiCommandKeyNumber_CS_SET:
-			/* set cs, optionally only for <cs mask>*/
-			result = apfelApiSubCommandCsSet();
+
+		case apfelApiCommandKeyNumber_ADDPORTADDRESSSET:
+			result = apfelApiSubCommandAddPortAddressSet();
 			break;
-		case apfelApiCommandKeyNumber_CSS:
-			/* set cs, optionally only for <cs mask>*/
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_CS_SET, 0);
+
+		case apfelApiCommandKeyNumber_APAS:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_ADDPORTADDRESSSET, 0);
 			break;
-		case apfelApiCommandKeyNumber_CS_RELEASE:
-			/* releases cs, optionally only for <cs mask>*/
-			result = apfelApiSubCommandCsRelease();
+
+		case apfelApiCommandKeyNumber_REMOVEPORTADDRESSSET:
+			result = apfelApiSubCommandRemovePortAddressSet();
 			break;
-		case apfelApiCommandKeyNumber_CSR:
-			/* releases cs, optionally only for <cs mask>*/
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_CS_RELEASE, 0);
+
+		case apfelApiCommandKeyNumber_RPAS:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_REMOVEPORTADDRESSSET, 0);
 			break;
-		case apfelApiCommandKeyNumber_CS_SELECT_MASK:
-			/* chip select output pin byte mask */
-			result = apfelApiSubCommandCsSelectMask(ptr_uartStruct);
+
+		case apfelApiCommandKeyNumber_USTOSLEEP:
+			result = apfelApiSubCommandUsToSleep();
 			break;
-		case apfelApiCommandKeyNumber_CS_PINS:
-			/* set hardware addresses of multiple CS outputs*/
-			result = apfelApiSubCommandCsPins(ptr_uartStruct);
+
+		case apfelApiCommandKeyNumber_UTS:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_USTOSLEEP, 0);
 			break;
-		case apfelApiCommandKeyNumber_CS_ADD_PIN:
-			/* set hardware addresses of multiple CS outputs*/
-			result = apfelApiSubCommandCsAddPin(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_CSAP:
-			/* set hardware addresses of multiple CS outputs*/
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_CS_ADD_PIN, 0);
-			break;
-		case apfelApiCommandKeyNumber_CS_REMOVE_PIN:
-			/* remove hardware addresses of multiple CS outputs*/
-			result = apfelApiSubCommandCsRemovePin(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_CSRP:
-			/* remove hardware addresses of multiple CS outputs*/
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_CS_REMOVE_PIN, 0);
-			break;
-		case apfelApiCommandKeyNumber_PURGE:
-			/* purge write/read buffers*/
-			result = apfelApiSubCommandPurge();
-			break;
-		case apfelApiCommandKeyNumber_P:
-			/* purge write/read buffers*/
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_PURGE, 0);
-			break;
-		case apfelApiCommandKeyNumber_PURGE_WRITE_BUFFER:
-			/* purge write buffer*/
-			result = apfelApiSubCommandPurgeWriteBuffer();
-			break;
-		case apfelApiCommandKeyNumber_PW:
-			/* purge write buffer*/
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_PURGE_WRITE_BUFFER, 0);
-			break;
-		case apfelApiCommandKeyNumber_PURGE_READ_BUFFER:
-			/* purge read buffer*/
-			result = apfelApiSubCommandPurgeReadBuffer();
-			break;
-		case apfelApiCommandKeyNumber_PR:
-			/* purge read buffer*/
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_PURGE_READ_BUFFER, 0);
-			break;
-		case apfelApiCommandKeyNumber_SHOW_WRITE_BUFFER:
-			/* show content of write buffer, detailed when increasing DEBG level */
-			result = apfelApiSubCommandShowWriteBuffer(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_SW:
-			/* show content of write buffer, detailed when increasing DEBG level */
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_SHOW_WRITE_BUFFER, 0);
-			break;
-		case apfelApiCommandKeyNumber_SHOW_READ_BUFFER:
-			/* show content of read buffer, detailed when increasing DEBG level */
-			result = apfelApiSubCommandShowReadBuffer(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_SR:
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_SHOW_READ_BUFFER, 0);
-			break;
-		case apfelApiCommandKeyNumber_CONTROL_BITS:
-			/* get/set APFEL control bits*/
-			result = apfelApiSubCommandControlBits(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_C:
-			/* get/set APFEL control bits*/
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_CONTROL_BITS, 0);
-			break;
+
 		case apfelApiCommandKeyNumber_APFEL_ENABLE:
-			/* get/set enable APFEL*/
-			result = apfelApiSubCommandSpiEnable(ptr_uartStruct);
+			result = apfelApiSubCommandApfelEnable();
 			break;
-		case apfelApiCommandKeyNumber_DATA_ORDER:
-			/* get/set bit endianess*/
-			result = apfelApiSubCommandDataOrder(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_MASTER:
-			/* get/set master mode*/
-			result = apfelApiSubCommandMaster(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_CLOCK_POLARITY:
-			/* get/set clock polarity*/
-			result = apfelApiSubCommandClockPolarity(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_CLOCK_PHASE:
-			/* get/set clock phase*/
-			result = apfelApiSubCommandClockPhase(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_SPEED:
-			/* get/set speed */
-			result = apfelApiSubCommandSpeed(ptr_uartStruct);
-			if ( apfelApiCommandResult_FAILURE > result)
-			{
-				if (1 < ptr_uartStruct->number_of_arguments)
-				{
-					apfelApiShowStatusSpeed();
-					result = apfelApiCommandResult_SUCCESS_QUIET;
-				}
-			}
-			break;
-		case apfelApiCommandKeyNumber_DOUBLE_SPEED:
-			/* get/set double speed*/
-			result = apfelApiSubCommandDoubleSpeed(ptr_uartStruct);
-			if ( apfelApiCommandResult_FAILURE > result)
-			{
-				if (1 < ptr_uartStruct->number_of_arguments)
-				{
-					apfelApiShowStatusSpeed();
-					result = apfelApiCommandResult_SUCCESS_QUIET;
-				}
-			}
-			break;
-		case apfelApiCommandKeyNumber_SPEED_DIVIDER:
-			/* get/set speed divider*/
-			result = apfelApiSubCommandSpeedDivider(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_TRANSMIT_BYTE_ORDER:
-			/* MSB/LSB, big endian */
-			result = apfelApiSubCommandTransmitByteOrder(ptr_uartStruct);
-			break;
+
 		case apfelApiCommandKeyNumber_RESET:
 			result = apfelApiSubCommandReset();
-			break;
-		case apfelApiCommandKeyNumber_TRANSMIT_REPORT:
-			result = apfelApiSubCommandTransmitReport(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_AUTO_PURGE_READ_BUFFER:
-			result = apfelApiSubCommandAutoPurgeReadBuffer(ptr_uartStruct);
-			break;
-		case apfelApiCommandKeyNumber_AUTO_PURGE_WRITE_BUFFER:
-			result = apfelApiSubCommandAutoPurgeWriteBuffer(ptr_uartStruct);
 			break;
 		default:
 			result = -1;
@@ -415,10 +267,10 @@ void apfelApiSubCommandsFooter( uint16_t result )
 {
 	switch (result)
 	{
-		case apfelApiCommandResult_SUCCESS_WITH_OUTPUT:
+		case apiCommandResult_SUCCESS_WITH_OUTPUT:
 			UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
 			break;
-		case apfelApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT:
+		case apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT:
 			/* verbose response to commands*/
 			if (debugLevelVerboseDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemAPFEL) & 1))
 			{
@@ -430,15 +282,15 @@ void apfelApiSubCommandsFooter( uint16_t result )
 				clearString(uart_message_string, BUFFER_SIZE);
 			}
 			break;
-		case apfelApiCommandResult_FAILURE_NOT_A_SUB_COMMAND:
+		case apiCommandResult_FAILURE_NOT_A_SUB_COMMAND:
 			CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name, true, PSTR("not a sub command"));
 			break;
-		case apfelApiCommandResult_SUCCESS_QUIET:
-		case apfelApiCommandResult_FAILURE_QUIET:
+		case apiCommandResult_SUCCESS_QUIET:
+		case apiCommandResult_FAILURE_QUIET:
 			clearString(uart_message_string, BUFFER_SIZE);
 			/* printouts elsewhere generated */
 			break;
-		case apfelApiCommandResult_FAILURE:
+		case apiCommandResult_FAILURE:
 		default:
 			CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("command failed"));
 			break;
@@ -446,6 +298,25 @@ void apfelApiSubCommandsFooter( uint16_t result )
 
 }
 
+apiCommandResult apfelApiSubCommandShowStatus          (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandDac                 (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandIncrementDac        (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandDecrementDac        (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandTestPulse           (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandAutoCalib           (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandAmplification       (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandListIds             (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandChipIdIgnoreMask    (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandAddPortAddressSet   (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandRemovePortAddressSet(void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandUsToSleep           (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandApfelEnable         (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandReset               (void){return apiCommandResult_SUCCESS_QUIET;}
+
+
+
+
+#if 0
 /*
  * *** sub commands with minimum 1 argument
  */
@@ -589,7 +460,6 @@ void apfelApiShowStatusControls()
 	};
 	apfelApiShowStatus( list, sizeof(list));
 }
-
 
 void apfelApiShowStatusControlBits()
 {
@@ -1758,122 +1628,4 @@ uint8_t apfelApiShowBufferContent(struct uartStruct *ptr_uartStruct, apfelByteDa
 	return apfelApiCommandResult_SUCCESS_QUIET;
 }
 
-uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max, bool report, char message[])
-{
-	if ( NULL == message)
-	{
-		message = uart_message_string;
-	}
-	switch (nArgumentArgs)
-	{
-		case 0: /*print*/
-			return apiShowValue(message, value, type );
-			break;
-		case 1: /*write*/
-		default:
-			/* take second parameter, i.e. first argument to sub command and fill it into value*/
-
-			if ( apfelApiCommandResult_FAILURE > apiAssignParameterToValue(2, value, type, min, max) )
-			{
-				if (report)
-				{
-					/* report by recursive call */
-					apiShowValue(message, value, type );
-					return apfelApiCommandResult_SUCCESS_WITH_OUTPUT;
-				}
-			}
-
-			break;
-	}
-	return apfelApiCommandResult_SUCCESS_QUIET;
-}
-
-uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max)
-{
-#warning integrate type casting into getUnsignedNumericValueFromParameterIndex(parameterIndex, &inputValue)) ?
-	uint64_t inputValue = 0;
-
-	if ( 0 != getUnsignedNumericValueFromParameterIndex(parameterIndex, &inputValue))
-	{
-		return apfelApiCommandResult_FAILURE_QUIET;
-	}
-
-	if ( (min > inputValue) || (max < inputValue) )
-	{
-		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
-		return apfelApiCommandResult_FAILURE_QUIET;
-	}
-
-	/* set */
-	switch( type )
-	{
-		case apiVarType_BOOL_OnOff:
-		case apiVarType_BOOL_TrueFalse:
-		case apiVarType_BOOL_HighLow:
-		case apiVarType_BOOL:
-			*((bool*)value) = (bool) (inputValue != 0);
-			break;
-		case apiVarType_UINT8:
-			*((uint8_t*)value) = UINT8_MAX & inputValue;
-			break;
-		case apiVarType_UINT16:
-			*((uint16_t*)value) = UINT16_MAX & inputValue;
-			break;
-		case apiVarType_UINT32:
-			*((uint32_t*)value) = UINT32_MAX & inputValue;
-			break;
-		case apiVarType_UINT64:
-			*((uint64_t*)value) = UINT64_MAX & inputValue;
-			break;
-		case apiVarType_UINTPTR:
-			*((uintptr_t*)value) = UINTPTR_MAX & inputValue;
-			break;
-		default:
-			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
-			return apfelApiCommandResult_FAILURE_QUIET;
-			break;
-	}
-
-	return apfelApiCommandResult_SUCCESS_QUIET;
-}
-
-uint8_t apiShowValue(char string[], void *value, uint8_t type )
-{
-	if (NULL == string)
-	{
-		string = uart_message_string;
-	}
-	switch( type )
-	{
-		case apiVarType_BOOL_OnOff:
-			strncat_P(string, *((bool*)value)?PSTR("ON"):PSTR("OFF"), BUFFER_SIZE - 1);
-			break;
-		case apiVarType_BOOL_TrueFalse:
-			strncat_P(string, *((bool*)value)?PSTR("TRUE"):PSTR("FALSE"), BUFFER_SIZE - 1);
-			break;
-		case apiVarType_BOOL_HighLow:
-			strncat_P(string, *((bool*)value)?PSTR("HIGH"):PSTR("LOW"), BUFFER_SIZE - 1);
-			break;
-		case apiVarType_BOOL:
-			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((bool*)value));
-			break;
-		case apiVarType_UINT8:
-			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint8_t*)value));
-			break;
-		case apiVarType_UINT16:
-			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint16_t*)value));
-			break;
-		case apiVarType_UINT32:
-			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint32_t*)value));
-			break;
-		case apiVarType_UINT64:
-			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint64_t*)value));
-			break;
-		default:
-			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
-			return apfelApiCommandResult_FAILURE_QUIET;
-			break;
-	}
-	return apfelApiCommandResult_SUCCESS_WITH_OUTPUT;
-
-}
+#endif
