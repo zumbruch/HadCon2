@@ -635,7 +635,7 @@ void apfelApiShowChipSelectStatus(uint8_t mask, bool invert)
 	bool status = 0;
 	uint8_t statusArray = apfelGetCurrentChipSelectBarStatus();
 	uint8_t activeMask = apfelGetChipSelectArrayStatus();
-	for (int chipSelectIndex = 0; chipSelectIndex < CHIPSELECT_MAXIMUM; ++chipSelectIndex)
+	for (int chipSelectIndex = 0; chipSelectIndex < APFEL_CHIPSELECT_MAXIMUM; ++chipSelectIndex)
 	{
 		if (mask & (0x1 << chipSelectIndex))
 		{
@@ -767,7 +767,7 @@ uint8_t apfelApiShowChipSelectAddress(int8_t chipSelectIndex)
 	}
 
 	uint8_t activeMask = apfelGetChipSelectArrayStatus();
-	for (int index = 0; index < CHIPSELECT_MAXIMUM; ++index)
+	for (int index = 0; index < APFEL_CHIPSELECT_MAXIMUM; ++index)
 	{
 		if ( 0 < chipSelectIndex && index != chipSelectIndex -1 )
 		{
@@ -1255,8 +1255,8 @@ uint8_t apfelApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct)
 			else
 			{
 				/* find open slot */
-				chipSelectNumber = CHIPSELECT0;
-				while (chipSelectNumber < CHIPSELECT_MAXIMUM)
+				chipSelectNumber = APFEL_CHIPSELECT0;
+				while (chipSelectNumber < APFEL_CHIPSELECT_MAXIMUM)
 				{
 					if (false == (apfelGetCurrentChipSelectArray()[chipSelectNumber]).isUsed)
 					{
@@ -1264,9 +1264,9 @@ uint8_t apfelApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct)
 					}
 					chipSelectNumber++;
 				}
-				if ( CHIPSELECT_MAXIMUM == chipSelectNumber)
+				if ( APFEL_CHIPSELECT_MAXIMUM == chipSelectNumber)
 				{
-					CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("max #slots (%i) reached"), CHIPSELECT_MAXIMUM);
+					CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("max #slots (%i) reached"), APFEL_CHIPSELECT_MAXIMUM);
 					result = apfelApiCommandResult_FAILURE_QUIET;
 					break;
 				}
@@ -1275,7 +1275,7 @@ uint8_t apfelApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct)
 			}
 
 			/* check doubles */
-			for ( uint8_t slot  = CHIPSELECT0; slot < CHIPSELECT_MAXIMUM; slot++)
+			for ( uint8_t slot  = APFEL_CHIPSELECT0; slot < APFEL_CHIPSELECT_MAXIMUM; slot++)
 			{
 				if ((apfelGetCurrentChipSelectArray()[slot]).isUsed &&
 					cs.pinNumber == (apfelGetCurrentChipSelectArray()[slot]).pinNumber &&

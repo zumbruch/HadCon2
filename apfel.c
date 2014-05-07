@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "api.h"
 #include "apfel.h"
+#include "read_write_register.h"
 #include <avr/io.h>
 #include <stdbool.h>
 #include <util/delay.h>
@@ -36,7 +37,7 @@ apfelConfigUnion apfelStandardConfiguration = { .bits.bSpr   = 0,
 					    .bits.bSpif  = 0  };
 
 // initial configuration for chipselectarray -> all chipselects are unused
-apfelPin apfelChipSelectArray[CHIPSELECT_MAXIMUM] = { { 0 , 0 , false  },
+apfelPin apfelChipSelectArray[APFEL_CHIPSELECT_MAXIMUM] = { { 0 , 0 , false  },
 					    { 0 , 0 , false  },
 					    { 0 , 0 , false  },
 					    { 0 , 0 , false  },
@@ -50,7 +51,7 @@ uint8_t apfelInternalChipSelectMask = 0;
 uint8_t apfelGetChipSelectArrayStatus(void)
 {
 	uint8_t status = 0, i = 0;
-	for (i = CHIPSELECT0; i < CHIPSELECT_MAXIMUM; i++)
+	for (i = APFEL_CHIPSELECT0; i < APFEL_CHIPSELECT_MAXIMUM; i++)
 	{
 		if (apfelChipSelectArray[i].isUsed)
 		{
@@ -64,7 +65,7 @@ uint8_t apfelAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinN
 {
 	uint8_t i;
 
-	if (CHIPSELECT_MAXIMUM <= chipSelectNumber)
+	if (APFEL_CHIPSELECT_MAXIMUM <= chipSelectNumber)
 	{
 		/* cs number exceeds range */
 		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL );
@@ -114,7 +115,7 @@ uint8_t apfelAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinN
 
 uint8_t apfelRemoveChipSelect(uint8_t chipSelectNumber)
 {
-	if (CHIPSELECT_MAXIMUM <= chipSelectNumber)
+	if (APFEL_CHIPSELECT_MAXIMUM <= chipSelectNumber)
 	{
 		/* cs number exceeds range */
 		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL );
@@ -136,30 +137,6 @@ uint8_t apfelRemoveChipSelect(uint8_t chipSelectNumber)
 	return 0;
 }
 
-void apfelInit(void)
-{
-	uint8_t i;
-
-	// DDRB logic 1 -> pin configured as output
-	// set DDB2(MOSI) and DDB1(SCK) to output.
-	// DDB3(MISO) is controlled by APFEL logic
-	DDRB |= (1 << DDB2) | (1 << DDB1);
-
-	SPCR = (apfelStandardConfiguration.data & 0x00FF);
-	SPSR = ((apfelStandardConfiguration.data >> 8) & 0x00FF);
-
-	for (i = CHIPSELECT0; i < CHIPSELECT_MAXIMUM; i++)
-	{
-		apfelRemoveChipSelect(i);
-	}
-
-	apfelAddChipSelect(&PORTB, PB0, CHIPSELECT0);
-
-	apfelReleaseAllChipSelectLines();
-
-	apfelPurgeWriteData();
-	apfelPurgeReadData();
-}
 
 uint8_t apfelWriteWithoutChipSelect(uint8_t data)
 {
@@ -323,7 +300,7 @@ uint8_t apfelGetCurrentChipSelectBarStatus(void)
 {
 	uint8_t currentChipSelectBarStatus = 0;
 	uint8_t i;
-	for (i = CHIPSELECT0; i < CHIPSELECT_MAXIMUM; i++)
+	for (i = APFEL_CHIPSELECT0; i < APFEL_CHIPSELECT_MAXIMUM; i++)
 	{
 		if (apfelChipSelectArray[i].isUsed)
 		{
@@ -356,3 +333,189 @@ uint8_t apfelGetPinFromChipSelect(uint8_t chipSelectNumber)
 	return apfelChipSelectArray[chipSelectNumber].pinNumber;
 }
 
+
+//----------------
+void apfelInit(void)
+{
+	uint8_t i;
+
+	apfelUsToDelay = APFEL_DEFAULT_US_TO_DELAY;
+
+//	// DDRB logic 1 -> pin configured as output
+//	// set DDB2(MOSI) and DDB1(SCK) to output.
+//	// DDB3(MISO) is controlled by APFEL logic
+//	DDRB |= (1 << DDB2) | (1 << DDB1);
+//
+//	SPCR = (apfelStandardConfiguration.data & 0x00FF);
+//	SPSR = ((apfelStandardConfiguration.data >> 8) & 0x00FF);
+//
+//	for (i = APFEL_CHIPSELECT0; i < APFEL_CHIPSELECT_MAXIMUM; i++)
+//	{
+//		apfelRemoveChipSelect(i);
+//	}
+//
+//	apfelAddChipSelect(&PORTB, PB0, APFEL_CHIPSELECT0);
+//
+//	apfelReleaseAllChipSelectLines();
+//
+//	apfelPurgeWriteData();
+//	apfelPurgeReadData();
+}
+
+apiCommandResult writePortA(uint8_t value, uint8_t mask)
+{
+	return writePort(value, PORTA, mask);
+}
+
+apiCommandResult writePort(uint8_t value, uint8_t portAddress, uint8_t mask)
+{
+	uint8_t readback_register = 0xFF; //dummy value;
+	uint8_t read = REGISTER_READ_FROM_8BIT_REGISTER(portAddress);
+
+	// just modify the masked out bits and keep the rest as is:
+	// read & (~mask) | ( value & mask ) => read ^ (mask & ( read ^ value))
+	uint8_t set = read ^ ( mask & ( read ^ value));
+	readback_register = REGISTER_WRITE_INTO_8BIT_REGISTER_AND_READBACK(portAddress, set);
+    _delay_us(apfelUsToDelay);
+
+	if (readback_register == set)
+	{
+		return apiCommandResult_SUCCESS_QUIET;
+	}
+	else
+	{
+		return apiCommandResult_FAILURE;
+	}
+}
+
+apiCommandResult readPortA(uint8_t *value)
+{
+	return readPort(value, PORTA);
+}
+
+apiCommandResult readPort(uint8_t *value, uint8_t portAddress)
+{
+	uint8_t apiCommandResult = apiCommandResult_FAILURE;
+
+	if (NULL == value)
+	{
+		CommunicationError_p(ERRA, GENERAL_ERROR_value_has_invalid_type, TRUE, NULL);
+		return apiCommandResult_FAILURE_QUIET;
+	}
+
+	*value = REGISTER_READ_FROM_8BIT_REGISTER(portAddress);
+    _delay_us(apfelUsToDelay);
+	return apiCommandResult_SUCCESS_QUIET;
+}
+
+apiCommandResult writeBit(uint8_t bit, uint8_t portAddress, uint8_t pinCLK, uint8_t pinDOUT)
+{
+	apiCommandResult result = apiCommandResult_SUCCESS_QUIET;
+
+	if (pinCLK > 7 || pinDOUT > 7)
+	{
+#warning modify message
+		CommunicationError_p(ERRA, GENERAL_ERROR_value_has_invalid_type, TRUE, NULL);
+		return apiCommandResult_FAILURE_QUIET;
+	}
+
+	uint8_t set;
+
+	//create mask
+	uint8_t mask = (1 << pinCLK | 1 << pinDOUT ) & 0xFF;
+
+	bit = bit?1:0;
+
+	//# clock Low ()+ data low)
+	set = ((REGISTER_READ_FROM_8BIT_REGISTER(portAddress) & (~mask)) | ( ((0 << pinCLK | 0 << pinDOUT)) & mask ));
+	if (set && mask != mask && (REGISTER_WRITE_INTO_8BIT_REGISTER_AND_READBACK(portAddress, set)))
+	{
+      return apiCommandResult_FAILURE;
+	}
+	_delay_us(apfelUsToDelay);
+
+
+	//# clock Low  + data "bit"
+	set = ((REGISTER_READ_FROM_8BIT_REGISTER(portAddress) & (~mask)) | ( ((0 << pinCLK | bit << pinDOUT)) & mask ));
+	if (set && mask != mask && (REGISTER_WRITE_INTO_8BIT_REGISTER_AND_READBACK(portAddress, set)))
+	{
+      return apiCommandResult_FAILURE;
+	}
+	_delay_us(apfelUsToDelay);
+
+	//# clock High + data "bit"
+	set = ((REGISTER_READ_FROM_8BIT_REGISTER(portAddress) & (~mask)) | ( ((1 << pinCLK | bit << pinDOUT)) & mask ));
+	if (set && mask != mask && (REGISTER_WRITE_INTO_8BIT_REGISTER_AND_READBACK(portAddress, set)))
+	{
+      return apiCommandResult_FAILURE;
+	}
+	_delay_us(apfelUsToDelay);
+
+	//# clock High + data low
+	set = ((REGISTER_READ_FROM_8BIT_REGISTER(portAddress) & (~mask)) | ( ((1 << pinCLK | 0 << pinDOUT)) & mask ));
+	if (set && mask != mask && (REGISTER_WRITE_INTO_8BIT_REGISTER_AND_READBACK(portAddress, set)))
+	{
+      return apiCommandResult_FAILURE;
+	}
+	_delay_us(apfelUsToDelay);
+
+	//# clock low  + data low
+	set = ((REGISTER_READ_FROM_8BIT_REGISTER(portAddress) & (~mask)) | ( ((0 << pinCLK | 0 << pinDOUT)) & mask ));
+	if (set && mask != mask && (REGISTER_WRITE_INTO_8BIT_REGISTER_AND_READBACK(portAddress, set)))
+	{
+      return apiCommandResult_FAILURE;
+	}
+	_delay_us(apfelUsToDelay);
+
+	if (result < apiCommandResult_FAILURE)
+	{
+		result = writePort((0 << pinCLK | bit << pinDOUT), portAddress, mask);
+	}
+	if (result < apiCommandResult_FAILURE)
+	{
+		result = writePort((1 << pinCLK | bit << pinDOUT), portAddress, mask);
+	}
+	if (result < apiCommandResult_FAILURE)
+	{
+		result = writePort((1 << pinCLK | 0 << pinDOUT), portAddress, mask);
+	}
+	if (result < apiCommandResult_FAILURE)
+	{
+		result = writePort((0 << pinCLK | 0 << pinDOUT), portAddress, mask);
+	}
+
+#if 0
+	//# clock Low ()+ data low)
+	if (result < apiCommandResult_FAILURE)
+	{
+		result = writePort((0 << pinCLK | 0 << pinDOUT), portAddress, mask);
+	}
+	//# clock Low  + data high
+	if (result < apiCommandResult_FAILURE)
+	{
+		result = writePort((0 << pinCLK | bit << pinDOUT), portAddress, mask);
+	}
+	//# clock High + data high
+	if (result < apiCommandResult_FAILURE)
+	{
+		result = writePort((1 << pinCLK | bit << pinDOUT), portAddress, mask);
+	}
+	//# clock High + data low
+	if (result < apiCommandResult_FAILURE)
+	{
+		result = writePort((1 << pinCLK | 0 << pinDOUT), portAddress, mask);
+	}
+	//# clock low  + data low
+	if (result < apiCommandResult_FAILURE)
+	{
+		result = writePort((0 << pinCLK | 0 << pinDOUT), portAddress, mask);
+	}
+#endif
+
+	if (!result < apiCommandResult_FAILURE)
+	{
+#warning enter suitable clean action
+	}
+
+	return result;
+}

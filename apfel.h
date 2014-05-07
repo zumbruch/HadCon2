@@ -9,12 +9,12 @@
 /*
  * Normal workflow:
  *-----------------
- * apfelInit(); // initialize APFEL and sets PORTB0 as CHIPSELECT0 and activates it in the internal chipselect mask
+ * apfelInit(); // initialize APFEL and sets PORTB0 as APFEL_CHIPSELECT0 and activates it in the internal chipselect mask
  * apfelEnable(); // enables apfel
  * apfelPurgeWriteData(); // clean both data buffers for safety
  * apfelPurgeReadData();
  * apfelAddWriteData( value ) // adds one value to the write buffer
- * apfelWriteAndReadWithChipSelect(APFEL_MSBYTE_FIRST, ( 1 << CHIPSELECT0 ) ); // sets CHIPSELECT0 to active and transmits the write buffer
+ * apfelWriteAndReadWithChipSelect(APFEL_MSBYTE_FIRST, ( 1 << APFEL_CHIPSELECT0 ) ); // sets APFEL_CHIPSELECT0 to active and transmits the write buffer
  * myData = apfelGetReadData(); // the read buffer is automatically filled by the WriteAndRead functions and can be accessed by apfelGetReadData();
  *-------------------------------------------------
  *
@@ -29,7 +29,7 @@
  *
  * Add a new chipselect line to the chipSelectArray:
  *---------------------------
- * apfelAddChipSelect(&PORTC, PC3, CHIPSELECT1); // adding PORTC3 as CHIPSELECT1. PORTB0 is CHIPSELECT0 by default but can be removed by apfelRemoveChipSelect(CHIPSELECT0) and a new PORT and PIN can be assigned for CHIPSELECT0
+ * apfelAddChipSelect(&PORTC, PC3, APFEL_CHIPSELECT1); // adding PORTC3 as APFEL_CHIPSELECT1. PORTB0 is APFEL_CHIPSELECT0 by default but can be removed by apfelRemoveChipSelect(APFEL_CHIPSELECT0) and a new PORT and PIN can be assigned for APFEL_CHIPSELECT0
  *
  *
  * Which chipselects are used:
@@ -49,16 +49,16 @@
  * apfelReleaseAllChipSelectLines(); // releases all usable chipselect lines
  * // suppose CS0 to CS3 are internally masked and usable present in the chipSelectArray
  * apfelSetChosenChipSelect(APFEL_MASK_ALL_CHIPSELECTS); // all internally masked chipselects will be set to active
- * apfelReleaseChosenChipSelect( (1<<CHIPSELECT3) | (1<<CHIPSELECT0) ); // only CS0 and CS3 are released, CS1 and CS2 are not influenced
+ * apfelReleaseChosenChipSelect( (1<<APFEL_CHIPSELECT3) | (1<<APFEL_CHIPSELECT0) ); // only CS0 and CS3 are released, CS1 and CS2 are not influenced
  *-------------------------------------------------
  *
  * Manual byte per byte transmission and reading of the one byte reception buffer:
  *---------------------------------------------------------------------------------
  * uint8_t receivedByte;
- * apfelSetChosenChipSelect( 1 << CHIPSELECT0 ); // set CHIPSELECT0 (PORTB0) active
+ * apfelSetChosenChipSelect( 1 << APFEL_CHIPSELECT0 ); // set APFEL_CHIPSELECT0 (PORTB0) active
  * apfelWriteWithoutChipSelect( dataValue );  // clock out 8 bit dataValue
  * receivedByte = apfelReadByte();
- * apfelReleaseChoseChipSelect( 1 << CHIPSELECT0 ); // release CHIPSELECT0
+ * apfelReleaseChoseChipSelect( 1 << APFEL_CHIPSELECT0 ); // release APFEL_CHIPSELECT0
  *
  */
 
@@ -109,15 +109,15 @@ typedef union
 
 enum apfelChipSelects
 {
-	CHIPSELECT0 = 0,
-	CHIPSELECT1,
-	CHIPSELECT2,
-	CHIPSELECT3,
-	CHIPSELECT4,
-	CHIPSELECT5,
-	CHIPSELECT6,
-	CHIPSELECT7,
-	CHIPSELECT_MAXIMUM
+	APFEL_CHIPSELECT0 = 0,
+	APFEL_CHIPSELECT1,
+	APFEL_CHIPSELECT2,
+	APFEL_CHIPSELECT3,
+	APFEL_CHIPSELECT4,
+	APFEL_CHIPSELECT5,
+	APFEL_CHIPSELECT6,
+	APFEL_CHIPSELECT7,
+	APFEL_CHIPSELECT_MAXIMUM
 };
 
 typedef struct apfelPinStruct
@@ -135,8 +135,8 @@ void apfelInit(void);
 void apfelEnable(bool enable);
 
 
-// adds a chipselect line on the passed port and pin number e.g. (&PORTB, PB0, CHIPSELECT0)
-// by default PORTB PB0 is active as CHIPSELECT0 by default when apfel is initialized and enabled
+// adds a chipselect line on the passed port and pin number e.g. (&PORTB, PB0, APFEL_CHIPSELECT0)
+// by default PORTB PB0 is active as APFEL_CHIPSELECT0 by default when apfel is initialized and enabled
 uint8_t apfelAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNumber, uint8_t chipSelectNumber);
 // removes the chipselect line and sets corresponding pin as input pin
 uint8_t apfelRemoveChipSelect(uint8_t chipSelectNumber);
@@ -212,6 +212,16 @@ volatile uint8_t * apfelGetPortFromChipSelect(uint8_t chipSelectNumber);
 
 // returns the pin number of one chipselect
 uint8_t apfelGetPinFromChipSelect(uint8_t chipSelectNumber);
+
+/*---*/
+#define APFEL_DEFAULT_US_TO_DELAY 1.0
+double apfelUsToDelay;
+
+apiCommandResult writePortA(uint8_t value, uint8_t mask);
+apiCommandResult writePort(uint8_t value, uint8_t portAddress, uint8_t mask);
+
+apiCommandResult readPortA(uint8_t* value);
+apiCommandResult readPort(uint8_t* value, uint8_t portAddress);
 
 
 #endif /* APFEL_H_ */
