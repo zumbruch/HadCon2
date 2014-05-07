@@ -31,17 +31,16 @@
 #include "led.h"
 #include "mem-check.h"
 
-static const char filename[] 		PROGMEM = __FILE__;
+static const char filename[] PROGMEM = __FILE__;
 
-uint8_t writeInto8bitRegister(uint8_t address, uint8_t value)
+uint8_t registerWriteInto8bitRegister(uint8_t address, uint8_t value)
 {
-	_MMIO_BYTE((address & 0xFF)) = (value & 0xFF);
-	return readFrom8bitRegister(address);
+	return REGISTER_WRITE_INTO_8BIT_REGISTER_AND_READBACK(address, value);
 }
 
-uint8_t readFrom8bitRegister(uint8_t address)
+uint8_t registerReadFrom8bitRegister(uint8_t address)
 {
-  return (_MMIO_BYTE((address & 0xFF)));
+  return REGISTER_READ_FROM_8BIT_REGISTER(address);
 }
 
  /* this function writes a value the status in the register with the of his address
@@ -49,7 +48,7 @@ uint8_t readFrom8bitRegister(uint8_t address)
  * the function has no return parameter
  */
 
-void writeRegister(struct uartStruct *ptr_uartStruct)
+void registerWriteRegister(struct uartStruct *ptr_uartStruct)
 {
 	uint8_t readback_register;
 
@@ -67,7 +66,7 @@ void writeRegister(struct uartStruct *ptr_uartStruct)
 	}
 	else
 	{
-        readback_register = writeInto8bitRegister((uint8_t) ptr_uartStruct->Uart_Message_ID & 0xFF ,
+        readback_register = registerWriteInto8bitRegister((uint8_t) ptr_uartStruct->Uart_Message_ID & 0xFF ,
         			                              (uint8_t) (ptr_uartStruct->Uart_Mask & 0xFF ));
 
 		/* generate header */
@@ -99,7 +98,7 @@ void writeRegister(struct uartStruct *ptr_uartStruct)
  * the function has no return parameter
  */
 
-void readRegister(struct uartStruct *ptr_uartStruct)
+void registerReadRegister(struct uartStruct *ptr_uartStruct)
 {
 	if (0XFF < ptr_uartStruct->Uart_Message_ID)
 	{
@@ -121,7 +120,7 @@ void readRegister(struct uartStruct *ptr_uartStruct)
 		clearString(uart_message_string, BUFFER_SIZE);
 		createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
 
-		read_register = readFrom8bitRegister((uint8_t) ptr_uartStruct->Uart_Message_ID & 0xFF );
+		read_register = registerReadFrom8bitRegister((uint8_t) ptr_uartStruct->Uart_Message_ID & 0xFF );
 
 		snprintf_P(
 				uart_message_string,

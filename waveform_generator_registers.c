@@ -61,8 +61,8 @@ void waveformGeneratorWriteRegister(struct uartStruct *ptr_uartStruct)
 	waveformGeneratorDeclareUARTtoSendData();
 
 	//sending your new data
-	writeInto8bitRegister(UDR1_register_of_ATMEL_address, waveformGeneratorRegisterAddress);
-	writeInto8bitRegister(UDR1_register_of_ATMEL_address, value);
+	registerWriteInto8bitRegister(UDR1_register_of_ATMEL_address, waveformGeneratorRegisterAddress);
+	registerWriteInto8bitRegister(UDR1_register_of_ATMEL_address, value);
 
 	// print response
 	clearString(uart_message_string, BUFFER_SIZE);
@@ -192,10 +192,10 @@ void waveformGeneratorReadRegister(struct uartStruct *ptr_uartStruct)
 	waveformGeneratorDeclareUARTtoSendData();
 
 	//control register address
-	writeInto8bitRegister(  UDR1_register_of_ATMEL_address, CONTROL_REGISTER); //0x00
+	registerWriteInto8bitRegister(  UDR1_register_of_ATMEL_address, CONTROL_REGISTER); //0x00
 
 	//control register in read status
-	writeInto8bitRegister(  UDR1_register_of_ATMEL_address, READ); //0xA0
+	registerWriteInto8bitRegister(  UDR1_register_of_ATMEL_address, READ); //0xA0
 
 	//declare UART in order to receive data with baud=1,025Mbps
 	waveformGeneratorDeclareUARTtoReceiveData();
@@ -205,7 +205,7 @@ void waveformGeneratorReadRegister(struct uartStruct *ptr_uartStruct)
 	// saving value of the registers from FPGA at the table "registers[]"
 	for (step = 0; step < MAX_REGISTER_INDEX; step++)
 	{
-		registers[step] = readFrom8bitRegister((uint8_t) UDR1_register_of_ATMEL_address & 0xFF );
+		registers[step] = registerReadFrom8bitRegister((uint8_t) UDR1_register_of_ATMEL_address & 0xFF );
 		_delay_us(16); // string_Delay between each byte
 	} //end for loop
 
@@ -324,19 +324,19 @@ void waveformGeneratorPrintSingleRegister( uint8_t registerId, uint8_t registers
 void waveformGeneratorDeclareUARTtoSendData(void)
 {
 	//declare UART in order to send data with baud=1,025Mbps
-	writeInto8bitRegister(UCSR1C_register_of_ATMEL_address, UCSR1C_register_of_ATMEL_value);
-	writeInto8bitRegister(UBRR1L_register_of_ATMEL_address, UBRR1L_register_of_ATMEL_value);
-	writeInto8bitRegister(UBRR1H_register_of_ATMEL_address, UBRR1H_register_of_ATMEL_value);
-	writeInto8bitRegister(UCSR1B_register_of_ATMEL_address, UCSR1B_register_of_ATMEL_value_transmit);
-	writeInto8bitRegister(UCSR1A_register_of_ATMEL_address, UCSR1A_register_of_ATMEL_value);
+	registerWriteInto8bitRegister(UCSR1C_register_of_ATMEL_address, UCSR1C_register_of_ATMEL_value);
+	registerWriteInto8bitRegister(UBRR1L_register_of_ATMEL_address, UBRR1L_register_of_ATMEL_value);
+	registerWriteInto8bitRegister(UBRR1H_register_of_ATMEL_address, UBRR1H_register_of_ATMEL_value);
+	registerWriteInto8bitRegister(UCSR1B_register_of_ATMEL_address, UCSR1B_register_of_ATMEL_value_transmit);
+	registerWriteInto8bitRegister(UCSR1A_register_of_ATMEL_address, UCSR1A_register_of_ATMEL_value);
 }
 
 void waveformGeneratorDeclareUARTtoReceiveData(void)
 {
 	//declare UART in order to receive data with baud=1,025Mbps
-	writeInto8bitRegister(UCSR1C_register_of_ATMEL_address, UCSR1C_register_of_ATMEL_value);
-	writeInto8bitRegister(UBRR1L_register_of_ATMEL_address, UBRR1L_register_of_ATMEL_value);
-	writeInto8bitRegister(UBRR1H_register_of_ATMEL_address, UBRR1H_register_of_ATMEL_value);
-	writeInto8bitRegister(UCSR1A_register_of_ATMEL_address, UCSR1A_register_of_ATMEL_value);
-	writeInto8bitRegister(UCSR1B_register_of_ATMEL_address, UCSR1B_register_of_ATMEL_value_receive);
+	registerWriteInto8bitRegister(UCSR1C_register_of_ATMEL_address, UCSR1C_register_of_ATMEL_value);
+	registerWriteInto8bitRegister(UBRR1L_register_of_ATMEL_address, UBRR1L_register_of_ATMEL_value);
+	registerWriteInto8bitRegister(UBRR1H_register_of_ATMEL_address, UBRR1H_register_of_ATMEL_value);
+	registerWriteInto8bitRegister(UCSR1A_register_of_ATMEL_address, UCSR1A_register_of_ATMEL_value);
+	registerWriteInto8bitRegister(UCSR1B_register_of_ATMEL_address, UCSR1B_register_of_ATMEL_value_receive);
 }
