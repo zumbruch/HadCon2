@@ -16,8 +16,6 @@
 #include "api_debug.h"
 #include "spi.h"
 
-typedef uint8_t apiCommandResult;
-
 extern const char* spiApiCommandKeywords[] PROGMEM;
 enum spiApiCommandKeyNumber
 {
@@ -164,12 +162,6 @@ uint8_t spiApiSubCommandAutoPurgeReadBuffer(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandAutoPurgeWriteBuffer(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsRemovePin(struct uartStruct *ptr_uartStruct);
-
-/*
- *  uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max, bool report, char message[]);
- *  uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max);
- *  uint8_t apiShowValue(char string[], void *value, uint8_t type );
-*/
 
 uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex);
 void spiApiShowChipSelectStatus(uint8_t mask, bool invert);
