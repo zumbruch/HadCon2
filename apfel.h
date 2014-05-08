@@ -228,6 +228,8 @@ uint8_t apfelGetPinFromChipSelect(uint8_t chipSelectNumber);
 #define APFEL_COMMAND_SET_AMPLITUDE   0xe
 #define APFEL_COMMAND_RESET_AMPLITUDE 0xb
 
+#define APFEL_TEST_PULSE_HEIGHT_PATTERN_MAX 0x1F
+
 double apfelUsToDelay;
 
 uint8_t apfelSetClockAndDataLine( uint8_t portAddress, uint8_t value, uint8_t mask);
@@ -243,7 +245,23 @@ apiCommandResult apfelWritePort(uint8_t value, uint8_t portAddress, uint8_t mask
 apiCommandResult apfelReadPortA(uint8_t* value);
 apiCommandResult apfelReadPort(uint8_t* value, uint8_t portAddress);
 
-apiCommandResult apfelWriteBit(uint8_t bit, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
-apiCommandResult apfelWriteClockSequence(uint8_t num, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+apiCommandResult apfelReadBitSequence(uint8_t nBits, uint32_t* bits, uint8_t portAddress, uint8_t ss, uint8_t pinDIN, uint8_t pinCLK, uint8_t pinSS);
+
+apiCommandResult apfelWriteBit(uint8_t bit,                          uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+apiCommandResult apfelWriteClockSequence(uint32_t num,               uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+
+apiCommandResult apfelClearDataInput(                                uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+apiCommandResult apfelWriteBitSequence(uint8_t num, uint32_t data,   uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+apiCommandResult apfelStartStreamHeader(                             uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+
+#warning TODO: combine common part into an address structure
+apiCommandResult apfelCommandSet(uint16_t command, uint16_t value,    uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+apiCommandResult apfelSetDac(uint16_t value, uint8_t dacNr,           uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+apiCommandResult apfelReadDac(uint32_t* dacValue, uint8_t dacNr,      uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS, uint8_t pinDIN);
+apiCommandResult apfelAutoCalibration(                                uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+apiCommandResult apfelTestPulseSequence(uint16_t pulseHeightPattern,  uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+apiCommandResult apfelTestPulse(uint8_t pulseHeight, uint8_t channel, uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+apiCommandResult apfelSetAmplitude(uint8_t channelId,                 uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+apiCommandResult apfelResetAmplitude(uint8_t channelId,               uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
 
 #endif /* APFEL_H_ */
