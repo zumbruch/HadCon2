@@ -68,6 +68,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "read_write_register.h"
 
 #define APFEL_SET true
 #define APFEL_RELEASE false
@@ -215,13 +216,34 @@ uint8_t apfelGetPinFromChipSelect(uint8_t chipSelectNumber);
 
 /*---*/
 #define APFEL_DEFAULT_US_TO_DELAY 1.0
+
+#define APFEL_N_COMMAND_BITS  4
+#define APFEL_N_VALUE_BITS    10
+#define APFEL_N_CHIP_ID_BITS  8
+
+#define APFEL_COMMAND_SET_DAC         0x0
+#define APFEL_COMMAND_READ_DAC        0x4
+#define APFEL_COMMAND_AUTOCALIBRATION 0xc
+#define APFEL_COMMAND_TESTPULSE       0x9
+#define APFEL_COMMAND_SET_AMPLITUDE   0xe
+#define APFEL_COMMAND_RESET_AMPLITUDE 0xb
+
 double apfelUsToDelay;
 
-apiCommandResult writePortA(uint8_t value, uint8_t mask);
-apiCommandResult writePort(uint8_t value, uint8_t portAddress, uint8_t mask);
+uint8_t apfelSetClockAndDataLine( uint8_t portAddress, uint8_t value, uint8_t mask);
 
-apiCommandResult readPortA(uint8_t* value);
-apiCommandResult readPort(uint8_t* value, uint8_t portAddress);
+inline uint8_t apfelGetDataInLine(uint8_t portAddress, uint8_t pinDIN)
+{
+	return (REGISTER_READ_FROM_8BIT_REGISTER(portAddress) & (1 << pinDIN)) >> pinDIN;
+}
 
+apiCommandResult apfelWritePortA(uint8_t value, uint8_t mask);
+apiCommandResult apfelWritePort(uint8_t value, uint8_t portAddress, uint8_t mask);
+
+apiCommandResult apfelReadPortA(uint8_t* value);
+apiCommandResult apfelReadPort(uint8_t* value, uint8_t portAddress);
+
+apiCommandResult apfelWriteBit(uint8_t bit, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
+apiCommandResult apfelWriteClockSequence(uint8_t num, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
 
 #endif /* APFEL_H_ */

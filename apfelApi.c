@@ -76,7 +76,7 @@ void apfelApiInit(void)
 {
 	/* initial configuration*/
 	ptr_apfelApiConfiguration->hardwareInit         = false;
-	ptr_apfelApiConfiguration->apfelConfiguration     = apfelGetConfiguration();
+//	ptr_apfelApiConfiguration->apfelConfiguration     = apfelGetConfiguration();
 }
 
 
