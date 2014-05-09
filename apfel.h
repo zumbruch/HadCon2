@@ -70,151 +70,21 @@
 #include <stdint.h>
 #include "read_write_register.h"
 
-#define APFEL_SET true
-#define APFEL_RELEASE false
-#define APFEL_MSBYTE_FIRST 0
-#define APFEL_LSBYTE_FIRST 1
-#define APFEL_MASK_ALL_CHIPSELECTS 0xFF
-#define APFEL_MAX_WAIT_COUNT 120 // measured with osci
-
-typedef struct apfelByteArrayStruct
-{
-	uint8_t data[ MAX_LENGTH_COMMAND >> 1 ];
-	uint16_t length;
-} apfelByteDataArray;
-
-apfelByteDataArray apfelWriteData;
-apfelByteDataArray apfelReadData;
-
-typedef struct apfelConfigStruct
-{
-  unsigned bSpr:2;
-  unsigned bCpha:1;
-  unsigned bCpol:1;
-  unsigned bMstr:1;
-  unsigned bDord:1;
-  unsigned bSpe:1;
-  unsigned bSpie:1;
-
-  unsigned bSpi2x:1;
-  unsigned unused:5;
-  unsigned bWcol:1;
-  unsigned bSpif:1;
-} apfelConfig;
-
-typedef union
-{
-  apfelConfig bits;
-  uint16_t data;
-} apfelConfigUnion;
-
 enum apfelChipSelects
 {
 	APFEL_CHIPSELECT0 = 0,
 	APFEL_CHIPSELECT1,
 	APFEL_CHIPSELECT2,
 	APFEL_CHIPSELECT3,
-	APFEL_CHIPSELECT4,
-	APFEL_CHIPSELECT5,
-	APFEL_CHIPSELECT6,
-	APFEL_CHIPSELECT7,
 	APFEL_CHIPSELECT_MAXIMUM
 };
 
-typedef struct apfelPinStruct
-{
-  volatile uint8_t *ptrPort;
-  uint8_t pinNumber;
-  bool isUsed;
-} apfelPin;
-
-
-// initialize APFEL, remove all chipselect pins except PORTB0 and sets standard configuration
-// should be called once at startup or later for reset to standard
 void apfelInit(void);
-//apfel_enables(true) enables apfel
 void apfelEnable(bool enable);
 
-
-// adds a chipselect line on the passed port and pin number e.g. (&PORTB, PB0, APFEL_CHIPSELECT0)
-// by default PORTB PB0 is active as APFEL_CHIPSELECT0 by default when apfel is initialized and enabled
-uint8_t apfelAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNumber, uint8_t chipSelectNumber);
-// removes the chipselect line and sets corresponding pin as input pin
-uint8_t apfelRemoveChipSelect(uint8_t chipSelectNumber);
-// returns one byte showing used status of the chipselect array. if bit0 is set so chipselect0 in the array is in use
-uint8_t apfelGetChipSelectArrayStatus(void);
-
-
-// sets chipSelectNumber in internal mask active
-void apfelSetChipSelectInMask(uint8_t chipSelectNumber);
-// sets chipSelectNumber in internal mask inactive
-void apfelReleaseChipSelectInMask(uint8_t chipSelectNumber);
-// returns the current internal ChipSelectMask
-uint8_t apfelGetInternalChipSelectMask(void);
-
-
-// set all chipselect lines in chipSelectArray to high
-void apfelReleaseAllChipSelectLines(void);
-// set all chipselectlines to high which are masked by internal mask & external mask(external = 0xff/APFEL_MASK_ALL_CHIPSELECTS for all internal masked chipselects)
-void apfelReleaseChosenChipSelect(uint8_t externalChipSelectMask);
-// set chipselectlines low which are masked by internal mask & external mask(external mask = 0xff/APFEL_MASK_ALL_CHIPSELECTS for all internal masked chipselects)
-void apfelSetChosenChipSelect(uint8_t externalChipSelectMask);
-
-
-// just clocking out 8 bits submitted in data
-uint8_t apfelWriteWithoutChipSelect(uint8_t data);
-// reads the one byte read register of the internal APFEL logic
-uint8_t apfelReadByte(void);
-// transmits the write buffer to chipselects which are masked by internalMask & externalMask. fills the read buffer. byteOrder = APFEL_MSBYTE_FIRST, APFEL_LSBYTE_FIRST
-uint8_t apfelWriteAndReadWithChipSelect(uint8_t byteOrder, uint8_t externalChipSelectMask);
-// transmits the write buffer and fills the read buffer. byteOrder = APFEL_MSBYTE_FIRST, APFEL_LSBYTE_FIRST
-uint8_t apfelWriteAndReadWithoutChipSelect(uint8_t byteOrder);
-
-
-// sets APFEL Status and APFEL Config register according to apfelConfigUnion
-void apfelSetConfiguration(apfelConfigUnion);
-// returns current values of APFEL Status and APFEL Config register as apfelConfigUnion
-apfelConfigUnion apfelGetConfiguration(void);
-
-
-// fills the write buffer which can be transmitted by apfelWriteAndReadWithChipSelect()
-// first byte added is the most significant byte, last byte the least significant
-static inline uint16_t apfelAddWriteData(uint8_t value)
-{
-  if( apfelWriteData.length < (MAX_LENGTH_COMMAND >> 1) )
-    {
-      apfelWriteData.data[apfelWriteData.length] = value;
-      apfelWriteData.length++;
-    }
-  else
-    {
-      CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, 0,  PSTR("write buffer full (max: %i)"), (MAX_LENGTH_COMMAND >> 1));
-    }
-  return apfelWriteData.length;
-}
-// returns read buffer
-apfelByteDataArray apfelGetReadData(void);
-
-
-// erase write buffer
-void apfelPurgeWriteData(void);
-// erase read buffer
-void apfelPurgeReadData(void);
-
-
-// returns the current status of the chipselect output pins
-uint8_t apfelGetCurrentChipSelectBarStatus(void);
-
-// returns a pointer to the internal ChipSelectArray
-apfelPin * apfelGetCurrentChipSelectArray(void);
-
-// returns the port pointer of one chipselect
-volatile uint8_t * apfelGetPortFromChipSelect(uint8_t chipSelectNumber);
-
-// returns the pin number of one chipselect
-uint8_t apfelGetPinFromChipSelect(uint8_t chipSelectNumber);
-
 /*---*/
+
+#define APFEL_MAX_N_PORT_ADDRESS_SETS 6
 #define APFEL_DEFAULT_US_TO_DELAY 1.0
 
 #define APFEL_N_COMMAND_BITS  4
@@ -230,6 +100,49 @@ uint8_t apfelGetPinFromChipSelect(uint8_t chipSelectNumber);
 
 #define APFEL_TEST_PULSE_HEIGHT_PATTERN_MAX 0x1F
 
+typedef struct apfelPinSetStruct
+{
+  unsigned bPinDIN:3;
+  unsigned bPinDOUT:3;
+  unsigned bPinCLK:3;
+  unsigned bPinSS:3;
+  unsigned unused:4;
+} apfelPinSet;
+
+typedef union
+{
+  apfelPinSet bits;
+  uint16_t data;
+} apfelPinSetUnion;
+
+typedef struct apfelPortAddressStatusStruct
+{
+  unsigned bIsEnabled:1;
+  unsigned bIsInitialized:1;
+  unsigned unused:6;
+} apfelPortAddressStatus;
+
+typedef union
+{
+  apfelPortAddressStatus bits;
+  uint8_t data;
+} apfelPortAddressStatusUnion;
+
+typedef struct apfelPortAddressSetStruct
+{
+  volatile uint8_t *ptrPort;
+  apfelPinSetUnion pins;
+  apfelPortAddressStatusUnion status;
+} apfelPortAddressSet;
+
+typedef struct apfelChipAddressStruct
+{
+  uint8_t chipID;
+  uint8_t ss;
+  apfelPortAddressSet portAddress;
+} apfelChipAddressStruct;
+
+apfelPortAddressSet apfelPortAddressSets[APFEL_MAX_N_PORT_ADDRESS_SETS];
 double apfelUsToDelay;
 
 uint8_t apfelSetClockAndDataLine( uint8_t portAddress, uint8_t value, uint8_t mask);
@@ -238,12 +151,6 @@ inline uint8_t apfelGetDataInLine(uint8_t portAddress, uint8_t pinDIN)
 {
 	return (REGISTER_READ_FROM_8BIT_REGISTER(portAddress) & (1 << pinDIN)) >> pinDIN;
 }
-
-apiCommandResult apfelWritePortA(uint8_t value, uint8_t mask);
-apiCommandResult apfelWritePort(uint8_t value, uint8_t portAddress, uint8_t mask);
-
-apiCommandResult apfelReadPortA(uint8_t* value);
-apiCommandResult apfelReadPort(uint8_t* value, uint8_t portAddress);
 
 apiCommandResult apfelReadBitSequence(uint8_t nBits, uint32_t* bits, uint8_t portAddress, uint8_t ss, uint8_t pinDIN, uint8_t pinCLK, uint8_t pinSS);
 

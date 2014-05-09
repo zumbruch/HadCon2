@@ -316,7 +316,6 @@ void apfelApiSubCommandsFooter( uint16_t result )
 			CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("command failed"));
 			break;
 	}
-
 }
 
 apiCommandResult apfelApiSubCommandShowStatus              (void){return apiCommandResult_SUCCESS_QUIET;}
