@@ -142,7 +142,7 @@ typedef struct apfelChipAddressStruct
   apfelPortAddressSet portAddress;
 } apfelChipAddressStruct;
 
-apfelPortAddressSet apfelPortAddressSets[APFEL_MAX_N_PORT_ADDRESS_SETS];
+extern apfelPortAddressSet apfelPortAddressSets[APFEL_MAX_N_PORT_ADDRESS_SETS];
 double apfelUsToDelay;
 
 uint8_t apfelSetClockAndDataLine( uint8_t portAddress, uint8_t value, uint8_t mask);
