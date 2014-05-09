@@ -49,23 +49,28 @@ static const char apfelApiCommandKeyword11[] PROGMEM = "list";
 static const char apfelApiCommandKeyword12[] PROGMEM = "l";
 static const char apfelApiCommandKeyword13[] PROGMEM = "status";
 static const char apfelApiCommandKeyword14[] PROGMEM = "s";
-static const char apfelApiCommandKeyword15[] PROGMEM = "chipIdIgnoreMask";
-static const char apfelApiCommandKeyword16[] PROGMEM = "cim";
-static const char apfelApiCommandKeyword17[] PROGMEM = "addPortAddressSet";
-static const char apfelApiCommandKeyword18[] PROGMEM = "apas";
-static const char apfelApiCommandKeyword19[] PROGMEM = "removePortAddressSet";
-static const char apfelApiCommandKeyword20[] PROGMEM = "rpas";
-static const char apfelApiCommandKeyword21[] PROGMEM = "usToSleep";
-static const char apfelApiCommandKeyword22[] PROGMEM = "uts";
-static const char apfelApiCommandKeyword23[] PROGMEM = "apfel_enable";
-static const char apfelApiCommandKeyword24[] PROGMEM = "reset";
+static const char apfelApiCommandKeyword15[] PROGMEM = "portAddressSetEnableMask";
+static const char apfelApiCommandKeyword16[] PROGMEM = "pasem";
+static const char apfelApiCommandKeyword17[] PROGMEM = "enablePortAddressSet";
+static const char apfelApiCommandKeyword18[] PROGMEM = "epas";
+static const char apfelApiCommandKeyword19[] PROGMEM = "disablePortAddressSet";
+static const char apfelApiCommandKeyword20[] PROGMEM = "dpas";
+static const char apfelApiCommandKeyword21[] PROGMEM = "addPortAddressSet";
+static const char apfelApiCommandKeyword22[] PROGMEM = "apas";
+static const char apfelApiCommandKeyword23[] PROGMEM = "removePortAddressSet";
+static const char apfelApiCommandKeyword24[] PROGMEM = "rpas";
+static const char apfelApiCommandKeyword25[] PROGMEM = "usToSleep";
+static const char apfelApiCommandKeyword26[] PROGMEM = "uts";
+static const char apfelApiCommandKeyword27[] PROGMEM = "apfel_enable";
+static const char apfelApiCommandKeyword28[] PROGMEM = "reset";
 
 const char* apfelApiCommandKeywords[] PROGMEM = {
         apfelApiCommandKeyword00, apfelApiCommandKeyword01, apfelApiCommandKeyword02, apfelApiCommandKeyword03, apfelApiCommandKeyword04,
 		apfelApiCommandKeyword05, apfelApiCommandKeyword06, apfelApiCommandKeyword07, apfelApiCommandKeyword08, apfelApiCommandKeyword09,
 		apfelApiCommandKeyword10, apfelApiCommandKeyword11, apfelApiCommandKeyword12, apfelApiCommandKeyword13, apfelApiCommandKeyword14,
 		apfelApiCommandKeyword15, apfelApiCommandKeyword16, apfelApiCommandKeyword17, apfelApiCommandKeyword18, apfelApiCommandKeyword19,
-		apfelApiCommandKeyword20, apfelApiCommandKeyword21, apfelApiCommandKeyword22, apfelApiCommandKeyword23, apfelApiCommandKeyword24
+		apfelApiCommandKeyword20, apfelApiCommandKeyword21, apfelApiCommandKeyword22, apfelApiCommandKeyword23, apfelApiCommandKeyword24,
+		apfelApiCommandKeyword25, apfelApiCommandKeyword26, apfelApiCommandKeyword27, apfelApiCommandKeyword28
 };
 
 apfelApiConfig apfelApiConfiguration;
@@ -211,36 +216,52 @@ uint8_t apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subComman
 			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_LIST, 0);
 			break;
 
-		case apfelApiCommandKeyNumber_CHIPIDIGNOREMASK:
-			result = apfelApiSubCommandChipIdIgnoreMask();
+		case apfelApiCommandKeyNumber_PORT_ADDRESS_SET_ENABLE_MASK:
+			result = apfelApiSubCommandPortAddressSetEnableMask();
 			break;
 
-		case apfelApiCommandKeyNumber_CIM:
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_CHIPIDIGNOREMASK, 0);
+		case apfelApiCommandKeyNumber_PASEM:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_PORT_ADDRESS_SET_ENABLE_MASK, 0);
 			break;
 
-		case apfelApiCommandKeyNumber_ADDPORTADDRESSSET:
+		case apfelApiCommandKeyNumber_ENABLE_PORT_ADDRESS_SET:
+			result = apfelApiSubCommandEnablePortAddressSet();
+			break;
+
+		case apfelApiCommandKeyNumber_EPAS:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_ENABLE_PORT_ADDRESS_SET, 0);
+			break;
+
+		case apfelApiCommandKeyNumber_DISABLE_PORT_ADDRESS_SET:
+			result = apfelApiSubCommandDisablePortAddressSet();
+			break;
+
+		case apfelApiCommandKeyNumber_DPAS:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_DISABLE_PORT_ADDRESS_SET, 0);
+			break;
+
+		case apfelApiCommandKeyNumber_ADD_PORT_ADDRESS_SET:
 			result = apfelApiSubCommandAddPortAddressSet();
 			break;
 
 		case apfelApiCommandKeyNumber_APAS:
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_ADDPORTADDRESSSET, 0);
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_ADD_PORT_ADDRESS_SET, 0);
 			break;
 
-		case apfelApiCommandKeyNumber_REMOVEPORTADDRESSSET:
+		case apfelApiCommandKeyNumber_REMOVE_PORT_ADDRESS_SET:
 			result = apfelApiSubCommandRemovePortAddressSet();
 			break;
 
 		case apfelApiCommandKeyNumber_RPAS:
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_REMOVEPORTADDRESSSET, 0);
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_REMOVE_PORT_ADDRESS_SET, 0);
 			break;
 
-		case apfelApiCommandKeyNumber_USTOSLEEP:
-			result = apfelApiSubCommandUsToSleep();
+		case apfelApiCommandKeyNumber_US_TO_SLEEP :
+			result = apfelApiSubCommandUsToSleep ();
 			break;
 
 		case apfelApiCommandKeyNumber_UTS:
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_USTOSLEEP, 0);
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_US_TO_SLEEP , 0);
 			break;
 
 		case apfelApiCommandKeyNumber_APFEL_ENABLE:
@@ -298,22 +319,22 @@ void apfelApiSubCommandsFooter( uint16_t result )
 
 }
 
-apiCommandResult apfelApiSubCommandShowStatus          (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandDac                 (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandIncrementDac        (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandDecrementDac        (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandTestPulse           (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandAutoCalib           (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandAmplification       (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandListIds             (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandChipIdIgnoreMask    (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandAddPortAddressSet   (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandRemovePortAddressSet(void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandUsToSleep           (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandApfelEnable         (void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandReset               (void){return apiCommandResult_SUCCESS_QUIET;}
-
-
+apiCommandResult apfelApiSubCommandShowStatus              (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandDac                     (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandIncrementDac            (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandDecrementDac            (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandTestPulse               (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandAutoCalib               (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandAmplification           (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandListIds                 (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandAddPortAddressSet       (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandRemovePortAddressSet    (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandUsToSleep               (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandApfelEnable             (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandReset                   (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandPortAddressSetEnableMask(void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandEnablePortAddressSet    (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandDisablePortAddressSet   (void){return apiCommandResult_SUCCESS_QUIET;}
 
 
 #if 0

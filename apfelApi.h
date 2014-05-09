@@ -34,14 +34,18 @@ enum apfelApiCommandKeyNumber
 	   apfelApiCommandKeyNumber_L                    ,
 	   apfelApiCommandKeyNumber_STATUS               ,
 	   apfelApiCommandKeyNumber_S                    ,
-	   apfelApiCommandKeyNumber_CHIPIDIGNOREMASK     ,
-	   apfelApiCommandKeyNumber_CIM                  ,
-	   apfelApiCommandKeyNumber_ADDPORTADDRESSSET    ,
-	   apfelApiCommandKeyNumber_APAS                 ,
-	   apfelApiCommandKeyNumber_REMOVEPORTADDRESSSET ,
-	   apfelApiCommandKeyNumber_RPAS                 ,
-	   apfelApiCommandKeyNumber_USTOSLEEP            ,
-	   apfelApiCommandKeyNumber_UTS                  ,
+	   apfelApiCommandKeyNumber_PORT_ADDRESS_SET_ENABLE_MASK,
+	   apfelApiCommandKeyNumber_PASEM,
+	   apfelApiCommandKeyNumber_ENABLE_PORT_ADDRESS_SET,
+	   apfelApiCommandKeyNumber_EPAS,
+	   apfelApiCommandKeyNumber_DISABLE_PORT_ADDRESS_SET,
+	   apfelApiCommandKeyNumber_DPAS,
+	   apfelApiCommandKeyNumber_ADD_PORT_ADDRESS_SET,
+	   apfelApiCommandKeyNumber_APAS,
+	   apfelApiCommandKeyNumber_REMOVE_PORT_ADDRESS_SET,
+	   apfelApiCommandKeyNumber_RPAS,
+	   apfelApiCommandKeyNumber_US_TO_SLEEP,
+	   apfelApiCommandKeyNumber_UTS,
 	   apfelApiCommandKeyNumber_APFEL_ENABLE         ,
 	   apfelApiCommandKeyNumber_RESET                ,
 	   apfelApiCommandKeyNumber_MAXIMUM_NUMBER
@@ -65,19 +69,22 @@ void apfelApiShowStatusApiSettings(void);
 
 void apfelApiInit(void);
 
-apiCommandResult apfelApiSubCommandShowStatus          (void);
-apiCommandResult apfelApiSubCommandDac                 (void);
-apiCommandResult apfelApiSubCommandIncrementDac        (void);
-apiCommandResult apfelApiSubCommandDecrementDac        (void);
-apiCommandResult apfelApiSubCommandTestPulse           (void);
-apiCommandResult apfelApiSubCommandAutoCalib           (void);
-apiCommandResult apfelApiSubCommandAmplification       (void);
-apiCommandResult apfelApiSubCommandListIds             (void);
-apiCommandResult apfelApiSubCommandChipIdIgnoreMask    (void);
-apiCommandResult apfelApiSubCommandAddPortAddressSet   (void);
-apiCommandResult apfelApiSubCommandRemovePortAddressSet(void);
-apiCommandResult apfelApiSubCommandUsToSleep           (void);
-apiCommandResult apfelApiSubCommandApfelEnable         (void);
-apiCommandResult apfelApiSubCommandReset               (void);
+apiCommandResult apfelApiSubCommandShowStatus              (void);
+apiCommandResult apfelApiSubCommandDac                     (void);
+apiCommandResult apfelApiSubCommandIncrementDac            (void);
+apiCommandResult apfelApiSubCommandDecrementDac            (void);
+apiCommandResult apfelApiSubCommandTestPulse               (void);
+apiCommandResult apfelApiSubCommandAutoCalib               (void);
+apiCommandResult apfelApiSubCommandAmplification           (void);
+apiCommandResult apfelApiSubCommandListIds                 (void);
+apiCommandResult apfelApiSubCommandChipIdIgnoreMask        (void);
+apiCommandResult apfelApiSubCommandAddPortAddressSet       (void);
+apiCommandResult apfelApiSubCommandRemovePortAddressSet    (void);
+apiCommandResult apfelApiSubCommandUsToSleep               (void);
+apiCommandResult apfelApiSubCommandApfelEnable             (void);
+apiCommandResult apfelApiSubCommandReset                   (void);
+apiCommandResult apfelApiSubCommandPortAddressSetEnableMask(void);
+apiCommandResult apfelApiSubCommandEnablePortAddressSet    (void);
+apiCommandResult apfelApiSubCommandDisablePortAddressSet   (void);
 
 #endif /* APFELAPI_H_ */
