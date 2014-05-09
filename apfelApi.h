@@ -54,7 +54,7 @@ enum apfelApiCommandKeyNumber
 
 typedef struct apfelApiConfig
 {
-	apfelConfigUnion apfelConfiguration;   /* hardware configuration */
+	//apfelConfigUnion apfelConfiguration;   /* hardware configuration */
 	bool hardwareInit;
 } apfelApiConfig;
 
