@@ -31,7 +31,13 @@
 //
 //uint8_t apfelInternalChipSelectMask = 0;
 
-
+#error continue here
+apfelPortAddressSet apfelPortAddressSets[APFEL_MAX_N_PORT_ADDRESS_SETS] = {
+		{ PORTA, { .bits.} },
+		{},
+		{},
+		{}
+};
 
 
 //----------------
