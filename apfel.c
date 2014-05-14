@@ -19,35 +19,199 @@
 #include <avr/iocan128.h>
 #endif
 
-//// initial configuration for chipselectarray -> all chipselects are unused
-//apfelPin apfelChipSelectArray[APFEL_CHIPSELECT_MAXIMUM] = { { 0 , 0 , false  },
-//					    { 0 , 0 , false  },
-//					    { 0 , 0 , false  },
-//					    { 0 , 0 , false  },
-//					    { 0 , 0 , false  },
-//					    { 0 , 0 , false  },
-//					    { 0 , 0 , false  },
-//					    { 0 , 0 , false  } };
-//
-//uint8_t apfelInternalChipSelectMask = 0;
+uint16_t apfelPortAddressSetMask = 0;
 
-#error continue here
-apfelPortAddressSet apfelPortAddressSets[APFEL_MAX_N_PORT_ADDRESS_SETS] = {
-		{ PORTA, { .bits.} },
-		{},
-		{},
-		{}
-};
-
+apfelPortAddressSet apfelPortAddressSets[APFEL_MAX_N_PORT_ADDRESS_SETS];
 
 //----------------
 void apfelInit(void)
 {
 	uint8_t i;
 
-	apfelUsToDelay = APFEL_DEFAULT_US_TO_DELAY;
+	apfelSetUsToDelay(APFEL_DEFAULT_US_TO_DELAY);
+
+	for (i = APFEL_PORT_ADDRESS_SET_0; i < APFEL_PORT_ADDRESS_SET_MAXIMUM; i++)
+	{
+		apfelRemovePortAddressSet(i);
+	}
+
+	apfelAddOrModifyPortAddressSet(APFEL_PORT_ADDRESS_SET_0, &PORTA, PA1, PA2, PA3, PA4);
+	apfelAddOrModifyPortAddressSet(APFEL_PORT_ADDRESS_SET_1, &PORTA, PA4, PA5, PA6, PA7);
+	apfelAddOrModifyPortAddressSet(APFEL_PORT_ADDRESS_SET_2, &PORTC, PC1, PC2, PC3, PC4);
+	apfelAddOrModifyPortAddressSet(APFEL_PORT_ADDRESS_SET_3, &PORTC, PC4, PC5, PC6, PC7);
+	apfelAddOrModifyPortAddressSet(APFEL_PORT_ADDRESS_SET_4, &PORTF, PF1, PF2, PF3, PF4);
+	apfelAddOrModifyPortAddressSet(APFEL_PORT_ADDRESS_SET_5, &PORTF, PF4, PF5, PF6, PF7);
+
+	for (i = APFEL_PORT_ADDRESS_SET_0; i < APFEL_PORT_ADDRESS_SET_MAXIMUM; i++)
+	{
+		apfelInitPortAddressSet(i);
+	}
+
+	for (i = APFEL_PORT_ADDRESS_SET_0; i < APFEL_PORT_ADDRESS_SET_MAXIMUM; i++)
+	{
+		apfelEnablePortAddressSet(i);
+	}
 }
 
+void apfelSetUsToDelay(double us)
+{
+	apfelUsToDelay = us;
+}
+
+double apfelGetUsToDelay(void)
+{
+	return apfelUsToDelay;
+}
+
+apfelPortAddressSet * apfelGetPortAddressSetArray(void)
+{
+	return apfelPortAddressSets;
+}
+
+volatile uint8_t * apfelGetPortFromPortAddressSet(uint8_t portAddressSetIndex)
+{
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	{
+		return NULL;
+	}
+	return apfelPortAddressSets[portAddressSetIndex].ptrPort;
+}
+
+apfelPinSetUnion apfelGetPinsFromPortAddressSet(uint8_t portAddressSetIndex)
+{
+	return apfelPortAddressSets[portAddressSetIndex].pins;
+}
+
+apfelPortAddressStatusUnion apfelGetStatusFromPortAddressSet(uint8_t portAddressSetIndex)
+{
+	return apfelPortAddressSets[portAddressSetIndex].status;
+}
+
+
+apiCommandResult apfelAddOrModifyPortAddressSet(uint8_t portAddressSetIndex, volatile uint8_t *ptrCurrentPort,
+		                                        uint8_t pinIndexDIN, uint8_t pinIndexDOUT,
+		                                        uint8_t pinIndexCLK, uint8_t pinIndexSS)
+{
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	{
+		return apiCommandResult_FAILURE;
+	}
+	if (NULL == ptrCurrentPort)
+	{
+		return apiCommandResult_FAILURE;
+	}
+    if (pinIndexDIN > 7 || pinIndexDOUT > 7|| pinIndexCLK > 7|| pinIndexSS > 7)
+    {
+    	return apiCommandResult_FAILURE;
+    }
+    if (pinIndexDIN < 1 || pinIndexDOUT < 1|| pinIndexCLK < 1|| pinIndexSS < 1)
+    {
+    	return apiCommandResult_FAILURE;
+    }
+
+	(apfelPortAddressSets[portAddressSetIndex]).pins.bits.bPinCLK = pinIndexCLK  - 1;
+	(apfelPortAddressSets[portAddressSetIndex]).pins.bits.bPinDIN = pinIndexDIN  - 1;
+	(apfelPortAddressSets[portAddressSetIndex]).pins.bits.bPinDOUT= pinIndexDOUT - 1;
+	(apfelPortAddressSets[portAddressSetIndex]).pins.bits.bPinSS  = pinIndexSS   - 1;
+	(apfelPortAddressSets[portAddressSetIndex]).ptrPort = ptrCurrentPort;
+	(apfelPortAddressSets[portAddressSetIndex]).status.bits.bIsEnabled = 0;
+	(apfelPortAddressSets[portAddressSetIndex]).status.bits.bIsInitialized = 0;
+	(apfelPortAddressSets[portAddressSetIndex]).status.bits.bIsSet         = 1;
+
+	return apiCommandResult_SUCCESS_QUIET;
+}
+
+apiCommandResult apfelRemovePortAddressSet(uint8_t portAddressSetIndex)
+{
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	{
+		return apiCommandResult_FAILURE;
+	}
+
+	apfelPortAddressSets[portAddressSetIndex].pins.bits.bPinCLK          = 0;
+	apfelPortAddressSets[portAddressSetIndex].pins.bits.bPinDIN          = 0;
+	apfelPortAddressSets[portAddressSetIndex].pins.bits.bPinDOUT         = 0;
+	apfelPortAddressSets[portAddressSetIndex].pins.bits.bPinSS           = 0;
+	apfelPortAddressSets[portAddressSetIndex].ptrPort                    = NULL;
+	apfelPortAddressSets[portAddressSetIndex].status.bits.bIsEnabled     = 0;
+	apfelPortAddressSets[portAddressSetIndex].status.bits.bIsInitialized = 0;
+	apfelPortAddressSets[portAddressSetIndex].status.bits.bIsSet         = 0;
+
+	return apiCommandResult_SUCCESS_QUIET;
+}
+
+apiCommandResult apfelEnablePortAddressSet(uint8_t portAddressSetIndex)
+{
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	{
+		return apiCommandResult_FAILURE;
+	}
+	if (0 == apfelPortAddressSets[portAddressSetIndex].status.bits.bIsSet)
+	{
+		return apiCommandResult_FAILURE;
+	}
+	if (0 == apfelPortAddressSets[portAddressSetIndex].status.bits.bIsInitialized)
+	{
+		return apiCommandResult_FAILURE;
+	}
+
+	apfelPortAddressSetMask |= (0x1 << portAddressSetIndex);
+	apfelPortAddressSets[portAddressSetIndex].status.bits.bIsEnabled = 1;
+
+	return apiCommandResult_SUCCESS_QUIET;
+}
+
+apiCommandResult apfelDisblePortAddressSet(uint8_t portAddressSetIndex)
+{
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	{
+		return apiCommandResult_FAILURE;
+	}
+
+	apfelPortAddressSetMask &= ~(0x1 << portAddressSetIndex);
+	apfelPortAddressSets[portAddressSetIndex].status.bits.bIsEnabled = 0;
+
+	return apiCommandResult_SUCCESS_QUIET;
+}
+
+
+apiCommandResult apfelInitPortAddressSet(uint8_t portAddressSetIndex)
+{
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	{
+		return apiCommandResult_FAILURE;
+	}
+
+	if (0 == apfelPortAddressSets[portAddressSetIndex].status.bits.bIsSet)
+	{
+		return apiCommandResult_FAILURE;
+	}
+
+
+	// PINA address 0x00
+	// DDRA address 0x01
+	// PORTA address 0x02
+	// decrement address by two (now pointing to DDRx) and set the appropriate bit to one
+	// pin becomes an output pin
+
+	// input pin / no pull up
+	*(apfelPortAddressSets[portAddressSetIndex].ptrPort - 2) &= ~(0x1 << apfelPortAddressSets[portAddressSetIndex].pins.bits.bPinDIN);
+    *(apfelPortAddressSets[portAddressSetIndex].ptrPort    ) &=  (0x1 << apfelPortAddressSets[portAddressSetIndex].pins.bits.bPinDIN);
+
+    // output pins
+	*(apfelPortAddressSets[portAddressSetIndex].ptrPort - 2) |= (0x1 << apfelPortAddressSets[portAddressSetIndex].pins.bits.bPinCLK);
+	*(apfelPortAddressSets[portAddressSetIndex].ptrPort - 2) |= (0x1 << apfelPortAddressSets[portAddressSetIndex].pins.bits.bPinDOUT);
+	*(apfelPortAddressSets[portAddressSetIndex].ptrPort - 2) |= (0x1 << apfelPortAddressSets[portAddressSetIndex].pins.bits.bPinSS);
+
+	//port address set is initialized
+	apfelPortAddressSets[portAddressSetIndex].status.bits.bIsInitialized = 1;
+
+	return apiCommandResult_SUCCESS_QUIET;
+}
+
+
+
+/* read/write bits*/
 apiCommandResult apfelWriteBit(uint8_t bit, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS)
 {
 	if (pinCLK > 7 || pinDOUT > 7 || pinSS > 7)
