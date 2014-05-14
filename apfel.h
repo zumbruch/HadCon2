@@ -72,19 +72,21 @@
 
 enum apfelChipSelects
 {
-	APFEL_CHIPSELECT0 = 0,
-	APFEL_CHIPSELECT1,
-	APFEL_CHIPSELECT2,
-	APFEL_CHIPSELECT3,
-	APFEL_CHIPSELECT_MAXIMUM
+	APFEL_PORT_ADDRESS_SET_0 = 0,
+	APFEL_PORT_ADDRESS_SET_1,
+	APFEL_PORT_ADDRESS_SET_2,
+	APFEL_PORT_ADDRESS_SET_3,
+	APFEL_PORT_ADDRESS_SET_4,
+	APFEL_PORT_ADDRESS_SET_5,
+	APFEL_PORT_ADDRESS_SET_MAXIMUM
 };
 
-void apfelInit(void);
 void apfelEnable(bool enable);
+
 
 /*---*/
 
-#define APFEL_MAX_N_PORT_ADDRESS_SETS 6
+#define APFEL_MAX_N_PORT_ADDRESS_SETS APFEL_PORT_ADDRESS_SET_MAXIMUM
 #define APFEL_DEFAULT_US_TO_DELAY 1.0
 
 #define APFEL_N_COMMAND_BITS  4
@@ -102,11 +104,10 @@ void apfelEnable(bool enable);
 
 typedef struct apfelPinSetStruct
 {
-  unsigned bPinDIN:3;
-  unsigned bPinDOUT:3;
-  unsigned bPinCLK:3;
-  unsigned bPinSS:3;
-  unsigned unused:4;
+  unsigned bPinDIN:4;
+  unsigned bPinDOUT:4;
+  unsigned bPinCLK:4;
+  unsigned bPinSS:4;
 } apfelPinSet;
 
 typedef union
@@ -119,7 +120,8 @@ typedef struct apfelPortAddressStatusStruct
 {
   unsigned bIsEnabled:1;
   unsigned bIsInitialized:1;
-  unsigned unused:6;
+  unsigned bIsSet:1;
+  unsigned unused:5;
 } apfelPortAddressStatus;
 
 typedef union
@@ -171,4 +173,15 @@ apiCommandResult apfelTestPulse(uint8_t pulseHeight, uint8_t channel, uint8_t ch
 apiCommandResult apfelSetAmplitude(uint8_t channelId,                 uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
 apiCommandResult apfelResetAmplitude(uint8_t channelId,               uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
 
+void apfelInit(void);
+apiCommandResult apfelAddOrModifyPortAddressSet(uint8_t portAddressSetIndex, volatile uint8_t *ptrCurrentPort, uint8_t pinIndexDIN, uint8_t pinIndexDOUT, uint8_t pinIndexCLK, uint8_t pinIndexSS);
+apiCommandResult apfelRemovePortAddressSet(uint8_t portAddressSetIndex);
+apiCommandResult apfelInitPortAddressSet(uint8_t portAddressSetIndex);
+apiCommandResult apfelEnablePortAddressSet(uint8_t portAddressSetIndex);
+apiCommandResult apfelDisablePortAddressSet(uint8_t portAddressSetIndex);
+void apfelSetUsToDelay(double us);
+double apfelGetUsToDelay(void);
+volatile uint8_t * apfelGetPortFromPortAddressSet(uint8_t portAddressSetIndex);
+apfelPortAddressStatusUnion apfelGetStatusFromPortAddressSet(uint8_t portAddressSetIndex);
+apfelPinSetUnion apfelGetPinsFromPortAddressSet(uint8_t portAddressSetIndex);
 #endif /* APFEL_H_ */
