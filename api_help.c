@@ -493,6 +493,9 @@ void help(struct uartStruct *ptr_uartStruct)
 						/* available sub commands*/
 						helpShowAvailableSubCommands(apfelApiCommandKeyNumber_MAXIMUM_NUMBER, apfelApiCommandKeywords);
 						break;
+
+#warning space needed for APFEL command
+#if 0
 					case commandKeyNumber_SPI:
 						/* command */
 						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[command]"));
@@ -501,6 +504,7 @@ void help(struct uartStruct *ptr_uartStruct)
 						/* available sub commands*/
 						helpShowAvailableSubCommands(spiApiCommandKeyNumber_MAXIMUM_NUMBER, spiApiCommandKeywords);
 						break;
+#endif
 #if 2 == HADCON_VERSION
 					case commandKeyNumber_GNWR:
 						/* command */

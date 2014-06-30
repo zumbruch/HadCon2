@@ -35,6 +35,8 @@ static const char string_sKommax[]  PROGMEM = "%s,%x";
 
 static char byte[3]= "00";
 
+#warning space needed for APFEL command
+#if 0
 static const char spiApiCommandKeyword00[] PROGMEM = "add"; 					/* add <args> to write buffer*/
 static const char spiApiCommandKeyword01[] PROGMEM = "a";
 static const char spiApiCommandKeyword02[] PROGMEM = "control_bits";       		/* get/set SPI control bits*/
@@ -101,9 +103,12 @@ const char* const spiApiCommandKeywords[] PROGMEM = {
 spiApiConfig spiApiConfiguration;
 bool spiApiInitialized = false;
 spiApiConfig *ptr_spiApiConfiguration = &spiApiConfiguration;
+#endif
 
 void spiApiInit(void)
 {
+#warning space needed for APFEL command
+#if 0
 	/* initial configuration*/
 	ptr_spiApiConfiguration->transmitByteOrder    = spiApiTransmitByteOrder_MSB;
 	ptr_spiApiConfiguration->reportTransmit       = false;
@@ -112,11 +117,15 @@ void spiApiInit(void)
 	ptr_spiApiConfiguration->autoPurgeWriteBuffer = false;
 	ptr_spiApiConfiguration->hardwareInit         = false;
 	ptr_spiApiConfiguration->spiConfiguration     = spiGetConfiguration();
+#endif
 }
 
 
 void spiApi(struct uartStruct *ptr_uartStruct)
 {
+#warning space needed for APFEL command
+}
+#if 0
 	if (!spiApiInitialized )
 	{
 		spiApiInit();
@@ -193,7 +202,8 @@ uint8_t spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandI
 			/* show spi status of control bits and operation settings*/
 			result = spiApiSubCommandShowStatus();
 			break;
-		case spiApiCommandKeyNumber_S:
+	//saving memory
+			case spiApiCommandKeyNumber_S:
 			/* show spi status of control bits and operation settings*/
 			result = spiApiSubCommands(ptr_uartStruct, spiApiCommandKeyNumber_STATUS, 0);
 			break;
@@ -399,7 +409,7 @@ uint8_t spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandI
 		case spiApiCommandKeyNumber_AUTO_PURGE_WRITE_BUFFER:
 			result = spiApiSubCommandAutoPurgeWriteBuffer(ptr_uartStruct);
 			break;
-		default:
+			default:
 			result = -1;
 			break;
 	}
@@ -410,6 +420,8 @@ uint8_t spiApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandI
 		spiApiSubCommandsFooter( result );
 	}
 	return result;
+
+	return apiCommandResult_SUCCESS_QUIET;
 }
 
 void spiApiSubCommandsFooter( uint16_t result )
@@ -1759,3 +1771,4 @@ uint8_t spiApiShowBufferContent(struct uartStruct *ptr_uartStruct, spiByteDataAr
 	return apiCommandResult_SUCCESS_QUIET;
 }
 
+#endif

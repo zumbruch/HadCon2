@@ -318,6 +318,7 @@ void apfelApiSubCommandsFooter( uint16_t result )
 	}
 }
 
+#if 0
 apiCommandResult apfelApiSubCommandShowStatus              (void){return apiCommandResult_SUCCESS_QUIET;}
 apiCommandResult apfelApiSubCommandDac                     (void){return apiCommandResult_SUCCESS_QUIET;}
 apiCommandResult apfelApiSubCommandIncrementDac            (void){return apiCommandResult_SUCCESS_QUIET;}
@@ -332,11 +333,104 @@ apiCommandResult apfelApiSubCommandUsToSleep               (void){return apiComm
 apiCommandResult apfelApiSubCommandApfelEnable             (void){return apiCommandResult_SUCCESS_QUIET;}
 apiCommandResult apfelApiSubCommandReset                   (void){return apiCommandResult_SUCCESS_QUIET;}
 apiCommandResult apfelApiSubCommandPortAddressSetEnableMask(void){return apiCommandResult_SUCCESS_QUIET;}
-apiCommandResult apfelApiSubCommandEnablePortAddressSet    (void){return apiCommandResult_SUCCESS_QUIET;}
 apiCommandResult apfelApiSubCommandDisablePortAddressSet   (void){return apiCommandResult_SUCCESS_QUIET;}
+apiCommandResult apfelApiSubCommandEnablePortAddressSet    (void){return apiCommandResult_SUCCESS_QUIET;}
+#endif
 
+apiCommandResult apfelApiSubCommandShowStatus(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("ShowStatus"));
+	return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandDac(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("Dac"));
+
+
+	//apfelSetDac(0x1010, 2, 1, 1, 0, )
+
+	return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandIncrementDac(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("IncrementDac            "));
+	return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandDecrementDac(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("DecrementDac            "));
+	return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandTestPulse(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("TestPulse               "));
+	return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandAutoCalib(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("AutoCalib               "));
+	return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandAmplification(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("Amplification           "));
+	return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandListIds(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("ListIds                 "));
+	return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandAddPortAddressSet(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("AddPortAddressSet       "));
+	return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandRemovePortAddressSet(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("RemovePortAddressSet    "));
+	return apiCommandResult_SUCCESS_QUIET;
+}
+
+apiCommandResult apfelApiSubCommandUsToSleep(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("UsToSleep"));
+	createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, ptr_uartStruct->commandKeywordIndex,
+			apfelApiCommandKeyNumber_US_TO_SLEEP, apfelApiCommandKeywords);
+	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2, &(apfelUsToDelay),
+			apiVarType_DOUBLE, 0, 0xFFFFFFFFFF, true, NULL);
+}
+apiCommandResult apfelApiSubCommandApfelEnable(void)
+{
+	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("ApfelEnable             "));
+	return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandReset(void)
+{
+printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("Reset                   "));
+return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandPortAddressSetEnableMask(void)
+{
+printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("PortAddressSetEnableMask"));
+return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandDisablePortAddressSet(void)
+{
+printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("DisablePortAddressSet   "));
+return apiCommandResult_SUCCESS_QUIET;
+}
+apiCommandResult apfelApiSubCommandEnablePortAddressSet(void)
+{
+printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("EnablePortAddressSet    "));
+return apiCommandResult_SUCCESS_QUIET;
+}
+#if 0
+
+#endif
 
 #if 0
+//just a paste and copy of spi to be adopted
 /*
  * *** sub commands with minimum 1 argument
  */

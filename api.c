@@ -44,6 +44,7 @@
 #include "relay.h"
 #include "spiApi.h"
 #include "apfelApi.h"
+#include "apfel.h"
 
 #include "api_debug.h"
 #include "api_show.h"
@@ -1978,6 +1979,9 @@ void Initialization( void )
    spiInit();
    spiEnable(true);
 
+   // APFEL
+   apfelInit();
+
 #ifdef TESTING_ENABLE
    // Testing
    testingInit();
@@ -2701,6 +2705,9 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 			break;
 		case apiVarType_UINTPTR:
 			*((uintptr_t*)value) = UINTPTR_MAX & inputValue;
+			break;
+		case apiVarType_DOUBLE:
+			*((double*)value) = inputValue;
 			break;
 		case apiVarType_DOUBLE:
 			*((double*)value) = inputValue;
