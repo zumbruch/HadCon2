@@ -35,6 +35,8 @@ static const char string_is_written[]      PROGMEM = "is written";
 
 void waveformGeneratorWriteRegister(struct uartStruct *ptr_uartStruct)
 {
+#warning space needed for APFEL command
+#if 0
 	uint8_t status = 0;
 	uint8_t waveformGeneratorRegisterAddress, value;
 
@@ -179,12 +181,16 @@ void waveformGeneratorWriteRegister(struct uartStruct *ptr_uartStruct)
 	{
 		UART0_Send_Message_String_p(NULL, 0);
 	}
+#endif
 	return;
 
 } //END of write_double_Register function
 
 void waveformGeneratorReadRegister(struct uartStruct *ptr_uartStruct)
 {
+#warning space needed for APFEL command
+#if 0
+
 	int step = 0;
 	uint8_t registers[7];
 
@@ -226,10 +232,14 @@ void waveformGeneratorReadRegister(struct uartStruct *ptr_uartStruct)
 												  registers, sizeof(registers)/sizeof(uint8_t) );
 			break;
 	}
+#endif
 } //end of waveformGeneratorReadRegister function
 
 void waveformGeneratorPrintSingleRegister( uint8_t registerId, uint8_t registers[], uint8_t size )
 {
+#warning space needed for APFEL command
+#if 0
+
 	uint8_t status = 0 ;
 	clearString(uart_message_string, BUFFER_SIZE);
 	createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
@@ -318,25 +328,32 @@ void waveformGeneratorPrintSingleRegister( uint8_t registerId, uint8_t registers
 	{
 		UART0_Send_Message_String_p(NULL, 0);
 	}
+#endif
 	return;
 }
 
 void waveformGeneratorDeclareUARTtoSendData(void)
 {
+#warning space needed for APFEL command
+#if 0
 	//declare UART in order to send data with baud=1,025Mbps
 	registerWriteInto8bitRegister(UCSR1C_register_of_ATMEL_address, UCSR1C_register_of_ATMEL_value);
 	registerWriteInto8bitRegister(UBRR1L_register_of_ATMEL_address, UBRR1L_register_of_ATMEL_value);
 	registerWriteInto8bitRegister(UBRR1H_register_of_ATMEL_address, UBRR1H_register_of_ATMEL_value);
 	registerWriteInto8bitRegister(UCSR1B_register_of_ATMEL_address, UCSR1B_register_of_ATMEL_value_transmit);
 	registerWriteInto8bitRegister(UCSR1A_register_of_ATMEL_address, UCSR1A_register_of_ATMEL_value);
+#endif
 }
 
 void waveformGeneratorDeclareUARTtoReceiveData(void)
 {
+#warning space needed for APFEL command
+#if 0
 	//declare UART in order to receive data with baud=1,025Mbps
 	registerWriteInto8bitRegister(UCSR1C_register_of_ATMEL_address, UCSR1C_register_of_ATMEL_value);
 	registerWriteInto8bitRegister(UBRR1L_register_of_ATMEL_address, UBRR1L_register_of_ATMEL_value);
 	registerWriteInto8bitRegister(UBRR1H_register_of_ATMEL_address, UBRR1H_register_of_ATMEL_value);
 	registerWriteInto8bitRegister(UCSR1A_register_of_ATMEL_address, UCSR1A_register_of_ATMEL_value);
 	registerWriteInto8bitRegister(UCSR1B_register_of_ATMEL_address, UCSR1B_register_of_ATMEL_value_receive);
+#endif
 }

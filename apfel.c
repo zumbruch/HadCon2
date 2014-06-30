@@ -70,11 +70,11 @@ apfelPortAddressSet * apfelGetPortAddressSetArray(void)
 
 volatile uint8_t * apfelGetPortFromPortAddressSet(uint8_t portAddressSetIndex)
 {
-	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM <= portAddressSetIndex)
 	{
 		return NULL;
 	}
-	return apfelPortAddressSets[portAddressSetIndex].ptrPort;
+	return (apfelPortAddressSets[portAddressSetIndex]).ptrPort;
 }
 
 apfelPinSetUnion apfelGetPinsFromPortAddressSet(uint8_t portAddressSetIndex)
@@ -92,7 +92,7 @@ apiCommandResult apfelAddOrModifyPortAddressSet(uint8_t portAddressSetIndex, vol
 		                                        uint8_t pinIndexDIN, uint8_t pinIndexDOUT,
 		                                        uint8_t pinIndexCLK, uint8_t pinIndexSS)
 {
-	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM <= portAddressSetIndex)
 	{
 		return apiCommandResult_FAILURE;
 	}
@@ -123,7 +123,7 @@ apiCommandResult apfelAddOrModifyPortAddressSet(uint8_t portAddressSetIndex, vol
 
 apiCommandResult apfelRemovePortAddressSet(uint8_t portAddressSetIndex)
 {
-	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM <= portAddressSetIndex)
 	{
 		return apiCommandResult_FAILURE;
 	}
@@ -142,7 +142,7 @@ apiCommandResult apfelRemovePortAddressSet(uint8_t portAddressSetIndex)
 
 apiCommandResult apfelEnablePortAddressSet(uint8_t portAddressSetIndex)
 {
-	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM <= portAddressSetIndex)
 	{
 		return apiCommandResult_FAILURE;
 	}
@@ -163,7 +163,7 @@ apiCommandResult apfelEnablePortAddressSet(uint8_t portAddressSetIndex)
 
 apiCommandResult apfelDisblePortAddressSet(uint8_t portAddressSetIndex)
 {
-	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM <= portAddressSetIndex)
 	{
 		return apiCommandResult_FAILURE;
 	}
@@ -177,7 +177,7 @@ apiCommandResult apfelDisblePortAddressSet(uint8_t portAddressSetIndex)
 
 apiCommandResult apfelInitPortAddressSet(uint8_t portAddressSetIndex)
 {
-	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM > portAddressSetIndex)
+	if ( APFEL_PORT_ADDRESS_SET_MAXIMUM <= portAddressSetIndex)
 	{
 		return apiCommandResult_FAILURE;
 	}

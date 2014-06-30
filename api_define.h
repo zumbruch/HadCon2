@@ -2,11 +2,8 @@
 #define API_DEFINE__H
 /*the define.h header file contents all define variable*/
 
-#define CODE_VERSION "4.6.3"
-
-#ifndef HADCON_VERSION
+#define CODE_VERSION "4.6.3.APFEL"
 #define HADCON_VERSION 2
-#endif
 
 #if HADCON_VERSION == 1
 #define IDENTIFICATION "HadCon"
@@ -96,7 +93,7 @@
 #define  THIGH    900
 #define  TLOW     100
 
-#warning HADCON devices are around, which exceed those 20 devices, formerly to be 60
+/*#warning HADCON devices are around, which exceed those 20 devices, formerly to be 60*/
 #define OWI_MAX_NUM_DEVICES       20
 
 #define TRUE    1

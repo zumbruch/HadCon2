@@ -40,6 +40,7 @@
 #include "relay.h"
 #include "spiApi.h"
 #include "apfelApi.h"
+#include "apfel.h"
 
 #include "api_debug.h"
 #include "api_show.h"
@@ -1974,6 +1975,9 @@ void Initialization( void )
    spiInit();
    spiEnable(true);
 
+   // APFEL
+   apfelInit();
+
 #ifdef TESTING_ENABLE
    // Testing
    testingInit();
@@ -2698,6 +2702,9 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 		case apiVarType_UINTPTR:
 			*((uintptr_t*)value) = UINTPTR_MAX & inputValue;
 			break;
+		case apiVarType_DOUBLE:
+			*((double*)value) = inputValue;
+			break;
 		default:
 			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
 			return apiCommandResult_FAILURE_QUIET;
@@ -2739,11 +2746,13 @@ uint8_t apiShowValue(char string[], void *value, uint8_t type )
 		case apiVarType_UINT64:
 			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint64_t*)value));
 			break;
+		case apiVarType_DOUBLE:
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((double*)value));
+			break;
 		default:
 			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
 			return apiCommandResult_FAILURE_QUIET;
 			break;
 	}
 	return apiCommandResult_SUCCESS_WITH_OUTPUT;
-
 }

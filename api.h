@@ -293,6 +293,7 @@ enum apiVarTypes
 	apiVarType_UINT32,
 	apiVarType_UINT64,
 	apiVarType_UINTPTR,
+	apiVarType_DOUBLE,
 	apiVarType_MAXIMUM_INDEX,
 };
 
