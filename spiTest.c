@@ -39,7 +39,7 @@ void spiTest(void)
   spiAddWriteData( (spiGetConfiguration().data) & 0x00FF);
   spiAddWriteData( ((spiGetConfiguration().data) >> 8) & 0x00FF);
 
-  spiAddWriteData( getChipSelectArrayStatus() );
+  spiAddWriteData( spiGetChipSelectArrayStatus() );
 
   spiAddWriteData( spiGetInternalChipSelectMask() );
 

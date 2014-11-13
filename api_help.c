@@ -460,6 +460,12 @@ void help(struct uartStruct *ptr_uartStruct)
 						/* response */
 						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("<Version>"));
 						break;
+					case commandKeyNumber_IDN: /* command (dummy name) */
+						/* command */
+						helpShowCommandOrResponse_p (NULL, NULL, NULL);
+						/* response */
+						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, PSTR("<Identification>"));
+						break;
 					case commandKeyNumber_I2C: /* I2C / TWI */
 					case commandKeyNumber_TWIS: /* I2C / TWI */
 						help_twis(currentReceiveHeader, currentCommandKeyword);
@@ -468,7 +474,6 @@ void help(struct uartStruct *ptr_uartStruct)
 					case commandKeyNumber_CMD2: /* command (dummy name) */
 					case commandKeyNumber_CMD3: /* command (dummy name) */
 						//case commandKeyNumber_CMD4: /* command (dummy name) */
-					case commandKeyNumber_CMD5: /* command (dummy name) */
 					case commandKeyNumber_CMD6: /* command (dummy name) */
 					case commandKeyNumber_CMD7: /* command (dummy name) */
 					case commandKeyNumber_CMD8: /* command (dummy name) */
