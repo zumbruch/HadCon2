@@ -121,6 +121,7 @@ uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameter
 uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max);
 uint8_t apiShowValue(char string[], void *value, uint8_t type );
 
+typedef uint8_t apiCommandResult;
 
 #ifndef API_CONSTANTS_H_
 
