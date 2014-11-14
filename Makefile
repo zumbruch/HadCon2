@@ -23,7 +23,7 @@ endif
 	
 #all_hadcon_%: 
 all$(HADCON_TARGET_SUFFIX)%: 
-	@HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@) 
+	HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@) 
 
 both: $(foreach hadcon, $(HADCON_TYPES), all$(HADCON_TARGET_SUFFIX)$(hadcon))
 	
