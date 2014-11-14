@@ -63,13 +63,13 @@ extern uint8_t ptr_subscribe; /* pointer of variable subscribe_ID and subscribe_
 
 extern uint8_t flag_pingActive; /* flag for PING mechanism */
 
-extern const char *serial_error[] PROGMEM;
-extern const char *can_error[] PROGMEM;
-extern const char *twi_error[] PROGMEM;
-extern const char *mob_error[] PROGMEM;
-extern const char *general_error[] PROGMEM;
+extern const char* const serial_error[] PROGMEM;
+extern const char* const can_error[] PROGMEM;
+extern const char* const twi_error[] PROGMEM;
+extern const char* const mob_error[] PROGMEM;
+extern const char* const general_error[] PROGMEM;
 
-extern const char *canBusModes[] PROGMEM;
+extern const char* const canBusModes[] PROGMEM;
 
 extern char currentCommandKeyword[MAX_LENGTH_KEYWORD];/*variable to store current command keyword e.g. "SEND"*/
 extern char currentResponseKeyword[MAX_LENGTH_KEYWORD];/*variable to store current command keyword e.g. "RECV"*/

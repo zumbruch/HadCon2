@@ -21,7 +21,7 @@ enum helpMode
 	helpMode_MAXIMUM_NUMBER
 };
 
-extern const char* helpCommandKeywords[] PROGMEM;
+extern const char* const helpCommandKeywords[] PROGMEM;
 enum helpCommandKeyNumber
 {
 	helpCommandKeyNumber_IMPLEMENTED = 0,
@@ -32,7 +32,7 @@ enum helpCommandKeyNumber
 
 void help(struct uartStruct *ptr_uartStruct);
 void helpAll(uint8_t mode, char prefix[]);
-void helpShowAvailableSubCommands(int maximumIndex, const char* commandKeywords[]);
+void helpShowAvailableSubCommands(int maximumIndex, PGM_P const commandKeywords[]);
 void helpShowCommandOrResponse(char* currentReceiveHeader, PGM_P modifier, PGM_P string, ...);
 void (*helpShowCommandOrResponse_p)(char*, PGM_P,  PGM_P, ...);
 

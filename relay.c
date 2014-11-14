@@ -58,7 +58,7 @@ static const char relayThresholdCommandKeyword27[] PROGMEM = "use_individual_thr
 static const char relayThresholdCommandKeyword28[] PROGMEM = "extern_thr_ch_mask";
 
 
-const char* relayThresholdCommandKeywords[] PROGMEM = {
+const char* const relayThresholdCommandKeywords[] PROGMEM = {
          relayThresholdCommandKeyword00,
          relayThresholdCommandKeyword01,
          relayThresholdCommandKeyword02,
@@ -96,7 +96,7 @@ static const char relayThresholdStateString02[] PROGMEM = "INBETWEEN";
 static const char relayThresholdStateString03[] PROGMEM = "OFF_BOUNDS";
 static const char relayThresholdStateString04[] PROGMEM = "UNDEFINED";
 
-const char* relayThresholdStateStrings[] PROGMEM = {
+const char* const relayThresholdStateStrings[] PROGMEM = {
          relayThresholdStateString00,
          relayThresholdStateString01,
          relayThresholdStateString02,

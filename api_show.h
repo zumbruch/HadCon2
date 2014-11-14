@@ -23,7 +23,7 @@ extern const showCommand_t showCommands[] PROGMEM;
 */
 
 extern unsigned short unusedMemoryStart;
-extern const char* showCommandKeywords[] PROGMEM;
+extern const char* const showCommandKeywords[] PROGMEM;
 enum cmdShowKeyNumber
 {
       commandShowKeyNumber_UNUSED_MEM_START = 0,
