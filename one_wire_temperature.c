@@ -80,7 +80,7 @@ static const char owiTemperatureCommandKeyword04[] PROGMEM = "force_parasitic_mo
 static const char owiTemperatureCommandKeyword05[] PROGMEM = "resolution_DS18B20"; /*TODO*/
 static const char owiTemperatureCommandKeyword06[] PROGMEM = "single_parasitic_conv";
      
-const char* owiTemperatureCommandKeywords[] PROGMEM = {
+const char* const owiTemperatureCommandKeywords[] PROGMEM = {
          owiTemperatureCommandKeyword00,
          owiTemperatureCommandKeyword01,
          owiTemperatureCommandKeyword02,

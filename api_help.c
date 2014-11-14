@@ -66,7 +66,7 @@ static const char helpCommandKeyword00[] PROGMEM = "implemented";
 static const char helpCommandKeyword01[] PROGMEM = "all";
 static const char helpCommandKeyword02[] PROGMEM = "todo";
 
-const char* helpCommandKeywords[] PROGMEM = {
+const char* const helpCommandKeywords[] PROGMEM = {
 	helpCommandKeyword00,
 	helpCommandKeyword01,
 	helpCommandKeyword02
@@ -666,7 +666,7 @@ void helpAll(uint8_t mode, char prefix[])
 	}
 }
 
-void helpShowAvailableSubCommands(int maximumIndex, const char* commandKeywords[])
+void helpShowAvailableSubCommands(int maximumIndex, PGM_P const commandKeywords[])
 {
 	strncat(uart_message_string, message, BUFFER_SIZE -1) ;
 	strncat_P(uart_message_string, string_1x_, BUFFER_SIZE - 1 );

@@ -85,7 +85,7 @@ static const char tw15[] PROGMEM = "failed reading TWI_Bus";
 static const char tw16[] PROGMEM = "too few (numeric) arguments";
 static const char tw17[] PROGMEM = "wrong length or number of data bytes";
 
-const char *twi_error[] PROGMEM = { tw00, tw01, tw02, tw03, tw04,
+const char* const twi_error[] PROGMEM = { tw00, tw01, tw02, tw03, tw04,
 		                            tw05, tw06, tw07, tw08, tw09,
 		                            tw10, tw11, tw12, tw13, tw14,
 		                            tw15, tw16, tw17 };

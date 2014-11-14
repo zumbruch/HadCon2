@@ -23,7 +23,7 @@ typedef struct {
 extern const showCommand_t showCommands[] PROGMEM;
 */
 extern unsigned short unusedMemoryStart;
-extern const char* owiApiCommandKeywords[] PROGMEM;
+extern const char* const owiApiCommandKeywords[] PROGMEM;
 enum owiApiCommandKeyNumber
 {
       owiApiCommandKeyNumber_COMMON_TEMPERATURE_CONVERSION = 0,

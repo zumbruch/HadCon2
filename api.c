@@ -70,7 +70,7 @@ static const char responseKeyword00[] PROGMEM = "RECV";
 static const char responseKeyword01[] PROGMEM = "CANR";
 static const char responseKeyword02[] PROGMEM = "SYST";
 
-const char* responseKeywords[] PROGMEM = {
+const char* const responseKeywords[] PROGMEM = {
         responseKeyword00,
         responseKeyword01,
         responseKeyword02
@@ -480,7 +480,7 @@ static const char commandShortDescription54[]  PROGMEM = "";
 static const uint8_t commandImplementation54   PROGMEM = FALSE;
 
 /* this is the corresponding command key array, beware of the same order*/
-const char* commandKeywords[] PROGMEM = {
+const char* const commandKeywords[] PROGMEM = {
 		commandKeyword00, commandKeyword01, commandKeyword02, commandKeyword03, commandKeyword04, commandKeyword05,
 		commandKeyword06, commandKeyword07, commandKeyword08, commandKeyword09, commandKeyword10, commandKeyword11,
 		commandKeyword12, commandKeyword13, commandKeyword14, commandKeyword15, commandKeyword16, commandKeyword17,
@@ -495,7 +495,7 @@ const char* commandKeywords[] PROGMEM = {
 /* those are the command keywords of the API*/
 
 /* this is the corresponding command key array, beware of the same order*/
-const char* commandSyntaxes[] PROGMEM = {
+const char* const commandSyntaxes[] PROGMEM = {
 		commandSyntax00, commandSyntax01, commandSyntax02, commandSyntax03, commandSyntax04, commandSyntax05, commandSyntax06,
 		commandSyntax07, commandSyntax08, commandSyntax09, commandSyntax10, commandSyntax11, commandSyntax12,
 		commandSyntax13, commandSyntax14, commandSyntax15, commandSyntax16, commandSyntax17, commandSyntax18,
@@ -508,7 +508,7 @@ const char* commandSyntaxes[] PROGMEM = {
  };
 
 /* this is the corresponding command key array, beware of the same order*/
-const char* commandSyntaxAlternatives[] PROGMEM = {
+const char* const commandSyntaxAlternatives[] PROGMEM = {
 		commandSyntaxAlternative00, commandSyntaxAlternative01, commandSyntaxAlternative02, commandSyntaxAlternative03,
 		commandSyntaxAlternative04, commandSyntaxAlternative05, commandSyntaxAlternative06, commandSyntaxAlternative07,
 		commandSyntaxAlternative08, commandSyntaxAlternative09, commandSyntaxAlternative10, commandSyntaxAlternative11,
@@ -526,7 +526,7 @@ const char* commandSyntaxAlternatives[] PROGMEM = {
  };
 
 /* this is the corresponding command key array, beware of the same order*/
-const char* commandShortDescriptions[] PROGMEM= {
+const char* const commandShortDescriptions[] PROGMEM= {
 		commandShortDescription00, commandShortDescription01, commandShortDescription02, commandShortDescription03,
 		commandShortDescription04, commandShortDescription05, commandShortDescription06, commandShortDescription07,
 		commandShortDescription08, commandShortDescription09, commandShortDescription10, commandShortDescription11,
@@ -543,7 +543,7 @@ const char* commandShortDescriptions[] PROGMEM= {
 		commandShortDescription52, commandShortDescription53, commandShortDescription54
  };
 
-const uint8_t* commandImplementations[] PROGMEM= {
+const uint8_t* const commandImplementations[] PROGMEM= {
 		&commandImplementation00, &commandImplementation01, &commandImplementation02, &commandImplementation03,
 		&commandImplementation04, &commandImplementation05, &commandImplementation06, &commandImplementation07,
 		&commandImplementation08, &commandImplementation09, &commandImplementation10, &commandImplementation11,
@@ -572,7 +572,7 @@ static const char se07[] PROGMEM = "too few arguments";                         
 static const char se08[] PROGMEM = "invalid sub command name";                  // SERIAL_ERROR_invalid_sub_command_name,
 static const char se09[] PROGMEM = "argument string too long";                  // SERIAL_ERROR_argument_string_too_long,
 
-const char *serial_error[] PROGMEM = { se00, se01, se02, se03, se04, se05, se06, se07, se08, se09};
+const char* const serial_error[] PROGMEM = { se00, se01, se02, se03, se04, se05, se06, se07, se08, se09};
 
 static const char ge00[] PROGMEM = "init for timer0 failed";
 static const char ge01[] PROGMEM = "init for timer0A failed";
@@ -586,7 +586,7 @@ static const char ge08[] PROGMEM = "address has invalid type";
 static const char ge09[] PROGMEM = "undefined family code";
 static const char ge10[] PROGMEM = "invalid argument";
 
-const char *general_error[] PROGMEM = { ge00, ge01, ge02, ge03, ge04, ge05, ge06, ge07, ge08, ge09, ge10 };
+const char* const general_error[] PROGMEM = { ge00, ge01, ge02, ge03, ge04, ge05, ge06, ge07, ge08, ge09, ge10 };
 
 /* pointer of array for defined general error number*/
 static const char errorType00[] PROGMEM = "ERRG"; /*general*/
@@ -597,7 +597,7 @@ static const char errorType04[] PROGMEM = "ERRT"; /*TWI / I2C*/
 static const char errorType05[] PROGMEM = "ERRU"; /*undefined*/
 
 /* this is the corresponding error Type array, beware of the same order*/
-const char *errorTypes[] PROGMEM = {
+const char* const errorTypes[] PROGMEM = {
 		errorType00,
 		errorType01,
 		errorType02,
@@ -1101,7 +1101,7 @@ void apiConvertUartDataToCanUartStruct( uint8_t offset )
  *     -99 on error
  */
 
-int8_t apiFindCommandKeywordIndex(const char string[], PGM_P keywords[], size_t keywordMaximumIndex )
+int8_t apiFindCommandKeywordIndex(const char string[], PGM_P const keywords[], size_t keywordMaximumIndex )
 {
 	if (NULL == string )          {return -99;} /* NULL pointer */
 	if (NULL == keywords )        {return -99;} /* NULL pointer */
@@ -2173,7 +2173,7 @@ void toggle_pin( unsigned char pin_number )
 #warning TODO: make uart_message_string optional buffer to write to
 
 void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct,
-                                                   int8_t commandKeywordIndex, int8_t subCommandKeywordIndex, PGM_P commandKeywords[])
+                                                   int8_t commandKeywordIndex, int8_t subCommandKeywordIndex, PGM_P const commandKeywords[])
 {
    /* make sure commandKeywordIndex is shown */
    int8_t keywordIndex = ptr_uartStruct->commandKeywordIndex;
@@ -2536,7 +2536,7 @@ void startMessage(void)
 	}
 }
 
-size_t getMaximumStringArrayLength_P(PGM_P array[], size_t maxIndex, size_t maxResult)
+size_t getMaximumStringArrayLength_P(PGM_P const array[], size_t maxIndex, size_t maxResult)
 {
 	size_t maxLength = 0;
 	for (size_t index = 0; index < maxIndex; ++index)

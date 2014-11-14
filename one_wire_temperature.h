@@ -56,7 +56,7 @@ enum errorCodes
    eADCwrongAddress = 128
 } ErrorCodes;
 
-extern const char* owiTemperatureCommandKeywords[] PROGMEM;
+extern const char* const owiTemperatureCommandKeywords[] PROGMEM;
 enum owiTemperatureCommandKeyNumber
 {
       owiTemperatureCommandKeyNumber_CONVERT_ONLY = 0,
