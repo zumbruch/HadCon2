@@ -18,7 +18,7 @@
 
 typedef uint8_t apiCommandResult;
 
-extern const char* spiApiCommandKeywords[] PROGMEM;
+extern const char* const spiApiCommandKeywords[] PROGMEM;
 enum spiApiCommandKeyNumber
 {
 	spiApiCommandKeyNumber_ADD= 0,

@@ -8,7 +8,7 @@
 #warning READ/WRITE mins differ!
 #define TWIS_MIN_NARGS 3
 
-extern const char *twi_error[] PROGMEM;
+extern const char* const twi_error[] PROGMEM;
 enum te_index
 {
    TWI_ERROR_Error_in_initiating_TWI_interface = 0,

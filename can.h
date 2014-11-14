@@ -53,7 +53,7 @@ enum canState {
 	canState_MAXIMUM_INDEX
 	};
 
-extern const char *can_error[] PROGMEM;
+extern const char* const can_error[] PROGMEM;
 enum ce_index
 {
    CAN_ERROR_Bus_Off_Mode = 0,
@@ -74,7 +74,7 @@ enum ce_index
    CAN_ERROR_MAXIMUM_INDEX
 };
 
-extern const char *mob_error[] PROGMEM;
+extern const char* const mob_error[] PROGMEM;
 enum me_index
 {
    MOB_ERROR_all_mailboxes_already_in_use = 0,
@@ -83,7 +83,7 @@ enum me_index
    MOB_ERROR_MAXIMUM_INDEX
 };
 
-extern const char *canBusModes[] PROGMEM;
+extern const char* const canBusModes[] PROGMEM;
 enum canChannelModes
 {
 	canChannelMode_ERROR_ACTIVE = 0,

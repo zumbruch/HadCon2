@@ -85,7 +85,7 @@ static const char spiApiCommandKeyword47[] PROGMEM = "transmit_report";    		/* 
 static const char spiApiCommandKeyword48[] PROGMEM = "auto_purge_write_buffer";	/* automatic purge of write buffer after write commands */
 static const char spiApiCommandKeyword49[] PROGMEM = "auto_purge_read_buffer";	/* automatic purge of read buffer before write commands */
 
-const char* spiApiCommandKeywords[] PROGMEM = {
+const char* const spiApiCommandKeywords[] PROGMEM = {
         spiApiCommandKeyword00, spiApiCommandKeyword01, spiApiCommandKeyword02, spiApiCommandKeyword03, spiApiCommandKeyword04,
 		spiApiCommandKeyword05, spiApiCommandKeyword06, spiApiCommandKeyword07, spiApiCommandKeyword08, spiApiCommandKeyword09,
 		spiApiCommandKeyword10, spiApiCommandKeyword11, spiApiCommandKeyword12, spiApiCommandKeyword13, spiApiCommandKeyword14,

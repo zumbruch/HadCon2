@@ -39,7 +39,7 @@ static const char commandDebugKeyword01[] PROGMEM = "level";
 static const char commandDebugKeyword02[] PROGMEM = "mask";
 static const char commandDebugKeyword03[] PROGMEM = "help";
 
-const char* commandDebugKeywords[] PROGMEM = {
+const char* const commandDebugKeywords[] PROGMEM = {
 		commandDebugKeyword00,
 		commandDebugKeyword01,
 		commandDebugKeyword02,
@@ -53,7 +53,7 @@ static const char debugLevelName03[] PROGMEM = "eventDebugVerbose";
 static const char debugLevelName04[] PROGMEM = "periodicDebug";
 static const char debugLevelName05[] PROGMEM = "periodicDebugVerbose";
 
-const char *debugLevelNames[] PROGMEM = {
+const char* const debugLevelNames[] PROGMEM = {
          debugLevelName00, debugLevelName01, debugLevelName02, debugLevelName03, debugLevelName04, debugLevelName05
 };
 
@@ -82,7 +82,7 @@ static const char debugSystemName21[] PROGMEM = "TIMER0AScheduler";
 static const char debugSystemName22[] PROGMEM = "TWI";
 static const char debugSystemName23[] PROGMEM = "SPI";
 
-const char *debugSystemNames[] PROGMEM =
+const char* const debugSystemNames[] PROGMEM =
 {
 		debugSystemName00, debugSystemName01, debugSystemName02, debugSystemName03, debugSystemName04, debugSystemName05,
 		debugSystemName06, debugSystemName07, debugSystemName08, debugSystemName09, debugSystemName10,

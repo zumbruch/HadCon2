@@ -69,7 +69,7 @@ extern int16_t (*UART0_Send_Message_String_p)( char *, uint16_t );
 
 int8_t UART0_Send_Message_String_woLF( char *outputString, uint32_t maxSize );/* help function for the output of register contents in CPU */
 
-int8_t apiFindCommandKeywordIndex(const char string[], PGM_P commandKeywords[], size_t commandMaximumIndex ); /* find matching command keyword and return its index*/
+int8_t apiFindCommandKeywordIndex(const char string[], PGM_P const commandKeywords[], size_t commandMaximumIndex ); /* find matching command keyword and return its index*/
 
 static inline bool isKeywordIndex( int index, int maximumIndex )
 {
@@ -97,7 +97,7 @@ void toggle_pin( unsigned char pin_number );
 
 uint8_t createReceiveHeader( struct uartStruct *ptr_uartStruct, char message_string[], uint16_t size );
 
-void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct, int8_t keyNumber, int8_t index,  PGM_P commandKeyword[]);
+void createExtendedSubCommandReceiveResponseHeader(struct uartStruct * ptr_uartStruct, int8_t keyNumber, int8_t index,  PGM_P const commandKeyword[]);
 
 uint16_t getNumberOfHexDigits(const char string[], const uint16_t maxLenght);
 bool isNumericArgument(const char string[], const uint16_t maxLength);
@@ -109,7 +109,7 @@ void reset(struct uartStruct *ptr_uartStruct);
 void init(struct uartStruct *ptr_uartStruct);
 
 void startMessage(void);
-size_t getMaximumStringArrayLength_P(PGM_P array[], size_t maxIndex, size_t maxResult);
+size_t getMaximumStringArrayLength_P(PGM_P const array[], size_t maxIndex, size_t maxResult);
 size_t getMaximumStringArrayLength(const char* array[], size_t maxIndex, size_t maxResult);
 
 void determineAndHandleResetSource(void);
@@ -121,7 +121,7 @@ bool isNumericalConstantZero(const char string[]);
 
 #ifndef API_CONSTANTS_H_
 
-extern const char *general_error[] PROGMEM;
+extern const char* const general_error[] PROGMEM;
 enum ge_index
 {
    GENERAL_ERROR_init_for_timer0_failed = 0,
@@ -139,7 +139,7 @@ enum ge_index
 };
 
 
-extern const char *serial_error[] PROGMEM;
+extern const char* const serial_error[] PROGMEM;
 enum se_index
 {
    SERIAL_ERROR_no_valid_command_name = 0,
@@ -160,7 +160,7 @@ enum dynamicMessage_index
     dynamicMessage_ErrorIndex = -100,
 };
 
-extern const char* responseKeywords[] PROGMEM;
+extern const char* const responseKeywords[] PROGMEM;
 /* those are the corresponding command key numbers to commandKeywords, beware of the same order*/
 enum responseKeyNumber
 {
@@ -170,7 +170,7 @@ enum responseKeyNumber
       responseKeyNumber_MAXIMUM_INDEX
 };
 
-extern const char* commandKeywords[] PROGMEM;
+extern const char* const commandKeywords[] PROGMEM;
 /* those are the corresponding command key numbers to commandKeywords, beware of the same order*/
 enum cmdKeyNumber
 {
@@ -231,14 +231,14 @@ enum cmdKeyNumber
                commandKeyNumber_MAXIMUM_NUMBER
 };
 
-extern const char* commandSyntaxes[] PROGMEM;
-extern const char* commandSyntaxAlternatives[] PROGMEM;
-extern const char* commandShortDescriptions[] PROGMEM;
-extern const uint8_t* commandImplementations[] PROGMEM;
+extern const char*    const commandSyntaxes[] PROGMEM;
+extern const char*    const commandSyntaxAlternatives[] PROGMEM;
+extern const char*    const commandShortDescriptions[] PROGMEM;
+extern const uint8_t* const commandImplementations[] PROGMEM;
 
-extern const uint8_t* commandImpls[] PROGMEM;
+extern const uint8_t* const commandImpls[] PROGMEM;
 
-extern const char *errorTypes[] PROGMEM;
+extern const char* const errorTypes[] PROGMEM;
 /* those are the corresponding ERRx numbers to errorTypes, beware of the same order*/
 enum ERRs
 {
@@ -251,8 +251,8 @@ enum ERRs
    ERR_MAXIMUM_NUMBER
 };
 
-extern const char *debugLevelNames[] PROGMEM;
-extern const char *debugSystemNames[] PROGMEM;
+extern const char* const debugLevelNames[] PROGMEM;
+extern const char* const debugSystemNames[] PROGMEM;
 
 enum resetSources
 {

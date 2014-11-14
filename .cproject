@@ -26,7 +26,7 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1286898020" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/opt/cross/avr/avr/include"/>
 									<listOptionValue builtIn="false" value="/opt/cross/avr/include"/>
-									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.3.3/include"/>
+									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.8.3/include"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.974436993" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -34,7 +34,7 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.847140887" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/opt/cross/avr/avr/include"/>
 									<listOptionValue builtIn="false" value="/opt/cross/avr/include"/>
-									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.3.3/include"/>
+									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.8.3/include"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.480429370" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -42,7 +42,7 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1767058096" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/opt/cross/avr/avr/include"/>
 									<listOptionValue builtIn="false" value="/opt/cross/avr/include"/>
-									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.3.3/include"/>
+									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.8.3/include"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.159649634" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
