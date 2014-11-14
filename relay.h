@@ -53,7 +53,7 @@ enum relayThresholdInputSourceEnum
 	relayThresholdInputSource_MAXIMUM_INDEX
 };
 
-extern const char* relayThresholdStateStrings[] PROGMEM;
+extern const char* const relayThresholdStateStrings[] PROGMEM;
 enum relayThresholdStates
 {
    relayThresholdState_INIT,
@@ -64,7 +64,7 @@ enum relayThresholdStates
    relayThresholdState_MAXIMUM_NUMBER
 };
 
-extern const char* relayThresholdCommandKeywords[] PROGMEM;
+extern const char* const relayThresholdCommandKeywords[] PROGMEM;
 enum relayThresholdCommandKeyNumber
 {
       relayThresholdCommandKeyNumber_CURRENT_STATE = 0,

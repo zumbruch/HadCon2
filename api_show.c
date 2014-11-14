@@ -33,7 +33,7 @@ static const char showCommandKeyword06[] PROGMEM = "watchdog_counter";
 //		{ (int8_t(*)(struct uartStruct)) showUnusedMemStart, showCommandKeyword02 }
 //};
 
-const char* showCommandKeywords[] PROGMEM = {
+const char* const showCommandKeywords[] PROGMEM = {
 		showCommandKeyword00,
 		showCommandKeyword01,
 		showCommandKeyword02,

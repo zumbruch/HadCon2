@@ -31,7 +31,7 @@ static const char owiApiCommandKeyword01[] PROGMEM = "common_adc_convert";
 //      { (int8_t(*)(struct uartStruct)) showUnusedMemStart, owiApiCommandKeyword02 }
 //};
 
-const char* owiApiCommandKeywords[] PROGMEM = {
+const char* const owiApiCommandKeywords[] PROGMEM = {
         owiApiCommandKeyword00,
         owiApiCommandKeyword01};
 
