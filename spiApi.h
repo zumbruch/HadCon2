@@ -3,8 +3,8 @@
  *
  *  Created on: 22.05.2013
  *      Author: Peter Zumbruch, GSI, P.Zumbruch@gsi.de
- */
 
+ */
 #ifndef SPIAPI_H_
 #define SPIAPI_H_
 
@@ -15,8 +15,6 @@
 
 #include "api_debug.h"
 #include "spi.h"
-
-typedef uint8_t apiCommandResult;
 
 extern const char* const spiApiCommandKeywords[] PROGMEM;
 enum spiApiCommandKeyNumber
@@ -77,32 +75,6 @@ enum spiApiCommandKeyNumber
 	spiApiCommandKeyNumber_AUTO_PURGE_READ_BUFFER,
 	spiApiCommandKeyNumber_MAXIMUM_NUMBER
 
-};
-
-enum spiApiCommandResults
-{
-	spiApiCommandResult_SUCCESS_WITH_OUTPUT 			= 0,
-	spiApiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT,
-	spiApiCommandResult_SUCCESS_QUIET,
-	spiApiCommandResult_FAILURE 						= 100,
-	spiApiCommandResult_FAILURE_NOT_A_SUB_COMMAND,
-	spiApiCommandResult_FAILURE_QUIET,
-	spiApiCommandResult_UNDEFINED,
-	spiApiCommandResult_MAXIMUM_INDEX
-};
-
-enum spiApiVarTypes
-{
-	apiVarType_BOOL,
-	apiVarType_BOOL_TrueFalse,
-	apiVarType_BOOL_OnOff,
-	apiVarType_BOOL_HighLow,
-	apiVarType_UINT8,
-	apiVarType_UINT16,
-	apiVarType_UINT32,
-	apiVarType_UINT64,
-	apiVarType_UINTPTR,
-	spiApiVarType_MAXIMUM_INDEX,
 };
 
 enum spiApiTransmitByteOrders
@@ -190,10 +162,6 @@ uint8_t spiApiSubCommandAutoPurgeReadBuffer(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandAutoPurgeWriteBuffer(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsAddPin(struct uartStruct *ptr_uartStruct);
 uint8_t spiApiSubCommandCsRemovePin(struct uartStruct *ptr_uartStruct);
-
-uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max, bool report, char message[]);
-uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max);
-uint8_t apiShowValue(char string[], void *value, uint8_t type );
 
 uint8_t spiApiShowChipSelectAddress(int8_t chipSelectIndex);
 void spiApiShowChipSelectStatus(uint8_t mask, bool invert);

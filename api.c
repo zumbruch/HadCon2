@@ -48,6 +48,7 @@
 #include "can.h"
 #include "mem-check.h"
 #include "api_version.h"
+#include "api_identification.h"
 #include "twi_master.h"
 
 #include "adc.h"
@@ -60,6 +61,8 @@
 
 static const char filename[] PROGMEM = __FILE__;
 static const char string_s_i_[] PROGMEM = "%s %i ";
+static const char string_sX[]   	PROGMEM = "%s%X";
+//static const char string_sx[]     PROGMEM = "%s%x";
 
 #warning TODO: combine responseKeyword and other responses error into one set of responses
 
@@ -442,11 +445,11 @@ static const char commandShortDescription49[]  PROGMEM = "code version";
 static const uint8_t commandImplementation49   PROGMEM = TRUE;
 
 // index: 50
-static const char commandKeyword50[]           PROGMEM = "CMD5"; /* command (dummy name) */
-static const char commandSyntax50[]            PROGMEM = "[???]";
+static const char commandKeyword50[]           PROGMEM = "IDN"; /* command (dummy name) */
+static const char commandSyntax50[]            PROGMEM = "";
 static const char commandSyntaxAlternative50[] PROGMEM = "";
-static const char commandShortDescription50[]  PROGMEM = "";
-static const uint8_t commandImplementation50   PROGMEM = FALSE;
+static const char commandShortDescription50[]  PROGMEM = "returns device IDN";
+static const uint8_t commandImplementation50   PROGMEM = TRUE;
 
 // index: 51
 static const char commandKeyword51[]           PROGMEM = "CMD6"; /* command (dummy name) */
@@ -829,6 +832,7 @@ void Process_Uart_Event(void)
 			case commandKeyNumber_GNWR:
 			case commandKeyNumber_GNRE:
 			case commandKeyNumber_VERS:
+			case commandKeyNumber_IDN:
 			default:
 				/* call the function for the conversion frame format into CAN format*/
 				apiConvertUartDataToCanUartStruct(0);
@@ -1436,6 +1440,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
        break;
     case commandKeyNumber_VERS: /* version */
     	version();
+       break;
+    case commandKeyNumber_IDN: /* version */
+    	identification();
        break;
     default:
 		ptr_uartStruct->commandKeywordIndex = -1;
@@ -2612,4 +2619,124 @@ void determineAndHandleResetSource()
 			watchdogIncarnationsCounter = 0;
 			break;
 		}
+}
+
+uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max, bool report, char message[])
+{
+	if ( NULL == message)
+	{
+		message = uart_message_string;
+	}
+	switch (nArgumentArgs)
+	{
+		case 0: /*print*/
+			return apiShowValue(message, value, type );
+			break;
+		case 1: /*write*/
+		default:
+			/* take second parameter, i.e. first argument to sub command and fill it into value*/
+
+			if ( apiCommandResult_FAILURE > apiAssignParameterToValue(2, value, type, min, max) )
+			{
+				if (report)
+				{
+					/* report by recursive call */
+					apiShowValue(message, value, type );
+					return apiCommandResult_SUCCESS_WITH_OUTPUT;
+				}
+			}
+
+			break;
+	}
+	return apiCommandResult_SUCCESS_QUIET;
+}
+
+uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max)
+{
+#warning integrate type casting into getUnsignedNumericValueFromParameterIndex(parameterIndex, &inputValue)) ?
+	uint64_t inputValue = 0;
+
+	if ( 0 != getUnsignedNumericValueFromParameterIndex(parameterIndex, &inputValue))
+	{
+		return apiCommandResult_FAILURE_QUIET;
+	}
+
+	if ( (min > inputValue) || (max < inputValue) )
+	{
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
+		return apiCommandResult_FAILURE_QUIET;
+	}
+
+	/* set */
+	switch( type )
+	{
+		case apiVarType_BOOL_OnOff:
+		case apiVarType_BOOL_TrueFalse:
+		case apiVarType_BOOL_HighLow:
+		case apiVarType_BOOL:
+			*((bool*)value) = (bool) (inputValue != 0);
+			break;
+		case apiVarType_UINT8:
+			*((uint8_t*)value) = UINT8_MAX & inputValue;
+			break;
+		case apiVarType_UINT16:
+			*((uint16_t*)value) = UINT16_MAX & inputValue;
+			break;
+		case apiVarType_UINT32:
+			*((uint32_t*)value) = UINT32_MAX & inputValue;
+			break;
+		case apiVarType_UINT64:
+			*((uint64_t*)value) = UINT64_MAX & inputValue;
+			break;
+		case apiVarType_UINTPTR:
+			*((uintptr_t*)value) = UINTPTR_MAX & inputValue;
+			break;
+		default:
+			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
+			return apiCommandResult_FAILURE_QUIET;
+			break;
+	}
+
+	return apiCommandResult_SUCCESS_QUIET;
+}
+
+uint8_t apiShowValue(char string[], void *value, uint8_t type )
+{
+	if (NULL == string)
+	{
+		string = uart_message_string;
+	}
+	switch( type )
+	{
+		case apiVarType_BOOL_OnOff:
+			strncat_P(string, *((bool*)value)?PSTR("ON"):PSTR("OFF"), BUFFER_SIZE - 1);
+			break;
+		case apiVarType_BOOL_TrueFalse:
+			strncat_P(string, *((bool*)value)?PSTR("TRUE"):PSTR("FALSE"), BUFFER_SIZE - 1);
+			break;
+		case apiVarType_BOOL_HighLow:
+			strncat_P(string, *((bool*)value)?PSTR("HIGH"):PSTR("LOW"), BUFFER_SIZE - 1);
+			break;
+		case apiVarType_BOOL:
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((bool*)value));
+			break;
+		case apiVarType_UINT8:
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint8_t*)value));
+			break;
+		case apiVarType_UINT16:
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint16_t*)value));
+			break;
+		case apiVarType_UINT32:
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint32_t*)value));
+			break;
+		case apiVarType_UINT64:
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint64_t*)value));
+			break;
+		default:
+			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
+			return apiCommandResult_FAILURE_QUIET;
+			break;
+	}
+	return apiCommandResult_SUCCESS_WITH_OUTPUT;
+
 }
