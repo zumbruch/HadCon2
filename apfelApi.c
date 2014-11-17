@@ -64,7 +64,7 @@ static const char apfelApiCommandKeyword26[] PROGMEM = "uts";
 static const char apfelApiCommandKeyword27[] PROGMEM = "apfel_enable";
 static const char apfelApiCommandKeyword28[] PROGMEM = "reset";
 
-const char* apfelApiCommandKeywords[] PROGMEM = {
+const char* const apfelApiCommandKeywords[] PROGMEM = {
         apfelApiCommandKeyword00, apfelApiCommandKeyword01, apfelApiCommandKeyword02, apfelApiCommandKeyword03, apfelApiCommandKeyword04,
 		apfelApiCommandKeyword05, apfelApiCommandKeyword06, apfelApiCommandKeyword07, apfelApiCommandKeyword08, apfelApiCommandKeyword09,
 		apfelApiCommandKeyword10, apfelApiCommandKeyword11, apfelApiCommandKeyword12, apfelApiCommandKeyword13, apfelApiCommandKeyword14,
