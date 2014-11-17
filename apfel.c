@@ -12,6 +12,7 @@
 #include "read_write_register.h"
 #include <avr/io.h>
 #include <stdbool.h>
+#define __DELAY_BACKWARD_COMPATIBLE__
 #include <util/delay.h>
 
 /*eclipse specific setting, not used during build process*/

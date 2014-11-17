@@ -3,7 +3,9 @@
 /*the define.h header file contents all define variable*/
 
 #define CODE_VERSION "4.6.3.APFEL"
-#define HADCON_VERSION 2
+#ifndef HADCON_VERSION
+  #define HADCON_VERSION 2
+#endif
 
 #if HADCON_VERSION == 1
 #define IDENTIFICATION "HadCon"

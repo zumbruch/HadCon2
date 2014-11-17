@@ -16,7 +16,7 @@
 #include "api_debug.h"
 #include "apfel.h"
 
-extern const char* apfelApiCommandKeywords[] PROGMEM;
+extern const char* const apfelApiCommandKeywords[] PROGMEM;
 enum apfelApiCommandKeyNumber
 {
 	   apfelApiCommandKeyNumber_DAC                  = 0,
