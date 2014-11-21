@@ -229,7 +229,7 @@ enum cmdKeyNumber
                commandKeyNumber_WDOG,
                commandKeyNumber_VERS,
                commandKeyNumber_IDN,
-               commandKeyNumber_APWI,
+               commandKeyNumber_DAC,
                commandKeyNumber_APFEL,
                commandKeyNumber_CMD8,
                commandKeyNumber_MAXIMUM_NUMBER

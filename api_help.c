@@ -481,7 +481,8 @@ void help(struct uartStruct *ptr_uartStruct)
 						/* response */
 						helpShowCommandOrResponse_p (currentReceiveHeader, NULL, string_3questions);
 						break;
-					case commandKeyNumber_APWI:
+					case commandKeyNumber_DAC:
+						break;
 					case commandKeyNumber_APFEL:
 						/* command */
 						helpShowCommandOrResponse_p (NULL, NULL, PSTR("[command]"));
