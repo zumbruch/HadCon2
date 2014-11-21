@@ -1464,11 +1464,12 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		#define APFEL_PIN_MASK2 (0xFF & (1 << APFEL_PIN_CLK2 | 1 << APFEL_PIN_DOUT2 | 1 << APFEL_PIN_SS2 ))
 		#define APFEL_PIN_MASK_DIN (0xFF & (1 << APFEL_PIN_DIN1 | 1 << APFEL_PIN_DIN2 ))
 
-		#define APFEL_writePort(val,A,ss) {PORT##A = ((PIN##A & APFEL_PIN_MASK_DIN) &\
-				(PIN##A & ((ss-1)?APFEL_PIN_MASK1:APFEL_PIN_MASK2)) &\
-				((val)  & ((ss-1)?APFEL_PIN_MASK2:APFEL_PIN_MASK1))); \
-				_delay_us(apfelUsToDelay);}
-		#define APFEL_readPort(A,ss) ((PIN##A >> (APFEL_PIN_DIN##ss )) & 0x1)
+		#define APFEL_writePort(val,A,pinSetIndex) {PORT##A = (pinSetIndex-1)? \
+		 	 	 	 	 	 	 	 	 	 	    ((~APFEL_PIN_MASK_DIN) & ((PIN##A & ~(APFEL_PIN_MASK2)) | (val & APFEL_PIN_MASK2))): \
+		                                            ((~APFEL_PIN_MASK_DIN) & ((PIN##A & ~(APFEL_PIN_MASK1)) | (val & APFEL_PIN_MASK1))); \
+                                                    _delay_us(APFEL_US_TO_DELAY_DEFAULT);}
+
+    	#define APFEL_readPort(A,pinSetIndex) ((PIN##A >> (APFEL_PIN_DIN##pinSetIndex )) & 0x1)
 
     	/* functions */
 			inline int8_t apfelWritePort(uint8_t val,char port, uint8_t pinSetIndex)
@@ -1480,17 +1481,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 				switch (port)
 				{
 					case 'A':
-						    //printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename,
-						    //			PSTR("apfelWritePort '%c' val:0x%x pinSetIndex(1/2):%i"),
-						    //			port, val, pinSetIndex);
-						//REGISTER_WRITE_INTO_8BIT_REGISTER(0x22,val);
-//						PORTA = (val & 0xFF);
-//						_delay_us(APFEL_US_TO_DELAY_DEFAULT);
-					    PORTA = (pinSetIndex-1)?
-					    		 ((PINA & ~(APFEL_PIN_MASK2)) | (val & APFEL_PIN_MASK2)):
-					    		 ((PINA & ~(APFEL_PIN_MASK1)) | (val & APFEL_PIN_MASK1));
-						_delay_us(APFEL_US_TO_DELAY_DEFAULT);
-							//APFEL_writePort(val,A,pinSetIndex);
+							APFEL_writePort(val,A,pinSetIndex);
 						    break;
 					case 'B':
 							APFEL_writePort(val,B,pinSetIndex);
@@ -1526,25 +1517,25 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 				switch (port)
 				{
 					case 'A':
-							return (1==pinSetIndex)?(APFEL_readPort(A, 1)):(APFEL_readPort(A, 2));
+							return (1==pinSetIndex)?(APFEL_readPort(A,1)):(APFEL_readPort(A,2));
 						break;
 					case 'B':
-							return (1==pinSetIndex)?(APFEL_readPort(B, 1)):(APFEL_readPort(B, 2));
+							return (1==pinSetIndex)?(APFEL_readPort(B,1)):(APFEL_readPort(B,2));
 						break;
 					case 'C':
-							return (1==pinSetIndex)?(APFEL_readPort(C, 1)):(APFEL_readPort(C, 2));
+							return (1==pinSetIndex)?(APFEL_readPort(C,1)):(APFEL_readPort(C,2));
 						break;
 					case 'D':
-							return (1==pinSetIndex)?(APFEL_readPort(D, 1)):(APFEL_readPort(D, 2));
+							return (1==pinSetIndex)?(APFEL_readPort(D,1)):(APFEL_readPort(D,2));
 						break;
 					case 'E':
-							return (1==pinSetIndex)?(APFEL_readPort(E, 1)):(APFEL_readPort(E, 2));
+							return (1==pinSetIndex)?(APFEL_readPort(E,1)):(APFEL_readPort(E,2));
 						break;
 					case 'F':
-							return (1==pinSetIndex)?(APFEL_readPort(F, 1)):(APFEL_readPort(F, 2));
+							return (1==pinSetIndex)?(APFEL_readPort(F,1)):(APFEL_readPort(F,2));
 						break;
 					case 'G':
-							return (1==pinSetIndex)?(APFEL_readPort(G, 1)):(APFEL_readPort(G, 2));
+							return (1==pinSetIndex)?(APFEL_readPort(G,1)):(APFEL_readPort(G,2));
 						break;
 					default:
 						return -1;
@@ -1559,7 +1550,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			/* 3. data high + clock High */
 			/* 4. data low  + clock High */
 			/* 5. data low  + clock low  */
-    		static char apfelHigh[2][5]= {
+    		static char const apfelHigh[][5]= {
     									 {(0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), \
 										  (1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), \
 										  (1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), \
@@ -1577,7 +1568,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			/* 3.data low + clock High*/
 			/* 4.data low + clock High*/
 			/* 5.data low + clock low */
-    		static char apfelLow [2][5]= {
+    		static char const apfelLow [][5]= {
     									 {(0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), \
 										  (0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), \
 										  (0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), \
@@ -1591,7 +1582,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 										  (0 << APFEL_PIN_DOUT2 | 0 << APFEL_PIN_CLK2)}
     									};
 
-    	    inline int8_t apfelWriteData(uint8_t bit, char port, uint8_t pinSetIndex)
+    	    inline int8_t apfelWriteBit_Inline(uint8_t bit, char port, uint8_t pinSetIndex)
 			{
       	    	if (0 == pinSetIndex || pinSetIndex > 2 )
       	    	{
@@ -1616,19 +1607,104 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
       	    	return 0;
 			}
 
-			/* init IO ports */
-			//configure I/O port A
-			DDRA = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
-			DDRC = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
-			DDRF = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
+    	    inline void apfelInit_Inline(void)
+    	    {
+    	    	/* init IO ports */
+    	    	//configure I/O port A
+    	    	DDRA = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
+    	    	DDRC = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
+    	    	DDRF = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
 
-			PORTA = 0;
-			PORTC = 0;
-			PORTF = 0;
+    	    	PORTA = 0;
+    	    	PORTC = 0;
+    	    	PORTF = 0;
+    	    }
 
-			printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("writing High"));
-			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+    	    inline uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t nBits )
+			{
+    	    	static uint16_t value = 0;
+                static uint8_t  bitIndex = 0;
+                static uint8_t  bit = 0;
+                value = 0;
+                bitIndex = 0;
+                bit = 0;
+
+    	    	switch(pinSetIndex)
+    	    	{
+    	    		case 1:
+    	    			// make sure we start from clock 0 + data 0
+						apfelWritePort(((0 << APFEL_PIN_CLK1) | (0 << APFEL_PIN_DOUT1)), port, pinSetIndex);
+
+						// initial bit read differently !!! TNX^6 Peter Wieczorek ;-)
+						// since apfel needs first falling clock edge to activate the output pad
+						// therefore first cycle then read data.
+						if (nBits)
+						{
+							nBits--;
+						}
+						// clock high
+						apfelWritePort((1 << APFEL_PIN_CLK1), port, 1);
+						// clock low
+						apfelWritePort((0 << APFEL_PIN_CLK1), port, 1);
+						// read data in
+						bit = apfelReadPort(port, 2);
+						value |= (bit << bitIndex);
+//						printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("bit(%i): 0x%x - value: 0x%04x"), bitIndex+1, bit, value);
+
+						while (bitIndex < nBits)
+						{
+							bitIndex++;
+							// clock high
+							apfelWritePort((1 << APFEL_PIN_CLK1), port, 1);
+							// read data in
+							bit = apfelReadPort(port, 2);
+							value |= (bit << bitIndex);
+							// clock low
+							apfelWritePort((0 << APFEL_PIN_CLK1), port, 1);
+//							printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("bit(%i): 0x%x - value: 0x%04x"), bitIndex+1, bit, value);
+							PINC = 0xFF;
+						}
+                    break;
+    	    		case 2:
+						// make sure we start from clock 0 + data 0
+						apfelWritePort(((0 << APFEL_PIN_CLK2) | (0 << APFEL_PIN_DOUT2)), port, 2);
+
+						// initial bit read differently !!! TNX^6 Peter Wieczorek ;-)
+						// since apfel needs first falling clock edge to activate the output pad
+						// therefore first cycle then read data.
+						if (nBits)
+						{
+							nBits--;
+						}
+						// clock high
+						apfelWritePort((1 << APFEL_PIN_CLK2), port, 2);
+						// clock low
+						apfelWritePort((0 << APFEL_PIN_CLK2), port, 2);
+						// read data in
+						value |= (apfelReadPort(port, 2) << bitIndex);
+
+						while (bitIndex < nBits)
+						{
+							bitIndex++;
+							// clock high
+							apfelWritePort((1 << APFEL_PIN_CLK2), port, 2);
+							// read data in
+							value |= (apfelReadPort(port, 2) << bitIndex);
+							// clock low
+							apfelWritePort((0 << APFEL_PIN_CLK2), port, 2);
+						}
+    	    			break;
+    	    		default:
+    	    		break;
+    	    	}
+    	    	return value;
+			}
+
+    	    apfelInit_Inline();
+
+
+			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
 
 			_delay_us(1);
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
@@ -1636,19 +1712,29 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
 
-			apfelWriteData(1, 'A', 1);
-			apfelWriteData(0, 'A', 1);
+//			apfelWriteBit_Inline(1, 'A', 1);
+//			apfelWriteBit_Inline(0, 'A', 1);
+
+			uint16_t value;
+			value=apfelReadBitSequence_Inline('A',1,6);
+//			printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("read value: 0x%04x\n"), value);
+			value=apfelReadBitSequence_Inline('A',1,6);
+//			printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("read value: 0x%04x\n"), value);
+			value=apfelReadBitSequence_Inline('A',1,6);
+//			printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("read value: 0x%04x\n"), value);
 
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
 
-			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
 
     }
-    	/* apfelApi(ptr_uartStruct); */
+
+
+    /* apfelApi(ptr_uartStruct); */
     	break;
     case commandKeyNumber_GNWR: /* generator write */
       waveformGeneratorWriteRegister(ptr_uartStruct);
