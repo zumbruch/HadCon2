@@ -144,7 +144,7 @@ typedef struct apfelChipAddressStruct
   apfelPortAddressSet portAddress;
 } apfelChipAddressStruct;
 
-double apfelUsToDelay;
+static double apfelUsToDelay;
 
 uint8_t apfelSetClockAndDataLine( uint8_t portAddress, uint8_t value, uint8_t mask);
 
