@@ -1434,7 +1434,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
     	break;
     case commandKeyNumber_APFEL: /* command (dummy name) */
     {
-		#define APFEL_US_TO_DELAY_DEFAULT 1
+		#define APFEL_US_TO_DELAY_DEFAULT 0
     	apfelSetUsToDelay(APFEL_US_TO_DELAY_DEFAULT);
     	/* definitions */
 		#define APFEL_N_CommandBits  4
@@ -1480,9 +1480,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						    //printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename,
 						    //			PSTR("apfelWritePort '%c' val:0x%x pinSetIndex(1/2):%i"),
 						    //			port, val, pinSetIndex);
-						    REGISTER_WRITE_INTO_8BIT_REGISTER(0x22,val);
-
-
+						//REGISTER_WRITE_INTO_8BIT_REGISTER(0x22,val);
+						PORTA = (val & 0xFF);
+						_delay_us(0);
 //						    PORTA = ((PINA & APFEL_PIN_MASK_DIN) &
 //						    		  (PINA & ((pinSetIndex-1)?APFEL_PIN_MASK1:APFEL_PIN_MASK2)) &\
 //						    		  ((val)  & ((pinSetIndex-1)?APFEL_PIN_MASK2:APFEL_PIN_MASK1)));
@@ -1589,32 +1589,25 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 
     	    inline int8_t apfelWriteData(uint8_t bit, char port, uint8_t pinSetIndex)
 			{
-    			printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("apfelWriteData entering, bit %i"),bit);
-
-      	    	static uint8_t arrayIndex = 0;
-      	    	/* boundary check*/
       	    	if (0 == pinSetIndex || pinSetIndex > 2 )
       	    	{
       	    		return -1;
       	    	}
       	    	if ( 0 == bit)
       	    	{
-      	    		for (arrayIndex = 0; arrayIndex < 5; ++arrayIndex)
-      	    		{
-      	    			//printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL,
-//      	    					__LINE__, filename,
-//								PSTR("apfelWriteData entering, index %i:0x%x"),
-//								arrayIndex,apfelLow[pinSetIndex-1][arrayIndex]);
-      	    			apfelWritePort(apfelLow[pinSetIndex-1][arrayIndex], port, pinSetIndex);
-      	    		}
+      				apfelWritePort(apfelLow[pinSetIndex-1][0], port, pinSetIndex);
+      				apfelWritePort(apfelLow[pinSetIndex-1][1], port, pinSetIndex);
+      				apfelWritePort(apfelLow[pinSetIndex-1][2], port, pinSetIndex);
+      				apfelWritePort(apfelLow[pinSetIndex-1][3], port, pinSetIndex);
+      				apfelWritePort(apfelLow[pinSetIndex-1][4], port, pinSetIndex);
       	    	}
       	    	else
       	    	{
-      	    		for (arrayIndex = 0; arrayIndex < 5; arrayIndex++)
-      	    		{
-      	    			//printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("apfelWriteData entering, index %i:0x%x"),arrayIndex,apfelHigh[pinSetIndex-1][arrayIndex]);
-      	    			apfelWritePort(apfelHigh[pinSetIndex-1][arrayIndex], port, pinSetIndex);
-      	    		}
+      				apfelWritePort(apfelHigh[pinSetIndex-1][0], port, pinSetIndex);
+      				apfelWritePort(apfelHigh[pinSetIndex-1][1], port, pinSetIndex);
+      				apfelWritePort(apfelHigh[pinSetIndex-1][2], port, pinSetIndex);
+      				apfelWritePort(apfelHigh[pinSetIndex-1][3], port, pinSetIndex);
+      				apfelWritePort(apfelHigh[pinSetIndex-1][4], port, pinSetIndex);
       	    	}
       	    	return 0;
 			}
@@ -1633,8 +1626,17 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;
 			_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;
 
-			_delay_us(10);
+			_delay_us(2);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
 
+			apfelWriteData(1, 'A', 1);
+			apfelWriteData(0, 'A', 1);
+
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
 
