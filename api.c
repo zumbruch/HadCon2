@@ -1481,11 +1481,12 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						    //			PSTR("apfelWritePort '%c' val:0x%x pinSetIndex(1/2):%i"),
 						    //			port, val, pinSetIndex);
 						//REGISTER_WRITE_INTO_8BIT_REGISTER(0x22,val);
-						PORTA = (val & 0xFF);
-						_delay_us(0);
-//						    PORTA = ((PINA & APFEL_PIN_MASK_DIN) &
-//						    		  (PINA & ((pinSetIndex-1)?APFEL_PIN_MASK1:APFEL_PIN_MASK2)) &\
-//						    		  ((val)  & ((pinSetIndex-1)?APFEL_PIN_MASK2:APFEL_PIN_MASK1)));
+//						PORTA = (val & 0xFF);
+//						_delay_us(APFEL_US_TO_DELAY_DEFAULT);
+					    PORTA = (pinSetIndex-1)?
+					    		 ((PINA & ~(APFEL_PIN_MASK2)) | (val & APFEL_PIN_MASK2)):
+					    		 ((PINA & ~(APFEL_PIN_MASK1)) | (val & APFEL_PIN_MASK1));
+						_delay_us(APFEL_US_TO_DELAY_DEFAULT);
 							//APFEL_writePort(val,A,pinSetIndex);
 						    break;
 					case 'B':
@@ -1623,10 +1624,10 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			PORTF = 0;
 
 			printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("writing High"));
-			_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;
-			_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;
+			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
 
-			_delay_us(2);
+			_delay_us(1);
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
@@ -1640,8 +1641,8 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
 
-			_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;
-			_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;_delay_us(1); PINA = 0xFF;
+			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
 
     }
     	/* apfelApi(ptr_uartStruct); */
