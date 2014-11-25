@@ -1440,6 +1440,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		#define APFEL_N_CommandBits  4
 		#define APFEL_N_ValueBits  10
 		#define APFEL_N_ChipIdBits  8
+		#define APFEL_LITTLE_ENDIAN  0
+		#define APFEL_BIG_ENDIAN  1
+		#define APFEL_DEFAULT_ENDIANNESS  APFEL_BIG_ENDIAN
 
 		#define APFEL_COMMAND_SetDac  0x0
 		#define APFEL_COMMAND_ReadDac  0x4
@@ -1790,29 +1793,60 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
     	      }
     	    }
 
+    	    /*#writeBitSequence #bits #data #endianess (0: little, 1:big)*/
+			inline void apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex,
+					                                 int8_t nBits, uint16_t data,
+													 uint8_t endianness)
+			{
+				int8_t bitPos = 0;
+
+				switch(endianness)
+				{
+					case APFEL_LITTLE_ENDIAN:
+						while(bitPos < nBits)
+						{
+							apfelWriteBit_Inline(((uint8_t)((data>>bitPos) & 0x1)),port, pinSetIndex);
+							bitPos++;
+						}
+						break;
+					case APFEL_BIG_ENDIAN:
+						bitPos=nBits-1;
+						while(bitPos >= 0 )
+						{
+							apfelWriteBit_Inline(((uint8_t)((data>>bitPos) & 0x1)),port, pinSetIndex);
+							bitPos--;
+						}
+						break;
+					default:
+						CommunicationError(ERRA, -1, 1, PSTR("wrong endianness: %i (%i,%i)"), endianness, APFEL_LITTLE_ENDIAN, APFEL_BIG_ENDIAN);
+						return;
+						break;
+				}
+			}
     	    /*----------------------------------------------------*/
     	    apfelInit_Inline();
 
-    	    int8_t arg[3];
-    	    arg[0] = -1;
-    	    arg[1] = -1;
+    	    uint32_t arg[5] = {-1,-1,-1,-1,-1};
+
     	    switch(ptr_uartStruct->number_of_arguments/* arguments of argument */)
 			{
-				case 0:
-					printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("nothing to do"));
-					break;
-				case 1:
-				{
-					arg[0] = (uint32_t) strtoul(setParameter[1], &ptr_setParameter[1], 16);
-					arg[1] = -1;
-				}
-				break;
+				case 5:
+					arg[4] = (uint32_t) strtoul(setParameter[5], &ptr_setParameter[5], 16);
+				case 4:
+					arg[3] = (uint32_t) strtoul(setParameter[4], &ptr_setParameter[4], 16);
+				case 3:
+					arg[2] = (uint32_t) strtoul(setParameter[3], &ptr_setParameter[3], 16);
 				case 2:
-				{
-					arg[0] = (uint32_t) strtoul(setParameter[1], &ptr_setParameter[1], 16);
 					arg[1] = (uint32_t) strtoul(setParameter[2], &ptr_setParameter[2], 16);
-				}
+				case 1:
+					arg[0] = (uint32_t) strtoul(setParameter[1], &ptr_setParameter[1], 16);
 				break;
+				case 0:
+					break;
+				default:
+					CommunicationError(ERRA, -1, 1, PSTR("too many arguments : %i "), ptr_uartStruct->number_of_arguments);
+					return;
+					break;
 			}
 
 
@@ -1826,7 +1860,6 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			switch (ptr_uartStruct->number_of_arguments/* arguments of argument */)
 			{
 				case 0:
-					printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("nothing to do"));
 					break;
 				case 1:
 				{
@@ -1858,17 +1891,16 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						case 7:
 							apfelStartStreamHeader_Inline('A', 1);
 							break;
+						case 8:
+							apfelWriteBitSequence_Inline('A', 1, 6, 0x12, APFEL_DEFAULT_ENDIANNESS);
+							break;
 						default:
-							printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename,
-									PSTR("nothing to do"));
-    	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-    	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-    	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-    	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
+							return;
 							break;
 					}
 				}
-					break;
+				break;
 				case 2:
 				{
 					switch (arg[0])
@@ -1879,20 +1911,43 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						}
 							break;
 						case 5: /* write sequence */
-							//printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("write SEQUENCE"));
 							apfelWriteClockSequence_Inline('A', 1, arg[1]);
 							break;
 						default:
-							printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename,
-									PSTR("nothing to do"));
-    	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-    	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-    	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-    	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
+							return;
 							break;
 					}
 				}
-					break;
+				break;
+				case 3:
+				{
+					switch (arg[0])
+					{
+						case 8:
+							apfelWriteBitSequence_Inline('A', 1, arg[1], arg[2], APFEL_DEFAULT_ENDIANNESS);
+							break;
+						default:
+							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
+							return;
+							break;
+					}
+				}
+				break;
+				case 4:
+				{
+					switch (arg[0])
+					{
+						case 8:
+							apfelWriteBitSequence_Inline('A', 1, arg[1], arg[2], arg[3]);
+							break;
+						default:
+							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
+							return;
+							break;
+					}
+				}
+				break;
 				default: /* else */
 					break;
 			}
