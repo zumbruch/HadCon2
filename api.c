@@ -1759,6 +1759,40 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						break;
 				}
     	    }
+
+    	    //mandatory header to all command sequences
+    	    inline void apfelStartStreamHeader_Inline(char port, uint8_t pinSetIndex)
+    	    {
+    	      apfelClearDataInput_Inline(port, pinSetIndex);
+
+    	      //  1. clock Low
+    	      //  2. clock Low  + data high
+    	      //  3. clock High + data high
+    	      //  4. clock low  + data high
+    	      //  5. clock low  + data low
+
+
+    	      switch(pinSetIndex)
+    	      {
+    	    	  case 1:
+    					apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), port, pinSetIndex);
+    					apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), port, pinSetIndex);
+    					apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), port, pinSetIndex);
+    					apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), port, pinSetIndex);
+    					apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), port, pinSetIndex);
+    	    		  break;
+    	    	  case 2:
+    					apfelWritePort((0 << APFEL_PIN_DOUT2 | 0 << APFEL_PIN_CLK2), port, pinSetIndex);
+    					apfelWritePort((1 << APFEL_PIN_DOUT2 | 0 << APFEL_PIN_CLK2), port, pinSetIndex);
+    					apfelWritePort((1 << APFEL_PIN_DOUT2 | 1 << APFEL_PIN_CLK2), port, pinSetIndex);
+    					apfelWritePort((1 << APFEL_PIN_DOUT2 | 0 << APFEL_PIN_CLK2), port, pinSetIndex);
+    					apfelWritePort((0 << APFEL_PIN_DOUT2 | 0 << APFEL_PIN_CLK2), port, pinSetIndex);
+    	    		  break;
+    	    	  default:
+    	    		  break;
+    	      }
+    	    }
+
     	    /*----------------------------------------------------*/
     	    apfelInit_Inline();
 
@@ -1824,7 +1858,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						case 6:
 							apfelClearDataInput_Inline('A', 1);
 							break;
-
+						case 7:
+							apfelStartStreamHeader_Inline('A', 1);
+							break;
 						default:
 							printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename,
 									PSTR("nothing to do"));
