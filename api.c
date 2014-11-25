@@ -1710,9 +1710,54 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 				}
     	    }
 
-    	    inline void apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t nCycles)
+    	    /*  apfelClearDataInput
+			     sends enough empty clock cycles to clear input buffer
+			     after each byte add 3 0 writes */
+    	    inline void apfelClearDataInput_Inline(char port, uint8_t pinSetIndex)
     	    {
-
+    	        uint8_t a = (APFEL_N_CommandBits + APFEL_N_ValueBits + APFEL_N_ChipIdBits);
+    	        uint8_t i = 0;
+				switch (pinSetIndex)
+				{
+					case 1:
+						while (i < a)
+						{
+							i++;
+							if (0 == i%8)
+							{
+								apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), port, pinSetIndex);
+								apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), port, pinSetIndex);
+							}
+							apfelWriteClockSequence_Inline(port, pinSetIndex, 1);
+						}
+						i = 10;
+						while (i > 0)
+						{
+							i--;
+							apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), port, pinSetIndex);
+						}
+						break;
+					case 2:
+						while (i < a)
+						{
+							i++;
+							if (0 == i%8)
+							{
+								apfelWritePort((0 << APFEL_PIN_DOUT2 | 0 << APFEL_PIN_CLK2), port, pinSetIndex);
+								apfelWritePort((0 << APFEL_PIN_DOUT2 | 0 << APFEL_PIN_CLK2), port, pinSetIndex);
+							}
+							apfelWriteClockSequence_Inline(port, pinSetIndex, 1);
+						}
+						i = 10;
+						while (i > 0)
+						{
+							i--;
+							apfelWritePort((0 << APFEL_PIN_DOUT2 | 0 << APFEL_PIN_CLK2), port, pinSetIndex);
+						}
+						break;
+					default:
+						break;
+				}
     	    }
     	    /*----------------------------------------------------*/
     	    apfelInit_Inline();
@@ -1721,22 +1766,23 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
     	    arg[0] = -1;
     	    arg[1] = -1;
     	    switch(ptr_uartStruct->number_of_arguments/* arguments of argument */)
-    	    {
-    	          case 0:
-    	        	  printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("nothing to do"));
-    	        	  break;
-    	          case 1:
-    	          {
-    	        	  arg[0] = (uint32_t) strtoul(setParameter [1], &ptr_setParameter[ 1 ], 16);
-    	        	  arg[1] = -1;
-    	          }
-    	          case 2:
-    	          {
-    	        	  arg[0] = (uint32_t) strtoul(setParameter [1], &ptr_setParameter[ 1 ], 16);
-    	        	  arg[1] = (uint32_t) strtoul(setParameter [2], &ptr_setParameter[ 2 ], 16);
-    	          }
-    	          break;
-    	    }
+			{
+				case 0:
+					printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("nothing to do"));
+					break;
+				case 1:
+				{
+					arg[0] = (uint32_t) strtoul(setParameter[1], &ptr_setParameter[1], 16);
+					arg[1] = -1;
+				}
+				break;
+				case 2:
+				{
+					arg[0] = (uint32_t) strtoul(setParameter[1], &ptr_setParameter[1], 16);
+					arg[1] = (uint32_t) strtoul(setParameter[2], &ptr_setParameter[2], 16);
+				}
+				break;
+			}
 
 
 			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
@@ -1746,77 +1792,77 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
 
 
-			switch(ptr_uartStruct->number_of_arguments/* arguments of argument */)
-    	       {
-    	          case 0:
-    	        	  printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("nothing to do"));
-    	             break;
-    	          case 1:
-    	          {
-    	        	  switch(arg[0])
-    	        	  {
-    	        		  case 1: /* write High*/
-    	        			  apfelWriteBit_Inline(1, 'A', 1);
-    	        			  break;
-    	        		  case 2: /* write Low*/
-    	        			  apfelWriteBit_Inline(0, 'A', 1);
-    	        			  break;
-    	        		  case 3: /* write High/Low*/
-    	        			  apfelWriteBit_Inline(1, 'A', 1);
-    	        			  apfelWriteBit_Inline(0, 'A', 1);
-    	        			  break;
-    	        		  case 4: /* read sequence 3x6bit*/
-    	        		  {
-    	        			  uint16_t value;
-    	        			  value=apfelReadBitSequence_Inline('A',1,6);
-    	        			  //			printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("read value: 0x%04x\n"), value);
-    	        			  value=apfelReadBitSequence_Inline('A',1,6);
-    	        			  //			printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("read value: 0x%04x\n"), value);
-    	        			  value=apfelReadBitSequence_Inline('A',1,6);
-    	        			  //			printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("read value: 0x%04x\n"), value);
-    	        		  }
-    	        		  break;
-    	        		  case 5: /* write sequence */
-    	        			  //printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("write SEQUENCE"));
-    	          	    	apfelWriteClockSequence_Inline('A',1, 16 );
-    	        			  break;
-    	        		  default:
-    	        			  printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("nothing to do"));
+			switch (ptr_uartStruct->number_of_arguments/* arguments of argument */)
+			{
+				case 0:
+					printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("nothing to do"));
+					break;
+				case 1:
+				{
+					switch (arg[0])
+					{
+						case 1: /* write High*/
+							apfelWriteBit_Inline(1, 'A', 1);
+							break;
+						case 2: /* write Low*/
+							apfelWriteBit_Inline(0, 'A', 1);
+							break;
+						case 3: /* write High/Low*/
+							apfelWriteBit_Inline(1, 'A', 1);
+							apfelWriteBit_Inline(0, 'A', 1);
+							break;
+						case 4: /* read sequence 1x6bit*/
+						{
+							uint16_t value = 0;
+							value = apfelReadBitSequence_Inline('A', 1, 6);
+						}
+							break;
+						case 5: /* write sequence */
+							//printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("write SEQUENCE"));
+							apfelWriteClockSequence_Inline('A', 1, 16);
+							break;
+						case 6:
+							apfelClearDataInput_Inline('A', 1);
+							break;
+
+						default:
+							printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename,
+									PSTR("nothing to do"));
     	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
     	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
     	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
     	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-    	        			break;
-    	        	  }
-    	          }
-    	          break;
-    	          case 2:
-    	          {
-    	        	  switch(arg[0])
-    	        	  {
-    	        		  case 4: /* read sequence 3x6bit*/
-    	        		  {
-    	        			  uint16_t value;
-    	        			  value=apfelReadBitSequence_Inline('A',1,arg[1]);
-    	        		  }
-    	        		  break;
-    	        		  case 5: /* write sequence */
-    	        			  //printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("write SEQUENCE"));
-    	          	    	apfelWriteClockSequence_Inline('A',1, arg[1] );
-    	        			  break;
-    	        		  default:
-    	        			  printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("nothing to do"));
+							break;
+					}
+				}
+					break;
+				case 2:
+				{
+					switch (arg[0])
+					{
+						case 4: /* read sequence 3x6bit*/
+						{
+							uint16_t value = apfelReadBitSequence_Inline('A', 1, arg[1]);
+						}
+							break;
+						case 5: /* write sequence */
+							//printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("write SEQUENCE"));
+							apfelWriteClockSequence_Inline('A', 1, arg[1]);
+							break;
+						default:
+							printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename,
+									PSTR("nothing to do"));
     	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
     	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
     	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
     	        			  _delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-    	        			break;
-    	        	  }
-    	          }
-    	          break;
-    	          default: /* else */
-    	             break;
-    	       }
+							break;
+					}
+				}
+					break;
+				default: /* else */
+					break;
+			}
 
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
