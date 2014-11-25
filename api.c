@@ -1793,7 +1793,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
     	      }
     	    }
 
-    	    /*#writeBitSequence #bits #data #endianess (0: little, 1:big)*/
+    	    /* writeBitSequence #bits #data #endianess (0: little, 1:big)*/
 			inline void apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex,
 					                                 int8_t nBits, uint16_t data,
 													 uint8_t endianness)
@@ -1823,7 +1823,24 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						break;
 				}
 			}
-    	    /*----------------------------------------------------*/
+
+			/* #setDac value[ 0 ... 3FF ] dacNr[1..4] chipID[0 ... FF]	*/
+
+			inline void apfelSetDac(char port, uint8_t pinSetIndex,
+						 	 	 	uint16_t value, uint8_t dacNr, uint16_t chipID)
+			{
+		        apfelStartStreamHeader_Inline(port, pinSetIndex);;
+		        // dacNr
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, APFEL_COMMAND_SetDac + dacNr, APFEL_DEFAULT_ENDIANNESS);
+		        // value
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, value, APFEL_DEFAULT_ENDIANNESS);
+		        //chipId
+				apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ChipIdBits, chipID, APFEL_DEFAULT_ENDIANNESS);
+		        //3 intermediate clock cycles equiv. 3 writeDataLow
+		        apfelWriteClockSequence_Inline(port, pinSetIndex,3);
+			}
+
+			/*----------------------------------------------------*/
     	    apfelInit_Inline();
 
     	    uint32_t arg[5] = {-1,-1,-1,-1,-1};
@@ -1894,6 +1911,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						case 8:
 							apfelWriteBitSequence_Inline('A', 1, 6, 0x12, APFEL_DEFAULT_ENDIANNESS);
 							break;
+						case 9:
+							apfelSetDac('A', 1, 0x2ee, 2, 30);
+							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
 							return;
@@ -1913,6 +1933,12 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						case 5: /* write sequence */
 							apfelWriteClockSequence_Inline('A', 1, arg[1]);
 							break;
+						case 9:
+							apfelSetDac('A', 1, arg[1], 1, 30);
+							apfelSetDac('A', 1, arg[1], 2, 30);
+							apfelSetDac('A', 1, arg[1], 3, 30);
+							apfelSetDac('A', 1, arg[1], 4, 30);
+							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
 							return;
@@ -1927,6 +1953,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						case 8:
 							apfelWriteBitSequence_Inline('A', 1, arg[1], arg[2], APFEL_DEFAULT_ENDIANNESS);
 							break;
+						case 9:
+							apfelSetDac('A', 1, arg[1], arg[2], 30);
+							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
 							return;
@@ -1940,6 +1969,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 					{
 						case 8:
 							apfelWriteBitSequence_Inline('A', 1, arg[1], arg[2], arg[3]);
+							break;
+						case 9:
+							apfelSetDac('A', 1, arg[1], arg[2], arg[4]);
 							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
