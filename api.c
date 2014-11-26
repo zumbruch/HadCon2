@@ -1880,6 +1880,21 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			}
 
 
+			/* #testPulseSequence pulseHeightPattern[0 ... 1F] chipId[0 ... FF] */
+			inline void apfelTestPulseSequence_Inline(char port, uint8_t pinSetIndex,
+					uint8_t pulseHeightPattern, uint8_t chipId)
+			{
+		        apfelStartStreamHeader_Inline(port, pinSetIndex);
+		        // dacNr
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, APFEL_COMMAND_TestPulse, APFEL_DEFAULT_ENDIANNESS);
+		        // pulse height * channel
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, pulseHeightPattern, APFEL_DEFAULT_ENDIANNESS);
+		        // chipId
+				apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ChipIdBits, chipId, APFEL_DEFAULT_ENDIANNESS);
+
+				apfelWriteClockSequence_Inline(port, pinSetIndex, 0x1);
+			}
+
 			/*----------------------------------------------------*/
     	    apfelInit_Inline();
 
@@ -1959,7 +1974,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							apfelReadDac_Inline('A', 1, 2, 30);
 							break;
 						case 0xB:
-							apfelAutoCalibration_Inline('A', 1, 30);
+							apfelAutoCalibration_Inline('A', 1, 30);						break;
+						case 0xC:
+							apfelTestPulseSequence_Inline('A', 1, 0x3f, 30);
 							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
@@ -1996,6 +2013,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						case 0xB:
 							apfelAutoCalibration_Inline('A', 1, arg[1]);
 							break;
+						case 0xC:
+							apfelTestPulseSequence_Inline('A', 1, arg[1], 30);
+							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
 							return;
@@ -2015,6 +2035,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							break;
 						case 0xA:
 							apfelReadDac_Inline('A', 1, arg[1], arg[2]);
+							break;
+						case 0xC:
+							apfelTestPulseSequence_Inline('A', 1, arg[1], arg[2]);
 							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
