@@ -1704,9 +1704,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
     	    	return value;
 			}
 
-    	    inline void apfelWriteClockSequence_Inline(char port, uint8_t pinSetIndex, uint8_t nClk )
+    	    inline void apfelWriteClockSequence_Inline(char port, uint8_t pinSetIndex, uint16_t nClk )
     	    {
-    	        uint8_t a = nClk;
+    	        uint16_t a = nClk;
 				while (a > 0)
 				{
 						a--;
@@ -1848,9 +1848,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			inline void apfelReadDac_Inline(char port, uint8_t pinSetIndex,uint8_t dacNr, uint16_t chipID)
 			{
 				uint16_t value = 0;
-		        apfelStartStreamHeader_Inline(port, pinSetIndex);;
+		        apfelStartStreamHeader_Inline(port, pinSetIndex);
 		        // dacNr
-		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, APFEL_COMMAND_SetDac + dacNr, APFEL_DEFAULT_ENDIANNESS);
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, APFEL_COMMAND_ReadDac + dacNr, APFEL_DEFAULT_ENDIANNESS);
 		        // dummy value
 		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, 0, APFEL_DEFAULT_ENDIANNESS);
 		        // chipId
@@ -1864,6 +1864,20 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			}
 
 
+			/* #autoCalibration chipId[0 ... FF] */
+			inline void apfelAutoCalibration_Inline(char port, uint8_t pinSetIndex,uint8_t chipId)
+			{
+		        apfelStartStreamHeader_Inline(port, pinSetIndex);
+		        // dacNr
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, APFEL_COMMAND_AutoCalibration, APFEL_DEFAULT_ENDIANNESS);
+		        // dummy value
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, 0, APFEL_DEFAULT_ENDIANNESS);
+		        // chipId
+				apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ChipIdBits, chipId, APFEL_DEFAULT_ENDIANNESS);
+
+				// #calibration sequence clocks 4 * 10bit DAC
+				apfelWriteClockSequence_Inline(port, pinSetIndex, (0x1 << APFEL_N_ValueBits) - 1);
+			}
 
 
 			/*----------------------------------------------------*/
@@ -1944,6 +1958,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						case 0xA:
 							apfelReadDac_Inline('A', 1, 2, 30);
 							break;
+						case 0xB:
+							apfelAutoCalibration_Inline('A', 1, 30);
+							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
 							return;
@@ -1975,6 +1992,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							break;
 						case 0xA:
 							apfelReadDac_Inline('A', 1, arg[1], 30);
+							break;
+						case 0xB:
+							apfelAutoCalibration_Inline('A', 1, arg[1]);
 							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
