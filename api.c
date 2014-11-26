@@ -1895,6 +1895,23 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 				apfelWriteClockSequence_Inline(port, pinSetIndex, 0x1);
 			}
 
+			/* #testPulse pulseHeight[0 ... 1F] channel[1 .. 2 ] chipId[0 ... FF] */
+			inline void apfelTestPulse_Inline(char port, uint8_t pinSetIndex,
+								uint8_t pulseHeightPattern, uint8_t channel, uint8_t chipId)
+			{
+
+			        apfelTestPulseSequence_Inline(port, pinSetIndex, (pulseHeightPattern << 0x1) << (5*(channel-1)), chipId);
+			        apfelTestPulseSequence_Inline(port, pinSetIndex, 0, chipId);
+			}
+
+
+
+
+
+
+
+
+
 			/*----------------------------------------------------*/
     	    apfelInit_Inline();
 
@@ -1975,14 +1992,20 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							break;
 						case 0xB:
 						{
+#warning TODO implement readout of current watchdog timing from the WDT registers of ATMEL
+							wdt_disable();
 							int_fast16_t chipId = 0;
 							for (chipId = 0; chipId<= 0xFF; chipId++)
 							{
 								apfelAutoCalibration_Inline('A', 1, chipId);
 							}
+							wdt_enable(WDTO_2S);
 						}
 						case 0xC:
-							apfelTestPulseSequence_Inline('A', 1, 0x3f, 30);
+							apfelTestPulseSequence_Inline('A', 1, 0x10, 30);
+							break;
+						case 0xD:
+							apfelTestPulse_Inline('A', 1, 0x10, 1, 30);
 							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
@@ -2022,6 +2045,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						case 0xC:
 							apfelTestPulseSequence_Inline('A', 1, arg[1], 30);
 							break;
+						case 0xD:
+							apfelTestPulse_Inline('A', 1, arg[1], 1, 30);
+							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
 							return;
@@ -2045,6 +2071,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						case 0xC:
 							apfelTestPulseSequence_Inline('A', 1, arg[1], arg[2]);
 							break;
+						case 0xD:
+							apfelTestPulse_Inline('A', 1, arg[1], arg[2], 30);
+							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
 							return;
@@ -2060,7 +2089,10 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							apfelWriteBitSequence_Inline('A', 1, arg[1], arg[2], arg[3]);
 							break;
 						case 9:
-							apfelSetDac_Inline('A', 1, arg[1], arg[2], arg[4]);
+							apfelSetDac_Inline('A', 1, arg[1], arg[2], arg[3]);
+							break;
+						case 0xD:
+							apfelTestPulse_Inline('A', 1, arg[1], arg[2], arg[3]);
 							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
