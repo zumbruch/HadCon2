@@ -1470,6 +1470,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
                                                     _delay_us(APFEL_US_TO_DELAY_DEFAULT);}
 
     	#define APFEL_readPort(A,pinSetIndex) ((PIN##A >> (APFEL_PIN_DIN##pinSetIndex )) & 0x1)
+        uint8_t apfelOsziTestMode = 0;
 
     	/* functions */
 			inline int8_t apfelWritePort(uint8_t val,char port, uint8_t pinSetIndex)
@@ -1826,7 +1827,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 
 			/* #setDac value[ 0 ... 3FF ] dacNr[1..4] chipID[0 ... FF]	*/
 
-			inline void apfelSetDac(char port, uint8_t pinSetIndex,
+			inline void apfelSetDac_Inline(char port, uint8_t pinSetIndex,
 						 	 	 	uint16_t value, uint8_t dacNr, uint16_t chipID)
 			{
 		        apfelStartStreamHeader_Inline(port, pinSetIndex);;
@@ -1834,11 +1835,33 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, APFEL_COMMAND_SetDac + dacNr, APFEL_DEFAULT_ENDIANNESS);
 		        // value
 		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, value, APFEL_DEFAULT_ENDIANNESS);
-		        //chipId
+		        // chipId
 				apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ChipIdBits, chipID, APFEL_DEFAULT_ENDIANNESS);
 		        //3 intermediate clock cycles equiv. 3 writeDataLow
 		        apfelWriteClockSequence_Inline(port, pinSetIndex,3);
 			}
+
+			/* #readDac dacNr[1..4] chipID[0 ... FF] */
+			inline void apfelReadDac_Inline(char port, uint8_t pinSetIndex,uint8_t dacNr, uint16_t chipID)
+			{
+				uint16_t value = 0;
+		        apfelStartStreamHeader_Inline(port, pinSetIndex);;
+		        // dacNr
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, APFEL_COMMAND_SetDac + dacNr, APFEL_DEFAULT_ENDIANNESS);
+		        // dummy value
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, 0, APFEL_DEFAULT_ENDIANNESS);
+		        // chipId
+				apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ChipIdBits, chipID, APFEL_DEFAULT_ENDIANNESS);
+                // read 15 bits
+			    value = apfelReadBitSequence_Inline(port, pinSetIndex, (2 + APFEL_N_ValueBits + 3));
+
+			    createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL, apfelApiCommandKeyNumber_DAC, apfelApiCommandKeywords);
+				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport:%c set:%x dac:%x c:%x %x"), uart_message_string, port, pinSetIndex, dacNr, chipID, value);
+				UART0_Send_Message_String_p(NULL,0);
+			}
+
+
+
 
 			/*----------------------------------------------------*/
     	    apfelInit_Inline();
@@ -1866,13 +1889,14 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 					break;
 			}
 
-
-			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-			_delay_us(1);
-			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
-			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
-
+    	    if (apfelOsziTestMode)
+    	    {
+    	    	_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+    	    	_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+    	    	_delay_us(1);
+    	    	apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
+    	    	apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
+    	    }
 
 			switch (ptr_uartStruct->number_of_arguments/* arguments of argument */)
 			{
@@ -1912,7 +1936,10 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							apfelWriteBitSequence_Inline('A', 1, 6, 0x12, APFEL_DEFAULT_ENDIANNESS);
 							break;
 						case 9:
-							apfelSetDac('A', 1, 0x2ee, 2, 30);
+							apfelSetDac_Inline('A', 1, 0x2ee, 2, 30);
+							break;
+						case 0xA:
+							apfelReadDac_Inline('A', 1, 2, 30);
 							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
@@ -1925,19 +1952,26 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 				{
 					switch (arg[0])
 					{
+						case 0:
+							apfelOsziTestMode = arg[1];
+							break;
 						case 4: /* read sequence 3x6bit*/
 						{
-							uint16_t value = apfelReadBitSequence_Inline('A', 1, arg[1]);
+							uint16_t value = 0;
+							value = apfelReadBitSequence_Inline('A', 1, arg[1]);
 						}
 							break;
 						case 5: /* write sequence */
 							apfelWriteClockSequence_Inline('A', 1, arg[1]);
 							break;
 						case 9:
-							apfelSetDac('A', 1, arg[1], 1, 30);
-							apfelSetDac('A', 1, arg[1], 2, 30);
-							apfelSetDac('A', 1, arg[1], 3, 30);
-							apfelSetDac('A', 1, arg[1], 4, 30);
+							apfelSetDac_Inline('A', 1, arg[1], 1, 30);
+							apfelSetDac_Inline('A', 1, arg[1], 2, 30);
+							apfelSetDac_Inline('A', 1, arg[1], 3, 30);
+							apfelSetDac_Inline('A', 1, arg[1], 4, 30);
+							break;
+						case 0xA:
+							apfelReadDac_Inline('A', 1, arg[1], 30);
 							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
@@ -1954,7 +1988,10 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							apfelWriteBitSequence_Inline('A', 1, arg[1], arg[2], APFEL_DEFAULT_ENDIANNESS);
 							break;
 						case 9:
-							apfelSetDac('A', 1, arg[1], arg[2], 30);
+							apfelSetDac_Inline('A', 1, arg[1], arg[2], 30);
+							break;
+						case 0xA:
+							apfelReadDac_Inline('A', 1, arg[1], arg[2]);
 							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
@@ -1971,7 +2008,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							apfelWriteBitSequence_Inline('A', 1, arg[1], arg[2], arg[3]);
 							break;
 						case 9:
-							apfelSetDac('A', 1, arg[1], arg[2], arg[4]);
+							apfelSetDac_Inline('A', 1, arg[1], arg[2], arg[4]);
 							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
@@ -1984,12 +2021,14 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 					break;
 			}
 
-			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
-			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
+    	    if (apfelOsziTestMode)
+    	    {
+    	    	apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1);
+    	    	apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1);
 
-			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-			_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
-
+    	    	_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+    	    	_delay_us(0); PINA = 0xFF;_delay_us(0); PINA = 0xFF;
+    	    }
     }
 
 
