@@ -1974,7 +1974,13 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							apfelReadDac_Inline('A', 1, 2, 30);
 							break;
 						case 0xB:
-							apfelAutoCalibration_Inline('A', 1, 30);						break;
+						{
+							int_fast16_t chipId = 0;
+							for (chipId = 0; chipId<= 0xFF; chipId++)
+							{
+								apfelAutoCalibration_Inline('A', 1, chipId);
+							}
+						}
 						case 0xC:
 							apfelTestPulseSequence_Inline('A', 1, 0x3f, 30);
 							break;
