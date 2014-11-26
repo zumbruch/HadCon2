@@ -1846,7 +1846,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			{
 				uint16_t value = 0;
 		        apfelStartStreamHeader_Inline(port, pinSetIndex);
-		        // dacNr
+		        // command + dacNr
 		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, APFEL_COMMAND_ReadDac + dacNr, APFEL_DEFAULT_ENDIANNESS);
 		        // dummy value
 		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, 0, APFEL_DEFAULT_ENDIANNESS);
@@ -1865,7 +1865,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			inline void apfelAutoCalibration_Inline(char port, uint8_t pinSetIndex,uint8_t chipId)
 			{
 		        apfelStartStreamHeader_Inline(port, pinSetIndex);
-		        // dacNr
+		        // command
 		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, APFEL_COMMAND_AutoCalibration, APFEL_DEFAULT_ENDIANNESS);
 		        // dummy value
 		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, 0, APFEL_DEFAULT_ENDIANNESS);
@@ -1882,9 +1882,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 					uint8_t pulseHeightPattern, uint8_t chipId)
 			{
 		        apfelStartStreamHeader_Inline(port, pinSetIndex);
-		        // dacNr
+		        // command
 		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, APFEL_COMMAND_TestPulse, APFEL_DEFAULT_ENDIANNESS);
-		        // pulse height * channel
+		        // pulse height
 		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, pulseHeightPattern, APFEL_DEFAULT_ENDIANNESS);
 		        // chipId
 				apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ChipIdBits, chipId, APFEL_DEFAULT_ENDIANNESS);
@@ -1901,13 +1901,29 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			        apfelTestPulseSequence_Inline(port, pinSetIndex, 0, chipId);
 			}
 
+			/*#setAmplitude channelId[1 ... 2] chipId[0 ... FF]*/
+            inline void apfelSetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t channel, uint8_t chipId)
+            {
+		        apfelStartStreamHeader_Inline(port, pinSetIndex);
+		        // command for channel 1/2
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, ((APFEL_COMMAND_SetAmplitude + 1) -(channel-1)) , APFEL_DEFAULT_ENDIANNESS);
+		        // dummy
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, 0, APFEL_DEFAULT_ENDIANNESS);
+		        // chipId
+				apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ChipIdBits, chipId, APFEL_DEFAULT_ENDIANNESS);
+			}
 
-
-
-
-
-
-
+            /*#resetAmplitude channelId[1 ... 2] chipId[0 ... FF]*/
+            inline void apfelResetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t channel, uint8_t chipId)
+            {
+		        apfelStartStreamHeader_Inline(port, pinSetIndex);
+		        // command for channel 1/2
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_CommandBits, ((APFEL_COMMAND_ResetAmplitude + 1) -(channel-1) * 2) , APFEL_DEFAULT_ENDIANNESS);
+		        // dummy
+		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, 0, APFEL_DEFAULT_ENDIANNESS);
+		        // chipId
+				apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ChipIdBits, chipId, APFEL_DEFAULT_ENDIANNESS);
+			}
 
 			/*----------------------------------------------------*/
     	    apfelInit_Inline();
@@ -2004,6 +2020,12 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						case 0xD:
 							apfelTestPulse_Inline('A', 1, 0x10, 1, 30);
 							break;
+						case 0xE:
+							apfelSetAmplitude_Inline('A', 1, 1, 30);
+							break;
+						case 0xF:
+							apfelResetAmplitude_Inline('A', 1, 1, 30);
+							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
 							return;
@@ -2045,6 +2067,12 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 						case 0xD:
 							apfelTestPulse_Inline('A', 1, arg[1], 1, 30);
 							break;
+						case 0xE:
+							apfelSetAmplitude_Inline('A', 1, arg[1], 30);
+							break;
+						case 0xF:
+							apfelResetAmplitude_Inline('A', 1, arg[1], 30);
+							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
 							return;
@@ -2070,6 +2098,12 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							break;
 						case 0xD:
 							apfelTestPulse_Inline('A', 1, arg[1], arg[2], 30);
+							break;
+						case 0xE:
+							apfelSetAmplitude_Inline('A', 1, arg[1], arg[2]);
+							break;
+						case 0xF:
+							apfelResetAmplitude_Inline('A', 1, arg[1], arg[2]);
 							break;
 						default:
 							CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
