@@ -36,41 +36,34 @@ static char byte[3]= "00";
 
 static const char apfelApiCommandKeyword00[] PROGMEM = "dac";
 static const char apfelApiCommandKeyword01[] PROGMEM = "d";
-static const char apfelApiCommandKeyword02[] PROGMEM = "incr";
-static const char apfelApiCommandKeyword03[] PROGMEM = "+";
-static const char apfelApiCommandKeyword04[] PROGMEM = "decr";
-static const char apfelApiCommandKeyword05[] PROGMEM = "-";
-static const char apfelApiCommandKeyword06[] PROGMEM = "testpulse";
-static const char apfelApiCommandKeyword07[] PROGMEM = "t";
-static const char apfelApiCommandKeyword08[] PROGMEM = "autocalib";
-static const char apfelApiCommandKeyword09[] PROGMEM = "a";
-static const char apfelApiCommandKeyword10[] PROGMEM = "ampl";
-static const char apfelApiCommandKeyword11[] PROGMEM = "list";
-static const char apfelApiCommandKeyword12[] PROGMEM = "l";
-static const char apfelApiCommandKeyword13[] PROGMEM = "status";
-static const char apfelApiCommandKeyword14[] PROGMEM = "s";
-static const char apfelApiCommandKeyword15[] PROGMEM = "portAddressSetEnableMask";
-static const char apfelApiCommandKeyword16[] PROGMEM = "pasem";
-static const char apfelApiCommandKeyword17[] PROGMEM = "enablePortAddressSet";
-static const char apfelApiCommandKeyword18[] PROGMEM = "epas";
-static const char apfelApiCommandKeyword19[] PROGMEM = "disablePortAddressSet";
-static const char apfelApiCommandKeyword20[] PROGMEM = "dpas";
-static const char apfelApiCommandKeyword21[] PROGMEM = "addPortAddressSet";
-static const char apfelApiCommandKeyword22[] PROGMEM = "apas";
-static const char apfelApiCommandKeyword23[] PROGMEM = "removePortAddressSet";
-static const char apfelApiCommandKeyword24[] PROGMEM = "rpas";
-static const char apfelApiCommandKeyword25[] PROGMEM = "usToSleep";
-static const char apfelApiCommandKeyword26[] PROGMEM = "uts";
-static const char apfelApiCommandKeyword27[] PROGMEM = "apfel_enable";
-static const char apfelApiCommandKeyword28[] PROGMEM = "reset";
+static const char apfelApiCommandKeyword02[] PROGMEM = "testpulse";
+static const char apfelApiCommandKeyword03[] PROGMEM = "t";
+static const char apfelApiCommandKeyword04[] PROGMEM = "autocalib";
+static const char apfelApiCommandKeyword05[] PROGMEM = "a";
+static const char apfelApiCommandKeyword06[] PROGMEM = "ampl";
+static const char apfelApiCommandKeyword07[] PROGMEM = "list";
+static const char apfelApiCommandKeyword08[] PROGMEM = "l";
+static const char apfelApiCommandKeyword09[] PROGMEM = "status";
+static const char apfelApiCommandKeyword10[] PROGMEM = "s";
+static const char apfelApiCommandKeyword11[] PROGMEM = "portAddressSetEnableMask";
+static const char apfelApiCommandKeyword12[] PROGMEM = "pasem";
+static const char apfelApiCommandKeyword13[] PROGMEM = "enablePortAddressSet";
+static const char apfelApiCommandKeyword14[] PROGMEM = "epas";
+static const char apfelApiCommandKeyword15[] PROGMEM = "disablePortAddressSet";
+static const char apfelApiCommandKeyword16[] PROGMEM = "dpas";
+static const char apfelApiCommandKeyword17[] PROGMEM = "addPortAddressSet";
+static const char apfelApiCommandKeyword18[] PROGMEM = "apas";
+static const char apfelApiCommandKeyword19[] PROGMEM = "removePortAddressSet";
+static const char apfelApiCommandKeyword20[] PROGMEM = "rpas";
+static const char apfelApiCommandKeyword21[] PROGMEM = "apfel_enable";
+static const char apfelApiCommandKeyword22[] PROGMEM = "reset";
 
 const char* const apfelApiCommandKeywords[] PROGMEM = {
         apfelApiCommandKeyword00, apfelApiCommandKeyword01, apfelApiCommandKeyword02, apfelApiCommandKeyword03, apfelApiCommandKeyword04,
 		apfelApiCommandKeyword05, apfelApiCommandKeyword06, apfelApiCommandKeyword07, apfelApiCommandKeyword08, apfelApiCommandKeyword09,
 		apfelApiCommandKeyword10, apfelApiCommandKeyword11, apfelApiCommandKeyword12, apfelApiCommandKeyword13, apfelApiCommandKeyword14,
 		apfelApiCommandKeyword15, apfelApiCommandKeyword16, apfelApiCommandKeyword17, apfelApiCommandKeyword18, apfelApiCommandKeyword19,
-		apfelApiCommandKeyword20, apfelApiCommandKeyword21, apfelApiCommandKeyword22, apfelApiCommandKeyword23, apfelApiCommandKeyword24,
-		apfelApiCommandKeyword25, apfelApiCommandKeyword26, apfelApiCommandKeyword27, apfelApiCommandKeyword28
+		apfelApiCommandKeyword20, apfelApiCommandKeyword21, apfelApiCommandKeyword22
 };
 
 apfelApiConfig apfelApiConfiguration;
@@ -172,22 +165,6 @@ uint8_t apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subComman
 			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_DAC, 0);
 			break;
 
-		case apfelApiCommandKeyNumber_INCR:
-			result = apfelApiSubCommandIncrementDac();
-			break;
-
-		case apfelApiCommandKeyNumber_PLUS:
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_INCR, 0);
-			break;
-
-		case apfelApiCommandKeyNumber_DECR:
-			result = apfelApiSubCommandDecrementDac();
-			break;
-
-		case apfelApiCommandKeyNumber_MINUS:
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_DECR, 0);
-			break;
-
 		case apfelApiCommandKeyNumber_TESTPULSE:
 			result = apfelApiSubCommandTestPulse();
 			break;
@@ -254,14 +231,6 @@ uint8_t apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subComman
 
 		case apfelApiCommandKeyNumber_RPAS:
 			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_REMOVE_PORT_ADDRESS_SET, 0);
-			break;
-
-		case apfelApiCommandKeyNumber_US_TO_SLEEP :
-			result = apfelApiSubCommandUsToSleep ();
-			break;
-
-		case apfelApiCommandKeyNumber_UTS:
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_US_TO_SLEEP , 0);
 			break;
 
 		case apfelApiCommandKeyNumber_APFEL_ENABLE:
@@ -392,14 +361,6 @@ apiCommandResult apfelApiSubCommandRemovePortAddressSet(void)
 	return apiCommandResult_SUCCESS_QUIET;
 }
 
-apiCommandResult apfelApiSubCommandUsToSleep(void)
-{
-	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("UsToSleep"));
-	createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, ptr_uartStruct->commandKeywordIndex,
-			apfelApiCommandKeyNumber_US_TO_SLEEP, apfelApiCommandKeywords);
-	return apiShowOrAssignParameterToValue(ptr_uartStruct->number_of_arguments - 1, 2, &(apfelUsToDelay),
-			apiVarType_DOUBLE, 0, 0xFFFFFFFFFF, true, NULL);
-}
 apiCommandResult apfelApiSubCommandApfelEnable(void)
 {
 	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("ApfelEnable             "));

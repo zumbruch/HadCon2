@@ -21,10 +21,6 @@ enum apfelApiCommandKeyNumber
 {
 	   apfelApiCommandKeyNumber_DAC                  = 0,
 	   apfelApiCommandKeyNumber_D                    ,
-	   apfelApiCommandKeyNumber_INCR                 ,
-	   apfelApiCommandKeyNumber_PLUS                 ,
-	   apfelApiCommandKeyNumber_DECR                 ,
-	   apfelApiCommandKeyNumber_MINUS                ,
 	   apfelApiCommandKeyNumber_TESTPULSE            ,
 	   apfelApiCommandKeyNumber_T                    ,
 	   apfelApiCommandKeyNumber_AUTOCALIB            ,
@@ -44,8 +40,6 @@ enum apfelApiCommandKeyNumber
 	   apfelApiCommandKeyNumber_APAS,
 	   apfelApiCommandKeyNumber_REMOVE_PORT_ADDRESS_SET,
 	   apfelApiCommandKeyNumber_RPAS,
-	   apfelApiCommandKeyNumber_US_TO_SLEEP,
-	   apfelApiCommandKeyNumber_UTS,
 	   apfelApiCommandKeyNumber_APFEL_ENABLE         ,
 	   apfelApiCommandKeyNumber_RESET                ,
 	   apfelApiCommandKeyNumber_MAXIMUM_NUMBER
@@ -71,8 +65,6 @@ void apfelApiInit(void);
 
 apiCommandResult apfelApiSubCommandShowStatus              (void);
 apiCommandResult apfelApiSubCommandDac                     (void);
-apiCommandResult apfelApiSubCommandIncrementDac            (void);
-apiCommandResult apfelApiSubCommandDecrementDac            (void);
 apiCommandResult apfelApiSubCommandTestPulse               (void);
 apiCommandResult apfelApiSubCommandAutoCalib               (void);
 apiCommandResult apfelApiSubCommandAmplification           (void);
@@ -80,7 +72,6 @@ apiCommandResult apfelApiSubCommandListIds                 (void);
 apiCommandResult apfelApiSubCommandChipIdIgnoreMask        (void);
 apiCommandResult apfelApiSubCommandAddPortAddressSet       (void);
 apiCommandResult apfelApiSubCommandRemovePortAddressSet    (void);
-apiCommandResult apfelApiSubCommandUsToSleep               (void);
 apiCommandResult apfelApiSubCommandApfelEnable             (void);
 apiCommandResult apfelApiSubCommandReset                   (void);
 apiCommandResult apfelApiSubCommandPortAddressSetEnableMask(void);

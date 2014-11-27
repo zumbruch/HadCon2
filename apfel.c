@@ -29,8 +29,6 @@ void apfelInit(void)
 {
 	uint8_t i;
 
-	apfelSetUsToDelay(APFEL_DEFAULT_US_TO_DELAY);
-
 	for (i = APFEL_PORT_ADDRESS_SET_0; i < APFEL_PORT_ADDRESS_SET_MAXIMUM; i++)
 	{
 		apfelRemovePortAddressSet(i);
@@ -52,16 +50,6 @@ void apfelInit(void)
 	{
 		apfelEnablePortAddressSet(i);
 	}
-}
-
-void apfelSetUsToDelay(double us)
-{
-	apfelUsToDelay = us;
-}
-
-double apfelGetUsToDelay(void)
-{
-	return apfelUsToDelay;
 }
 
 apfelPortAddressSet * apfelGetPortAddressSetArray(void)
@@ -334,7 +322,7 @@ uint8_t apfelSetClockAndDataLine( uint8_t portAddress, uint8_t value, uint8_t ma
 	{
 		return false;
 	}
-	_delay_us(apfelUsToDelay);
+	_delay_us(0);
 	return true;
 }
 
@@ -359,7 +347,7 @@ apiCommandResult apfelClearDataInput(uint8_t portAddress, uint8_t ss, uint8_t pi
 
     	//clock Low + data low
     	if ( false == apfelSetClockAndDataLine( portAddress, ((uint8_t)(0 << pinCLK | 0   << pinDOUT | ss << pinSS)), mask)) { return apiCommandResult_FAILURE_QUIET; }
-    	_delay_us(apfelUsToDelay);
+    	_delay_us(0);
 
     	apfelWriteClockSequence(1, portAddress, ss, pinCLK, pinDOUT, pinSS);
     }
@@ -369,7 +357,7 @@ apiCommandResult apfelClearDataInput(uint8_t portAddress, uint8_t ss, uint8_t pi
     {
     	//clock Low + data low
     	if ( false == apfelSetClockAndDataLine( portAddress, ((uint8_t)(0 << pinCLK | 0   << pinDOUT | ss << pinSS)), mask)) { return apiCommandResult_FAILURE_QUIET; }
-    	_delay_us(apfelUsToDelay);
+    	_delay_us(0);
     }
 
 	return apiCommandResult_SUCCESS_QUIET;
