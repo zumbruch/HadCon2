@@ -1438,14 +1438,15 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
     case commandKeyNumber_APFEL: /* command (dummy name) */
     {
 		#define APFEL_US_TO_DELAY_DEFAULT 0
-    	apfelSetUsToDelay(APFEL_US_TO_DELAY_DEFAULT);
+
     	/* definitions */
 		#define APFEL_N_CommandBits  4
 		#define APFEL_N_ValueBits  10
+		#define APFEL_ValueBits_MASK 0x3FF
 		#define APFEL_N_ChipIdBits  8
 		#define APFEL_LITTLE_ENDIAN  0
 		#define APFEL_BIG_ENDIAN  1
-		#define APFEL_DEFAULT_ENDIANNESS  APFEL_BIG_ENDIAN
+		#define APFEL_DEFAULT_ENDIANNESS APFEL_BIG_ENDIAN
 
 		#define APFEL_COMMAND_SetDac  0x0
 		#define APFEL_COMMAND_ReadDac  0x4
@@ -1453,6 +1454,16 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		#define APFEL_COMMAND_TestPulse  0x9
 		#define APFEL_COMMAND_SetAmplitude  0xE
 		#define APFEL_COMMAND_ResetAmplitude  0xB
+
+		#define APFEL_READ_N_HEADER_BITS 2
+		#define APFEL_READ_HEADER 0x2
+		#define APFEL_READ_HEADER_MASK 0x3
+		#define APFEL_READ_N_TRAILING_BITS 3
+		#define APFEL_READ_TRAILER 0x7
+		#define APFEL_READ_TRAILER_MASK 0x7
+
+        #define APFEL_READ_CHECK_MASK  ((APFEL_READ_HEADER_MASK << (APFEL_N_ValueBits + APFEL_READ_N_TRAILING_BITS)) | APFEL_READ_TRAILER_MASK)
+        #define APFEL_READ_CHECK_VALUE ((APFEL_READ_HEADER      << (APFEL_N_ValueBits + APFEL_READ_N_TRAILING_BITS)) | APFEL_READ_TRAILER)
 
 		#define APFEL_PIN_DIN1 	PINA0
 		#define APFEL_PIN_DOUT1 PINA1
@@ -1628,78 +1639,54 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			{
     	    	static uint16_t value = 0;
                 static uint8_t  bitIndex = 0;
-                static uint8_t  bit = 0;
                 value = 0;
                 bitIndex = 0;
-                bit = 0;
+                uint8_t pinClk;
+                uint8_t pinDout;
 
     	    	switch(pinSetIndex)
     	    	{
     	    		case 1:
-    	    			// make sure we start from clock 0 + data 0
-						apfelWritePort(((0 << APFEL_PIN_CLK1) | (0 << APFEL_PIN_DOUT1)), port, pinSetIndex);
-
-						// initial bit read differently !!! TNX^6 Peter Wieczorek ;-)
-						// since apfel needs first falling clock edge to activate the output pad
-						// therefore first cycle then read data.
-						if (nBits)
-						{
-							nBits--;
-						}
-						// clock high
-						apfelWritePort((1 << APFEL_PIN_CLK1), port, 1);
-						// clock low
-						apfelWritePort((0 << APFEL_PIN_CLK1), port, 1);
-						// read data in
-						bit = apfelReadPort(port, 2);
-						value |= (bit << bitIndex);
-//						printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("bit(%i): 0x%x - value: 0x%04x"), bitIndex+1, bit, value);
-
-						while (bitIndex < nBits)
-						{
-							bitIndex++;
-							// clock high
-							apfelWritePort((1 << APFEL_PIN_CLK1), port, 1);
-							// read data in
-							bit = apfelReadPort(port, 2);
-							value |= (bit << bitIndex);
-							// clock low
-							apfelWritePort((0 << APFEL_PIN_CLK1), port, 1);
-//							printDebug_p(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("bit(%i): 0x%x - value: 0x%04x"), bitIndex+1, bit, value);
-							PINC = 0xFF;
-						}
+    	    			pinClk = APFEL_PIN_CLK1;
+    	    			pinDout = APFEL_PIN_DOUT1;
                     break;
     	    		case 2:
-						// make sure we start from clock 0 + data 0
-						apfelWritePort(((0 << APFEL_PIN_CLK2) | (0 << APFEL_PIN_DOUT2)), port, 2);
-
-						// initial bit read differently !!! TNX^6 Peter Wieczorek ;-)
-						// since apfel needs first falling clock edge to activate the output pad
-						// therefore first cycle then read data.
-						if (nBits)
-						{
-							nBits--;
-						}
-						// clock high
-						apfelWritePort((1 << APFEL_PIN_CLK2), port, 2);
-						// clock low
-						apfelWritePort((0 << APFEL_PIN_CLK2), port, 2);
-						// read data in
-						value |= (apfelReadPort(port, 2) << bitIndex);
-
-						while (bitIndex < nBits)
-						{
-							bitIndex++;
-							// clock high
-							apfelWritePort((1 << APFEL_PIN_CLK2), port, 2);
-							// read data in
-							value |= (apfelReadPort(port, 2) << bitIndex);
-							// clock low
-							apfelWritePort((0 << APFEL_PIN_CLK2), port, 2);
-						}
-    	    			break;
+    	    			pinClk = APFEL_PIN_CLK2;
+    	    			pinDout = APFEL_PIN_DOUT2;
+                    break;
     	    		default:
+    	                pinClk = 0xFF;
+    	                pinDout = 0xFF;
+    	                return -1;
     	    		break;
+    	    	}
+
+    	    	// make sure we start from clock 0 + data 0
+    	    	apfelWritePort(((0 << pinClk) | (0 << pinDout)), port, 2);
+
+    	    	// initial bit read differently !!! TNX^6 Peter Wieczorek ;-)
+    	    	// since apfel needs first falling clock edge to activate the output pad
+    	    	// therefore first cycle then read data.
+    	    	if (nBits)
+    	    	{
+    	    		nBits--;
+    	    	}
+    	    	// clock high
+    	    	apfelWritePort((1 << pinClk), port, 2);
+    	    	// clock low
+    	    	apfelWritePort((0 << pinClk), port, 2);
+    	    	// read data in
+    	    	value |= (apfelReadPort(port, 2) << bitIndex);
+
+    	    	while (bitIndex < nBits)
+    	    	{
+    	    		bitIndex++;
+    	    		// clock high
+    	    		apfelWritePort((1 << pinClk), port, 2);
+    	    		// read data in
+    	    		value |= (apfelReadPort(port, 2) << bitIndex);
+    	    		// clock low
+    	    		apfelWritePort((0 << pinClk), port, 2);
     	    	}
     	    	return value;
 			}
@@ -1845,7 +1832,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 			}
 
 			/* #readDac dacNr[1..4] chipID[0 ... FF] */
-			inline void apfelReadDac_Inline(char port, uint8_t pinSetIndex,uint8_t dacNr, uint16_t chipID)
+			inline int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex,uint8_t dacNr, uint16_t chipId, uint8_t quiet)
 			{
 				uint16_t value = 0;
 		        apfelStartStreamHeader_Inline(port, pinSetIndex);
@@ -1854,13 +1841,32 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		        // dummy value
 		        apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ValueBits, 0, APFEL_DEFAULT_ENDIANNESS);
 		        // chipId
-				apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ChipIdBits, chipID, APFEL_DEFAULT_ENDIANNESS);
+				apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ChipIdBits, chipId, APFEL_DEFAULT_ENDIANNESS);
                 // read 15 bits
-			    value = apfelReadBitSequence_Inline(port, pinSetIndex, (2 + APFEL_N_ValueBits + 3));
+			    value = apfelReadBitSequence_Inline(port, pinSetIndex, (APFEL_READ_N_HEADER_BITS + APFEL_N_ValueBits + APFEL_READ_N_TRAILING_BITS));
+
+			    if ( 0 > value )
+			    {
+    	    		if ( ! quiet )
+    	    			CommunicationError_p(ERRA, -1, 1, PSTR("port/pinSet/dac/chipId:'%c/%i/%i/%x': readDac failed"), port, pinSetIndex, dacNr, chipId);
+    	    		/* Error */
+    	    		return -1;
+			    }
+    	    	// check validity for correct header (10) and trailing bits (111)
+    	    	if ( APFEL_READ_CHECK_VALUE != ( value & APFEL_READ_CHECK_MASK))
+    	    	{
+    	    		if ( ! quiet )
+    	    			CommunicationError_p(ERRA, -1, 1, PSTR("port/pinSet/dac/chipId:'%c/%i/%i/%x': validity check failed"), port, pinSetIndex, dacNr, chipId);
+    	    		/* Error */
+    	    		return -10;
+    	    	}
+
+    	    	value = (value >> APFEL_READ_N_TRAILING_BITS) & APFEL_ValueBits_MASK ;
 
 			    createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL, apfelApiCommandKeyNumber_DAC, apfelApiCommandKeywords);
-				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport:%c set:%x dac:%x c:%x %x"), uart_message_string, port, pinSetIndex, dacNr, chipID, value);
+				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport/pinSet/dac/chipId:'%c/%x/%x/%x %x"), uart_message_string, port, pinSetIndex, dacNr, chipId, value);
 				UART0_Send_Message_String_p(NULL,0);
+				return 0;
 			}
 
 
@@ -1927,6 +1933,31 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		        // chipId
 				apfelWriteBitSequence_Inline(port, pinSetIndex, APFEL_N_ChipIdBits, chipId, APFEL_DEFAULT_ENDIANNESS);
 			}
+
+            /*#list Ids by checking result for dacRead */
+            inline void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t all)
+            {
+            	uint8_t chipId;
+            	uint16_t value;
+            	uint8_t ctr;
+            	for (chipId = 0 ; chipId<0xFF; chipId++)
+            	{
+            		value = apfelReadDac_Inline(port, pinSetIndex, 1, chipId, 1);
+            		if ( 0 <= value )
+            		{
+            			ctr++;
+            		}
+            		if ( 0 <= value || all )
+            		{
+        			    createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL, apfelApiCommandKeyNumber_LIST, apfelApiCommandKeywords);
+        				snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport/pinSet %c/%x %x%s"), uart_message_string, port, pinSetIndex, chipId);
+        				if (all) strncat_P( uart_message_string, (0<=value)?PSTR(" yes"):PSTR(" no"), BUFFER_SIZE -1 );
+        				UART0_Send_Message_String_p(NULL,0);
+            		}
+            	}
+			}
+
+
 
 			/*----------------------------------------------------*/
     	    apfelInit_Inline();
@@ -2004,7 +2035,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							apfelSetDac_Inline('A', 1, 0x2ee, 2, 30);
 							break;
 						case 0xA:
-							apfelReadDac_Inline('A', 1, 2, 30);
+							apfelReadDac_Inline('A', 1, 2, 30, 0);
 							break;
 						case 0xB:
 						{
@@ -2059,7 +2090,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							apfelSetDac_Inline('A', 1, arg[1], 4, 30);
 							break;
 						case 0xA:
-							apfelReadDac_Inline('A', 1, arg[1], 30);
+							apfelReadDac_Inline('A', 1, arg[1], 30, 0);
 							break;
 						case 0xB:
 							apfelAutoCalibration_Inline('A', 1, arg[1]);
@@ -2094,7 +2125,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 							apfelSetDac_Inline('A', 1, arg[1], arg[2], 30);
 							break;
 						case 0xA:
-							apfelReadDac_Inline('A', 1, arg[1], arg[2]);
+							apfelReadDac_Inline('A', 1, arg[1], arg[2], 0);
 							break;
 						case 0xC:
 							apfelTestPulseSequence_Inline('A', 1, arg[1], arg[2]);
