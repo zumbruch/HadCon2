@@ -145,6 +145,8 @@ typedef struct apfelChipAddressStruct
 } apfelChipAddressStruct;
 
 
+void apfel_Inline(void);
+
 uint8_t apfelSetClockAndDataLine( uint8_t portAddress, uint8_t value, uint8_t mask);
 
 inline uint8_t apfelGetDataInLine(uint8_t portAddress, uint8_t pinDIN)
