@@ -80,6 +80,9 @@ void apfelApiInit(void)
 
 void apfelApi(struct uartStruct *ptr_uartStruct)
 {
+	apfel_Inline();
+	return;
+#if 0
 	if (!apfelApiInitialized )
 	{
 		apfelApiInit();
@@ -115,7 +118,9 @@ void apfelApi(struct uartStruct *ptr_uartStruct)
 		}
 	}
 	return;
+#endif
 }
+
 
 /*
  * void apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandIndex)
