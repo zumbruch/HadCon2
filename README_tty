@@ -1,0 +1,4 @@
+For Hadcon2: ... and the ttyUSBx interface has also to be set correctly to
+115200 baud and no echo, otherwise there will be an endless loop.
+
+stty -F /dev/ttyUSB1 -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke speed 115200
