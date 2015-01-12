@@ -28,8 +28,8 @@ void spiTest(void)
   spiSetConfiguration(newConfig);
 
 
-  spiAddChipSelect(&PORTE, PE6, CHIPSELECT1);
-  spiSetChipSelectInMask(CHIPSELECT1);
+  spiAddChipSelect(&PORTE, PE6, SPI_CHIPSELECT1);
+  spiSetChipSelectInMask(SPI_CHIPSELECT1);
 
   spiPurgeWriteData();
 
@@ -39,7 +39,7 @@ void spiTest(void)
   spiAddWriteData( (spiGetConfiguration().data) & 0x00FF);
   spiAddWriteData( ((spiGetConfiguration().data) >> 8) & 0x00FF);
 
-  spiAddWriteData( getChipSelectArrayStatus() );
+  spiAddWriteData( spiGetChipSelectArrayStatus() );
 
   spiAddWriteData( spiGetInternalChipSelectMask() );
 
@@ -47,8 +47,8 @@ void spiTest(void)
 
   spiWriteData.data[0] = spiGetReadData().data[0];
   spiWriteData.data[1] = spiGetReadData().data[1];
-  spiWriteData.data[2] = spiGetPinFromChipSelect(CHIPSELECT0);
-  spiWriteData.data[3] = (uint8_t)spiGetPortFromChipSelect(CHIPSELECT0);
+  spiWriteData.data[2] = spiGetPinFromChipSelect(SPI_CHIPSELECT0);
+  spiWriteData.data[3] = (uint8_t)spiGetPortFromChipSelect(SPI_CHIPSELECT0);
   spiWriteData.data[4] = spiGetCurrentChipSelectBarStatus();
   spiWriteData.data[5] = (uint8_t)spiGetCurrentChipSelectArray()[1].ptrPort;
   spiWriteData.data[6] = (uint8_t)spiGetCurrentChipSelectArray()[0].ptrPort;

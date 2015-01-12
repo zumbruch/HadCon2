@@ -101,6 +101,7 @@ SRC += api_debug.c
 SRC += one_wire_api_settings.c
 SRC += relay.c
 SRC += api_version.c
+SRC += api_identification.c
 SRC += twi_master.c
 SRC += twi_mpx_functions.c
 SRC += twi_ow_functions.c

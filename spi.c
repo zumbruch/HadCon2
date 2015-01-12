@@ -36,7 +36,7 @@ spiConfigUnion spiStandardConfiguration = { .bits.bSpr   = 0,
 					    .bits.bSpif  = 0  };
 
 // initial configuration for chipselectarray -> all chipselects are unused
-spiPin spiChipSelectArray[CHIPSELECT_MAXIMUM] = { { 0 , 0 , false  },
+spiPin spiChipSelectArray[SPI_CHIPSELECT_MAXIMUM] = { { 0 , 0 , false  },
 					    { 0 , 0 , false  },
 					    { 0 , 0 , false  },
 					    { 0 , 0 , false  },
@@ -47,10 +47,10 @@ spiPin spiChipSelectArray[CHIPSELECT_MAXIMUM] = { { 0 , 0 , false  },
 
 uint8_t spiInternalChipSelectMask = 0;
 
-uint8_t getChipSelectArrayStatus(void)
+uint8_t spiGetChipSelectArrayStatus(void)
 {
 	uint8_t status = 0, i = 0;
-	for (i = CHIPSELECT0; i < CHIPSELECT_MAXIMUM; i++)
+	for (i = SPI_CHIPSELECT0; i < SPI_CHIPSELECT_MAXIMUM; i++)
 	{
 		if (spiChipSelectArray[i].isUsed)
 		{
@@ -64,7 +64,7 @@ uint8_t spiAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNum
 {
 	uint8_t i;
 
-	if (CHIPSELECT_MAXIMUM <= chipSelectNumber)
+	if (SPI_CHIPSELECT_MAXIMUM <= chipSelectNumber)
 	{
 		/* cs number exceeds range */
 		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL );
@@ -114,7 +114,7 @@ uint8_t spiAddChipSelect(volatile uint8_t *ptrCurrentPort, uint8_t currentPinNum
 
 uint8_t spiRemoveChipSelect(uint8_t chipSelectNumber)
 {
-	if (CHIPSELECT_MAXIMUM <= chipSelectNumber)
+	if (SPI_CHIPSELECT_MAXIMUM <= chipSelectNumber)
 	{
 		/* cs number exceeds range */
 		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL );
@@ -148,12 +148,12 @@ void spiInit(void)
 	SPCR = (spiStandardConfiguration.data & 0x00FF);
 	SPSR = ((spiStandardConfiguration.data >> 8) & 0x00FF);
 
-	for (i = CHIPSELECT0; i < CHIPSELECT_MAXIMUM; i++)
+	for (i = SPI_CHIPSELECT0; i < SPI_CHIPSELECT_MAXIMUM; i++)
 	{
 		spiRemoveChipSelect(i);
 	}
 
-	spiAddChipSelect(&PORTB, PB0, CHIPSELECT0);
+	spiAddChipSelect(&PORTB, PB0, SPI_CHIPSELECT0);
 
 	spiReleaseAllChipSelectLines();
 
@@ -323,7 +323,7 @@ uint8_t spiGetCurrentChipSelectBarStatus(void)
 {
 	uint8_t currentChipSelectBarStatus = 0;
 	uint8_t i;
-	for (i = CHIPSELECT0; i < CHIPSELECT_MAXIMUM; i++)
+	for (i = SPI_CHIPSELECT0; i < SPI_CHIPSELECT_MAXIMUM; i++)
 	{
 		if (spiChipSelectArray[i].isUsed)
 		{

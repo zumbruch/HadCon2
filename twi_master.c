@@ -459,6 +459,7 @@ uint8_t Twim_Start(uint8_t Address, uint8_t TWIM_Type)
 	TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN) | (0 << TWIE);
 
 	/*Wait until transmission completed*/
+#warning missing timeout !!!
 	while (!(TWCR & (1 << TWINT)));
 
 	/* Check value of TWI Status Register. Mask prescaler bits.*/
