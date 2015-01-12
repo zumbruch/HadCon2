@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 /* The canapi.h is a header file, the functions and structure of the variables specific to the serial interface between the CPU and micro controller.
  *the baudrate is 115200bit/s
  */

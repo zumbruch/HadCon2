@@ -1,4 +1,7 @@
 /*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
+/*
  * VERSION 1.0 Januar 7th 2010 LATE  File: 'one_wire_temperature.c'
  * Author: Linda Fouedjio  based on Michael Traxler based and Giacomo Ortona's hadtempsens
  * modified (heavily rather rebuild): Peter Zumbruch

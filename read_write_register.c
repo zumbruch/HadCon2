@@ -1,4 +1,7 @@
 /*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
+/*
  * Author: Linda Fouedjio
  * modified (heavily rather rebuild): Peter Zumbruch
  */

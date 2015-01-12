@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 #ifndef WAVEFORM_GENERATOR_REGISTERS_H
 #define WAVEFORM_GENERATOR_REGISTERS_H
 #include "api_define.h"

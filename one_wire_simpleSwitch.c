@@ -1,4 +1,7 @@
 /*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
+/*
  * VERSION 1.0 Januar 7th 2010 LATE  File: 'one_wire_simpleSwitch.c'
  * Author: Linda Fouedjio  based on Alejandro Gil
  * modified (heavily rather rebuild): Peter Zumbruch

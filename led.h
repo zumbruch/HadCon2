@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 #ifndef LED__H
 #define LED__H
 char LED_print( char digit, char ASCII_data );

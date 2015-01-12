@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 /* The can.h is a header file for the functions and structure specific to the CAN interface between the micro controller and CAN devices.
  *the baud rate is 250Kbit/s
  */
