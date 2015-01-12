@@ -10,6 +10,7 @@
 
 /* Canapi.h*/
 extern char decrypt_uartString[BUFFER_SIZE];
+extern char decrypt_uartString_remainder[BUFFER_SIZE];
 extern char ring_buffer[MAX_INPUT][MAX_LENGTH_CAN_DATA];/*variable for storage all received CAN data*/
 extern char setParameter[MAX_PARAMETER][MAX_LENGTH_PARAMETER]; /*storage of cut string */
 extern char *ptr_setParameter[MAX_PARAMETER];
