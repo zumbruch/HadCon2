@@ -18,7 +18,6 @@ extern char uart_message_string[BUFFER_SIZE];
 extern char message[BUFFER_SIZE];
 extern char uartString[BUFFER_SIZE]; /* variable for storage received a complete string via UART */
 extern char resultString[BUFFER_SIZE];
-extern char keepAliveString[15];
 
 extern uint8_t resetSource; /* reason of a reset */
 
@@ -78,8 +77,6 @@ extern char currentResponseKeyword[MAX_LENGTH_KEYWORD];/*variable to store curre
 extern uint16_t atmelAdcValues[8];/* current supply voltages of the board*/
 
 /*variable to store values*/
-extern char tmp_str[BUFFER_SIZE];
-
 extern uint8_t usercommand;
 
 extern uint8_t res0, res1, res2, res3; /*parameter back to reading the voltage on ADC-channel*/

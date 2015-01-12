@@ -1,4 +1,14 @@
 eclipse.preferences.version=1
+environment/project/0.156350869.190855603/TESTING_ENABLE/delimiter=\:
+environment/project/0.156350869.190855603/TESTING_ENABLE/operation=replace
+environment/project/0.156350869.190855603/TESTING_ENABLE/value=
+environment/project/0.156350869.190855603/__AVR_AT90CAN128__/delimiter=\:
+environment/project/0.156350869.190855603/__AVR_AT90CAN128__/operation=replace
+environment/project/0.156350869.190855603/__AVR_AT90CAN128__/value=1
+environment/project/0.156350869.190855603/append=true
+environment/project/0.156350869.190855603/appendContributed=true
+environment/project/0.156350869/append=true
+environment/project/0.156350869/appendContributed=true
 environment/project/preference.org.eclipse.cdt.managedbuilder.core.configurationDataProvider.1529452256/HADCON_VERSION/delimiter=\:
 environment/project/preference.org.eclipse.cdt.managedbuilder.core.configurationDataProvider.1529452256/HADCON_VERSION/operation=remove
 environment/project/preference.org.eclipse.cdt.managedbuilder.core.configurationDataProvider.1529452256/HADCON_VERSION/value=2

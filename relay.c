@@ -24,6 +24,9 @@
 #include "jtag.h"
 
 #include "relay.h"
+
+static const char filename[] 		PROGMEM = __FILE__;
+
 static const char relayThresholdCommandKeyword00[] PROGMEM = "current_state";
 static const char relayThresholdCommandKeyword01[] PROGMEM = "current_values";
 static const char relayThresholdCommandKeyword02[] PROGMEM = "thr_high";
@@ -142,23 +145,14 @@ void relayThreshold(struct uartStruct *ptr_uartStruct)
 void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t subCommandIndex )
 {
    uint32_t status = 0;
-   uint32_t value = 0;
-   uint32_t value2 = 0;
+   uint64_t value = 0;
+   uint64_t value2 = 0;
    uint8_t channel = 0;
    uint8_t recursive = FALSE;
 
    if ( 0 > subCommandIndex )
    {
-      subCommandIndex = 0;
-      // find matching command keyword
-      while ( subCommandIndex < relayThresholdCommandKeyNumber_MAXIMUM_NUMBER )
-      {
-         if ( 0 == strncmp_P(setParameter[1], (const char*) ( pgm_read_word( &(relayThresholdCommandKeywords[subCommandIndex])) ), MAX_LENGTH_PARAMETER) )
-         {
-            break;
-         }
-         subCommandIndex++;
-      }
+      subCommandIndex = apiFindCommandKeywordIndex(setParameter[1], relayThresholdCommandKeywords, relayThresholdCommandKeyNumber_MAXIMUM_NUMBER);
    }
 
    /* TODO: relayThresholdMiscSubCommandsChooseFunction(ptr_uartStruct, index)*/
@@ -185,7 +179,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
              		   CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("channel %i failed"), channel);
              		   return;
              	   }
-             	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%spin%i:0x%x "), uart_message_string, channel, value);
+             	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%spin%i:%#x "), uart_message_string, channel, value);
                 }
                break;
             case relayThresholdCommandKeyNumber_CURRENT_STATE:
@@ -206,7 +200,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
              		   CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("channel %i failed"), channel);
              		   return;
              	   }
-            	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:0x%x "), uart_message_string, channel, value);
+            	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:%#x "), uart_message_string, channel, value);
             	   strncat_P(uart_message_string, ( relayThresholds_valid[channel * relayThreshold_MAXIMUM_INDEX+relayThreshold_HIGH] ) ? PSTR("+ ") : PSTR("- "), BUFFER_SIZE - 1);
                }
                break;
@@ -223,7 +217,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
              		   CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, TRUE, PSTR("channel %i failed"), channel);
              		   return;
              	   }
-             	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:0x%x "), uart_message_string, channel, value);
+             	   snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%i:%#x "), uart_message_string, channel, value);
              	   strncat_P(uart_message_string, ( relayThresholds_valid[channel * relayThreshold_MAXIMUM_INDEX+ relayThreshold_LOW] ) ? PSTR("+ ") : PSTR("- "), BUFFER_SIZE - 1);
                 }
                break;
@@ -322,11 +316,11 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
             	break;
             case relayThresholdCommandKeyNumber_EXTERN_THR_HIGH_CHANNEL:
                 value = relayThresholdGetExternHighChannel();
-                snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s0x%x"), uart_message_string, value);
+                snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%#x"), uart_message_string, value);
                 break;
             case relayThresholdCommandKeyNumber_EXTERN_THR_LOW_CHANNEL:
                 value = relayThresholdGetExternLowChannel();
-                snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s0x%x"), uart_message_string, value);
+                snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%#x"), uart_message_string, value);
                 break;
             case relayThresholdCommandKeyNumber_USE_INDIVIDUAL_THRESHOLDS:
                 value = relayThresholdGetUseIndividualThresholds();
@@ -334,7 +328,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
                 break;
             case relayThresholdCommandKeyNumber_EXTERN_THRESHOLD_CHANNEL_MASK:
                 value = relayThresholdsGetExtThresholdsMask();
-                snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s0x%x"), uart_message_string, value);
+                snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%#x"), uart_message_string, value);
                 break;
             default:
                clearString(uart_message_string, BUFFER_SIZE);
@@ -351,7 +345,7 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
          case 1:
 
          /* set status*/
-    	 getNumericValueFromParameter(2, &value);
+    	 getUnsignedNumericValueFromParameterIndex(2, &value);
          switch ( subCommandIndex )
          {
             case relayThresholdCommandKeyNumber_THR_HIGH:
@@ -446,8 +440,8 @@ void relayThresholdMiscSubCommands( struct uartStruct *ptr_uartStruct, int16_t s
          case 2:
             /* set status*/
 
-        	if (-1 == getNumericValueFromParameter(2, &value )) {return;}
-        	if (-1 == getNumericValueFromParameter(3, &value2)) {return;}
+        	if (-1 == getUnsignedNumericValueFromParameterIndex(2, &value )) {return;}
+        	if (-1 == getUnsignedNumericValueFromParameterIndex(3, &value2)) {return;}
 
             switch ( subCommandIndex )
             {
@@ -534,7 +528,7 @@ uint8_t relayThresholdInit(void)
 {
 	uint16_t status = FALSE;
 
-    printDebug_p(debugLevelEventDebug, debugSystemRELAY, __LINE__, PSTR(__FILE__), PSTR("Init"));
+    printDebug_p(debugLevelEventDebug, debugSystemRELAY, __LINE__, filename, PSTR("Init"));
 
    /* check prerequisites */
    status = relayThresholdsCheckAllRelevantThresholdsValid();
@@ -627,7 +621,7 @@ void relayThresholdDetermineStateAndTriggerRelay(uint8_t inputSource)
 	   {
 		   newStates[channelIndex] = relayThresholdState_UNDEFINED;
 
-		   CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("%s (%4i, %s): %s: thresholds high [0x%x] <= low [0x%x] ... disabling"), __func__, __LINE__, __FILE__);
+		   CommunicationError_p(ERRG, dynamicMessage_ErrorIndex, FALSE, PSTR("%s (%4i, %s): %s: thresholds high [%#x] <= low [%#x] ... disabling"), __func__, __LINE__, __FILE__);
 		   relayThresholdsSetEnableFlag(FALSE);
 		   return;
 	   }

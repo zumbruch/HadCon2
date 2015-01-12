@@ -1,0 +1,1272 @@
+<!--
+   * Set ALLOWTOPICCHANGE = EpicsUserGroup
+-->
+%LOGOEPICSGSI%
+
+---+!! _%CALC{"$SUBSTITUTE($PROPERSPACE(%TOPIC%),Had Con,HadCon)"}%_
+%TOC%
+
+---++ Introduction
+   Command descriptions of command ==%CALC{"$UPPER($LISTITEM(-1, $TRANSLATE($PROPERSPACE(%TOPIC%),$sp,$comma)))"}%==
+
+---++++ %CALC{"$UPPER($LISTITEM(-1, $TRANSLATE($PROPERSPACE(%TOPIC%),$sp,$comma)))"}%
+%STARTINCLUDE%
+%CALC{"$IF($EXACT(%INCLUDINGTOPIC%,%TOPIC%),,<div style="text-align:right"><a style=\"font-size:smaller\" href="%SCRIPTURLPATH%/edit%SCRIPTSUFFIX%/%WEB%/%TOPIC%\">edit</a></div>)"}%
+
+<ul>
+---+++++ General Operation
+---
+
+ The ==%SCLB%SPI%SCLE%== command set allows to operate the _Serial Peripheral Interface_ SPI interface of the [[HadCon2][HadCon(2)]]'s microcontroller, (currently "only") as a master.
+	
+ It sends data in atomic chunks of *bytes* via the ==MOSI== pin to slave devices and receives via the ==MISO== pin the responses.
+ This happens in a buffered mode, so that multiple bytes can be send and received at once. %BR% 
+ The current limitation of the write-buffer is linked to the input string buffer of 140 characters, i.e. &approx; 60 bytes.
+	
+ Up to 8 Chip-Select/SlaveS Select output pin(s) can be defined and manipulated either 
+   * automatically ( _[[#SPI_Basic_Operation][ Basic Operation]]_ ), 
+   * semi-automatically ( _[[#SPI_Advanced_Operation][ Advanced Operation]]_ ), or 
+   * manually ( _[[#SPI_Expert_Operation][ Expert Operation]]_ ) 
+
+ The received data is stored in a read buffer which is of the same size as the write buffer.
+ The purging of the buffers depend on the mode of operation and the configuration settings.
+ 
+<ul>
+<a name="SPI_Basic_Operation" />
+---++++++ Basic Operation
+---
+<ul>
+    $_"Single Command Operation"_: All necessary steps are taken automatically, optional behavior can be achieved by changing the configuration.
+
+ Example task: 
+ %BGCDIV%
+	SPI write dc 7f 8f8fb4 0123456789abcdef be %BR% 
+ %ENDBGCDIV%
+   equivalent to
+ %BGCDIV%
+	SPI dc 7f 8f8fb4 0123456789abcdef be 
+ %ENDBGCDIV%
+
+*NOTE*: only even number of digits per argument are allowed
+
+ This ==write== command includes the following steps:
+   1. optionally _purge read buffer_ %BR% 
+      (default: TRUE) 
+   1. _purge write buffer_
+   2. _filling the write buffer_ %BR% by decomposing input byte by byte %BR% 
+      &rArr; ==dc 7f 8f 8f b4 01 23 45 67 89 ab cd ef be==
+   3. _set cs_
+      * setting the defined chip-select pin(s) to _"active low"_
+         * optionally masked by an external mask
+   4. _transmit/receive_ %BR% byte by byte in the given byte-order
+      * transmit write buffer content
+      * attaching received bytes to the end of the read buffer
+   5. _release cs_
+      * release the defined chip-select pins(s) to _"passive high"_
+         * optionally masked by an external mask
+   6. optionally _purge write buffer_ %BR%
+       (default: FALSE) 
+      
+
+The read buffer content can be shown as follows:
+   * last read element %BR% 
+	 %BGCDIV%
+	 	SPI read %BR%
+	 %ENDBGCDIV%
+   * last read 3 elements %BR% 
+	 %BGCDIV%
+	 	SPI show_read_buffer 3 1 %BR%
+	 %ENDBGCDIV%
+   * first read 6 elements %BR% 
+	 %BGCDIV%
+	 	SPI show_read_buffer 6 %BR%
+	 %ENDBGCDIV%
+   * the full content %BR%	 
+	 %BGCDIV%
+	 	SPI show_read_buffer 
+	 %ENDBGCDIV%
+
+   See _[[#SPI_read][read]]_, and _[[#SPI_show_read_buffer][show_read_buffer]]_ commands for details	
+
+</ul>
+---
+</ul>
+	
+
+<ul>
+<a name="SPI_Advanced_Operation" />
+---++++++ Advanced Operation
+---
+<ul>
+The user can prepare step by step the write buffer before automatically sending it.
+
+Example sequence: _add/write_buffer_ 
+<pre>
+%BGCDIV%
+    SPI purge_read_buffer      <code>// optionally</code>
+    SPI purge_write_buffer     <code>// optionally</code>     
+   
+    SPI add dc 7f              
+    SPI add 8f8fb4             <code>// repeat until write buffer is full</code>
+    SPI add 0123456789abcdef   <code>//</code>
+    SPI add be                 <code>//</code>
+	
+    SPI show_write_buffer      <code>// optionally</code>
+	
+    SPI write_buffer           
+	
+    SPI write_buffer           <code>// e.g. repeat it, if <b><i>auto_purge</i></b> is OFF</code>
+	
+    SPI write_buffer 02        <code>// only activate second chip select pin, by masking it with 0x02</code>
+%ENDBGCDIV%
+</pre>
+ 
+The ==write_buffer== command includes all remaining necessary steps:
+   3. _set cs_
+      * setting the defined chip-select pin(s) to _"active low"_
+         * optionally masked by an external mask
+   4. _transmit/receive_ %BR% byte by byte in the given byte-order
+      * transmit write buffer content
+      * attaching received bytes to the end of the read buffer
+   5. _release cs_
+      * release the defined chip-select pins(s) to _"passive high"_
+         * optionally masked by an external mask
+   6. optionally _purge write buffer_
+
+Example sequence: _write/write_buffer_ 
+<pre>
+%BGCDIV%
+    SPI write dc 7f 8f8fb4 0123456789abcdef be 
+    SPI write_buffer           <code>// e.g. repeat it, if <b><i>auto_purge</i></b> is OFF</code>
+	...              
+    SPI write_buffer
+    SPI write_buffer 02        <code>// only activate 2nd chip select pin, by masking it with 0x02</code>
+    SPI write_buffer 01        <code>// only activate 1st chip select pin</code>
+    SPI write_buffer fc        <code>// only activate the other chip select pins</code>
+%ENDBGCDIV%
+</pre>
+
+Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
+
+</ul>
+---
+</ul>
+	     
+<ul>
+<a name="SPI_Expert_Operation" />
+---++++++ Expert Operation
+---
+<ul>
+The user has full control on setting and releasing chip select pins.
+
+Example sequence: _selected chip select_ 
+<pre>
+%BGCDIV%
+    SPI purge_read_buffer     <code>// optionally</code>
+    SPI purge_write_buffer    <code>// optionally</code>     
+    SPI add dc 7f 8f8fb4 0123456789abcdef be              
+
+    SPI cs                    <code>// get status of defined chip select pins</code>
+    SPI cs_bar                <code>// same as above but with <i>"active low"</i> logic</code>
+
+    SPI cs_set                <code>// set all available chip select pins to <i>"active"</i></code>
+    SPI transmit           
+    SPI cs_release            <code>// set all available chip select pins to <i>"passive"</i></code>
+
+    SPI cs_set 01             <code>// only activate 1st chip select pin to <i>"active"</i></code>
+    SPI transmit           
+    SPI cs_release            <code>// set all available chip select pins to <i>"passive"</i></code>
+
+    SPI cs_set fe             <code>// only activate the other chip select pins to <i>"active"</i></code>
+    SPI transmit           
+    SPI cs_release ee         <code>// set masked chip select pins to <i>"passive"</i>, keep 5th <i>"active"</i></code>
+    SPI cs_release 10         <code>// set masked chip select pins to <i>"passive"</i>, keep 5th <i>"active"</i></code>
+%ENDBGCDIV%
+</pre>
+
+Reading: see _[[#SPI_Basic_Operation][ Basic Operation]]_
+
+</ul>
+---
+</ul>
+---
+</ul>
+
+<ul>
+---+++++ Main Commands
+---
+<ul>
+<a name="SPI" />
+---++++++ SPI
+<ul>
+   $ *Format*: 
+      * %BGCSPAN% SPI %ENDBGCSPAN% 
+         * short-cut of [[#SPI_status][SPI status]]
+   $ *Format*: 
+      * %BGCSPAN% SPI ==%SCLB% &lt;list of data bytes|words|dwords|qwords&gt;%SCLE%== %ENDBGCSPAN% 
+         * short-cut of [[#SPI_write][SPI write]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_write" />
+---++++++ SPI w/write
+<ul>
+   $ *Task*: send list of bytes to clients, including predefined purge, chip-select behavior 
+   $ *Format*: 
+      * %BGCSPAN% SPI write                     ==%SCLB% &lt;list of data bytes|words|dwords|qwords&gt;%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI w&nbsp;&nbsp;&nbsp;&nbsp; ==%SCLB% &lt;list of data bytes|words|dwords|qwords&gt;%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI write OK== %ENDBGCDIV%
+   $ *Description*: %BR%
+      As described in section _[[#SPI_Basic_Operation][Basic Operation]]_
+      $ *Arguments*: 
+         * list of data bytes|words|dwords|qwords|...
+   $ *Comments*:  
+      * Maximum single number length 24 digits
+      * only byte-wise sending  allowed
+      * see [[#SPI_cs_select_mask][SPI cs_select_mask]]
+      * see [[#SPI_auto_purge_write_buffer][SPI auto_purge_write_buffer]]
+      * see [[#SPI_auto_purge_read_buffer][SPI auto_purge_read_buffer]]
+      * see [[#SPI_transmit_report][SPI transmit_report]]
+      * see [[#SPI_transmit_byte_order][SPI transmit_byte_order]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_add" />
+---++++++ SPI a/add
+<ul>
+
+   $ *Task*: add list of data byte by byte to the write buffer 
+   $ *Format*: 
+      * %BGCSPAN% SPI add           ==%SCLB% &lt;list of data bytes|words|dwords|qwords&gt;%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI a&nbsp;&nbsp; ==%SCLB% &lt;list of data bytes|words|dwords|qwords&gt;%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI add OK== %ENDBGCDIV%
+      $ *Arguments*: 
+         * list of data bytes|words|dwords|qwords|...
+   $ *Comments*: 
+      * Maximum single number length 24 digits
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_write_buffer" />
+---++++++ SPI wb/write_buffer
+<ul>
+
+   $ *Task*: send write buffer content to clients, including predefined purge, chip-select behavior, %BR%
+             optionally selecting chip select pins
+   $ *Format*: 
+      * %BGCSPAN% SPI write_buffer ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI wb           ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI write_buffer== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * optional: external chip select mask:
+            * [ 0 ... FF]
+            * each bit represents a cs pin
+               * 1:active, 0:inactive
+   $ *Comments*:  
+      * see [[#SPI_auto_purge_write_buffer][SPI auto_purge_write_buffer]]
+      * see [[#SPI_auto_purge_read_buffer][SPI auto_purge_read_buffer]]
+      * see [[#SPI_transmit_report][SPI transmit_report]]
+      * see [[#SPI_transmit_byte_order][SPI transmit_byte_order]]
+      * see [[#SPI_cs_pins][SPI cs_pins]]
+
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_transmit" />
+---++++++ SPI t/transmit
+<ul>
+   $ *Task*: send write buffer content to clients, w/o any chip select manipulation 
+   $ *Format*: 
+      * %BGCSPAN% SPI transmit %ENDBGCSPAN%
+      * %BGCSPAN% SPI t      %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI transmit OK== %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * see [[#SPI_transmit_report][SPI transmit_report]]
+      * see [[#SPI_transmit_byte_order][SPI transmit_byte_order]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_set" />
+---++++++ SPI css/cs_set
+<ul>
+
+   $ *Task*: sets (selected) chip select pins to _"active low"_
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_set ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI css    ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs 1:1 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      On success ==cs== is called to show the current status
+      $ *Arguments*: 
+         * optional: external chip select mask:
+            * [ 0 ... FF]
+            * each bit represents a cs pin
+               * 1:active, 0:inactive
+   $ *Comments*:  
+      * see [[#SPI_cs_select_mask][SPI cs_select_mask]]
+      * see [[#SPI_cs][SPI cs]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_release" />
+---++++++ SPI csr/cs_release
+<ul>
+
+   $ *Task*: releases (selected) chip select pins to _"passive high"_
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_release ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI csr        ==%SCLB%[ &lt;Chip Select Mask&gt; ]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs 1:1 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR%
+      %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * optional: external chip select mask:
+            * [ 0 ... FF]
+            * each bit represents a cs pin
+               * 1:active, 0:inactive
+   $ *Comments*:  
+      * see [[#SPI_cs_select_mask][SPI cs_select_mask]]
+      * see [[#SPI_cs][SPI cs]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_read" />
+---++++++ SPI r/read 
+<ul>
+
+   $ *Task*: read the last element filled into the read buffer
+   $ *Format*: 
+      * %BGCSPAN% SPI read %ENDBGCSPAN%
+      * %BGCSPAN% SPI r      %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI read %SCLB%&lt;value&gt;%SCLE%== %BR%
+          %ENDBGCDIV%
+   $ *Description*: \
+   	  read the last element filled into the read buffer %BR%
+   	  depending on the _[[#SPI_transmit_byte_order][transmit_byte_order]]_ :
+   	  * 0, MSB: last element (FIFO)
+   	  * 1, LSB: first element (LIFO)
+      $ *Arguments*: 
+         * - 
+      $ *Return values*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+         	* _"--"_ , if read buffer is empty
+         	* last byte filled [0 .. FF]         
+   $ *Comments*:  
+      * see [[#SPI_transmit_byte_order][SPI transmit_byte_order]]
+
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_show_write_buffer" />
+---++++++ SPI sw/show_write_buffer
+<ul>
+   $ *Task*:  show (partial) content of write buffer
+   $ *Format*: 
+      * %BGCSPAN% SPI show_write_buffer ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI sw                ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*: 
+      * w/o any arguments, %BR%
+   	    buffer filled, 
+   	    &le; 8 bytes: %BR%
+    	  %BGCDIV% SPI sw %BR%
+    	           ==RECV SPI show_write_buffer elements: 0x5 (5)== %BR%
+    	           ==RECV SPI show_write_buffer 10 00 10 21 42== %ENDBGCDIV% 
+      * w/o any arguments, %BR%
+  	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sw %BR%
+    	           ==RECV SPI show_write_buffer elements: 0x14 (20)== %BR%
+    	           ==RECV SPI show_write_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
+    	           ==RECV SPI show_write_buffer (#2) 10 10 10 00 10 21 42 51 ...== %BR%
+    	           ==RECV SPI show_write_buffer (#3) 25 01 10 10== %ENDBGCDIV% 
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne;0,%BR%
+   	    buffer empty: %BR%
+    	  %BGCDIV% SPI sw 3 %BR%
+    	           ==RECV SPI show_write_buffer --== %ENDBGCDIV% 
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 4, %BR%
+   	    buffer filled, &le; 8 bytes: %BR%
+    	  %BGCDIV% SPI sw 4%BR%
+    	           ==RECV SPI show_write_buffer 10 00 10 21== %ENDBGCDIV% 
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 0xA,  %BR%
+   	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sw a%BR%
+    	           ==RECV SPI show_write_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
+    	           ==RECV SPI show_write_buffer (#2) 10 10== %ENDBGCDIV% 
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 2, %BR%
+   	    w/ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+   	    buffer filled, &le; 8 bytes, %BR%
+    	  %BGCDIV% SPI sw 2 TRUE%BR%
+    	           ==RECV SPI show_write_buffer 10 10== %ENDBGCDIV% 
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 9,  %BR%
+   	    w/ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+   	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sw 9 1%BR%
+    	           ==RECV SPI show_write_buffer (#1) 00 10 21 42 51 25 01 10 ...== %BR%
+    	           ==RECV SPI show_write_buffer (#2) 10== %ENDBGCDIV%
+   $ *Description*: 
+      Shows (partial) content of write buffer.
+      Depending on the optional arguments the set can be reduced to a sub set of the buffer,
+      beginning from the first element filled or reverse beginning with the last elements added.
+      Depending on the number of elements requested, additional information is added:
+      * if all elements are show a summary line is added, with the given number of elements in the buffer in hex and decimal
+      * if the number of elements to show exceed ==8== 
+         * a line counter ==(#i)==, starting from 1, is added in front 
+         * _"..."_ are added at the end of the line, if more lines follow 
+      $ *Arguments*: 
+         * ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==
+         	* max number of bytes to show, &ge; 0
+         		* ==0==: all available
+         		* else: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from beginning (1) to maximum ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==   
+         * ==%SCLB%&lt;Reverse Flag&gt;%SCLE%==
+         	* flag to revert direction of interest
+         		* ==0,FALSE,OFF,LOW==: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from beginning (1) to maximum ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==
+         		* else: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from ==%SCLB%&lt;number of elements&gt; - &lt;Number of Bytes&gt;%SCLE%== until last added element
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_show_read_buffer" />
+---++++++ SPI sr/show_read_buffer
+<ul>
+   $ *Task*:  show (partial) content of read buffer
+   $ *Format*: 
+      * %BGCSPAN% SPI show_read_buffer ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI sr               ==%SCLB%[&lt;Number of Bytes&gt; [&lt;Reverse Flag&gt;]]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*: 
+      * w/o any arguments, %BR%
+   	    buffer filled, 
+   	    &le; 8 bytes: %BR%
+    	  %BGCDIV% SPI sr %BR%
+    	           ==RECV SPI show_read_buffer elements: 0x5 (5)== %BR%
+    	           ==RECV SPI show_read_buffer 10 00 10 21 42== %ENDBGCDIV% 
+      * w/o any arguments, %BR%
+  	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sr %BR%
+    	           ==RECV SPI show_read_buffer elements: 0x14 (20)== %BR%
+    	           ==RECV SPI show_read_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
+    	           ==RECV SPI show_read_buffer (#2) 10 10 10 00 10 21 42 51 ...== %BR%
+    	           ==RECV SPI show_read_buffer (#3) 25 01 10 10== %ENDBGCDIV% 
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== &ne;0,%BR%
+   	    buffer empty: %BR%
+    	  %BGCDIV% SPI sr 3 %BR%
+    	           ==RECV SPI show_read_buffer --== %ENDBGCDIV% 
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 4, %BR%
+   	    buffer filled, &le; 8 bytes: %BR%
+    	  %BGCDIV% SPI sr 4%BR%
+    	           ==RECV SPI show_read_buffer 10 00 10 21== %ENDBGCDIV% 
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 0xA,  %BR%
+   	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sr a%BR%
+    	           ==RECV SPI show_read_buffer (#1) 10 00 10 21 42 51 25 01 ...== %BR%
+    	           ==RECV SPI show_read_buffer (#2) 10 10== %ENDBGCDIV% 
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 2, %BR%
+   	    w/ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+   	    buffer filled, &le; 8 bytes, %BR%
+    	  %BGCDIV% SPI sr 2 TRUE%BR%
+    	           ==RECV SPI show_read_buffer 10 10== %ENDBGCDIV% 
+      * w/ ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== set, e.g. 9,  %BR%
+   	    w/ ==%SCLB%&lt;Reverse Flag&gt;%SCLE%== flag set ( ==TRUE,HIGH,ON,1== )%BR%
+   	    buffer filled, &gt; 8 bytes: %BR%
+    	  %BGCDIV% SPI sr 9 1%BR%
+    	           ==RECV SPI show_read_buffer (#1) 00 10 21 42 51 25 01 10 ...== %BR%
+    	           ==RECV SPI show_read_buffer (#2) 10== %ENDBGCDIV%
+   $ *Description*: 
+      Shows (partial) content of read buffer.
+      Depending on the optional arguments the set can be reduced to a sub set of the buffer,
+      beginning from the first element filled or reverse beginning with the last elements added.
+      Depending on the number of elements requested, additional information is added:
+      * if all elements are show a summary line is added, with the given number of elements in the buffer in hex and decimal
+      * if the number of elements to show exceed ==8== 
+         * a line counter ==(#i)==, starting from 1, is added in front 
+         * _"..."_ are added at the end of the line, if more lines follow 
+      $ *Arguments*: 
+         * ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==
+         	* max number of bytes to show, &ge; 0
+         		* ==0==: all available
+         		* else: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from beginning (1) to maximum ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==   
+         * ==%SCLB%&lt;Reverse Flag&gt;%SCLE%==
+         	* flag to revert direction of interest
+         		* ==0,FALSE,OFF,LOW==: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from beginning (1) to maximum ==%SCLB%&lt;Number of Bytes&gt;%SCLE%==
+         		* else: show ==%SCLB%&lt;Number of Bytes&gt;%SCLE%== elements from ==%SCLB%&lt;number of elements&gt; - &lt;Number of Bytes&gt;%SCLE%== until last added element
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+</ul>
+---
+<ul>
+---+++++ Clean-up
+---
+
+<ul>
+<a name="SPI_purge" />
+---++++++ SPI p/purge
+<ul>
+
+   $ *Task*: purge write and read buffer 
+   $ *Format*: 
+      * %BGCSPAN% SPI purge %ENDBGCSPAN%
+      * %BGCSPAN% SPI p      %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI purge OK== %ENDBGCDIV%
+   $ *Description*: 
+   		purges write and read buffer, by internally calling ==purge_write_buffer== and ==purge_read_buffer==
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * see [[#SPI_purge_write_buffer][SPI purge_write_buffer]]
+      * see [[#SPI_purge_read_buffer][SPI purge_read_buffer]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_purge_write_buffer" />
+---++++++ SPI pw/purge_write_buffer
+<ul>
+   $ *Task*:  purge write buffer
+   $ *Format*: 
+      * %BGCSPAN% SPI purge_write_buffer %ENDBGCSPAN%
+      * %BGCSPAN% SPI pw      %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI purge_write_buffer OK== %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * only resets the number of elements to 0, not the data
+</ul>
+---
+</ul>
+<ul>
+<a name="SPI_purge_read_buffer" />
+---++++++ SPI pr/purge_read_buffer
+<ul>
+
+   $ *Task*:  purge read buffer
+   $ *Format*: 
+      * %BGCSPAN% SPI purge_read_buffer %ENDBGCSPAN%
+      * %BGCSPAN% SPI pr      %ENDBGCSPAN%  
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI purge_read_buffer OK== %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * only resets the number of elements to 0, not the data
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_reset" />
+---++++++ SPI reset
+<ul>
+
+   $ *Task*: resets SPI interface and SPI parameter settings to their default status  
+   $ *Format*: 
+      * %BGCSPAN% SPI reset %ENDBGCSPAN%
+   $ *Response*:   
+      * _nothing_  
+      * if ==DEBG== > 0 %BGCDIV% ==RECV SPI reset OK== %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * see [[#SPI_status][SPI status]]
+</ul>
+---
+</ul>
+
+</ul>
+---
+<ul>
+---+++++ Status
+---
+
+<ul>
+<a name="SPI_status" />
+---++++++ SPI s/status 
+<ul>
+
+   $ *Task*:  Show status
+   $ *Format*: 
+      * %BGCSPAN% SPI status %ENDBGCSPAN%
+      * %BGCSPAN% SPI s      %ENDBGCSPAN%  
+      * %BGCSPAN% SPI        %ENDBGCSPAN% 
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI status== %BR%
+      ==RECV SPI cs 1:0 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR%
+      ==RECV SPI cs_bar 1:1 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR%
+      ==RECV SPI cs_pins 1:PORTB,0== %BR%
+      ==RECV SPI cs_select_mask FF== %BR%
+      ==RECV SPI control_bits 50== %BR%
+      ==RECV SPI spi_enable TRUE== %BR%
+      ==RECV SPI data_order 0== %BR%
+      ==RECV SPI master TRUE== %BR%
+      ==RECV SPI clock_polarity 0== %BR%
+      ==RECV SPI clock_phase 0== %BR%
+      ==RECV SPI speed 0== %BR%
+      ==RECV SPI double_speed TRUE== %BR%
+      ==RECV SPI speed_divider 4 (2500000Hz @ 10000000Hz)== %BR%
+      ==RECV SPI transmit_byte_order 0 (MSB/big endian)== %BR%
+      ==RECV SPI transmit_report FALSE== %BR%
+      ==RECV SPI auto_purge_read_buffer TRUE== %BR%
+      ==RECV SPI auto_purge_write_buffer FALSE== %BR%
+      ==RECV SPI show_write_buffer elements: 0xd (13)== %BR%
+      ==RECV SPI show_write_buffer (#1) AB BB AA BB CC EE FF 66 ...== %BR%
+      ==RECV SPI show_write_buffer (#2) 54 12 45 54 58== %BR%
+      ==RECV SPI show_read_buffer elements: 0 (0)==
+          %ENDBGCDIV%
+   $ *Description*: 
+      * recursive call of all available status information
+      $ *Arguments*: 
+         * - 
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs" />
+---++++++ SPI cs
+<ul>
+
+   $ *Task*: reports current status of (selected) chip select lines
+   $ *Format*: 
+      * %BGCSPAN% SPI cs ==%SCLB%[&lt;Chip Select Mask&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  
+      * w/o mask %BR%   
+   	    %BGCDIV% SPI cs %BR%
+   	             ==RECV SPI cs 1:0 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR% %ENDBGCDIV%
+      * w/  mask, eg. <code>0b01100001 = 0x71</code>%BR%   
+   	    %BGCDIV% SPI cs 71%BR%
+   	             ==RECV SPI cs 1:0 6:- 7:-== %BR% %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * optional ==%SCLB%[&lt;Chip Select Mask&gt;]%SCLE%==
+            * [ 0 ... FF]
+            * each bit represents a cs pin
+               * 1:chosen, 0:ignore        	
+      $ *Response*:  
+         * list of ==%SCLB%&lt;Pin States&gt;%SCLE%==
+            * syntax ==%SCLB%&lt;Pin States&gt;%SCLE%==:
+               * ==%SCLB%&lt;Index&gt;:&lt;State&gt;%SCLE%==
+                  * ==%SCLB%&lt;Index&gt;%SCLE%==: ==1 ... 8==
+                  * ==%SCLB%&lt;State&gt;%SCLE%==:
+                     * ==1==: HIGH
+                     * ==0==: LOW
+                     * ==-==: undefined, channel not connected   
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_bar" />
+---++++++ SPI csb/cs_bar
+<ul>
+
+   $ *Task*: reports current inverted status of (selected) chip select lines
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_bar ==%SCLB%[&lt;Chip Select Mask&gt;]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI csb    ==%SCLB%[&lt;Chip Select Mask&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  
+      * w/o mask %BR%   
+   	    %BGCDIV% SPI csb %BR%
+   	             ==RECV SPI cs_bar 1:1 2:- 3:- 4:- 5:- 6:- 7:- 8:-== %BR% %ENDBGCDIV%
+      * w/  mask, eg. <code>0b01100001 = 0x71</code>%BR%   
+   	    %BGCDIV% SPI csb 71%BR%
+   	             ==RECV SPI cs_bar 1:1 6:- 7:-== %BR% %ENDBGCDIV%
+   $ *Description*: 
+      $ *Arguments*: 
+         * optional ==%SCLB%&lt;Chip Select Mask&gt;%SCLE%==
+            * [ 0 ... FF]
+            * each bit represents a cs channel/pin
+               * 1:chosen, 0:ignore        	
+      $ *Response*:  
+         * list of ==%SCLB%&lt;Pin States&gt;%SCLE%==
+            * syntax ==%SCLB%&lt;Pin States&gt;%SCLE%==:
+               * ==%SCLB%&lt;Index&gt;:&lt;State&gt;%SCLE%==
+                  * ==%SCLB%&lt;Index&gt;%SCLE%==: ==1 ... 8==
+                  * ==%SCLB%&lt;State&gt;%SCLE%==:
+                     * ==1==: LOW
+                     * ==0==: HIGH
+                     * ==-==: undefined, channel not connected   
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_pins" />
+---++++++ SPI cs_pins
+<ul>
+   $ *Task*: report current chip select channel configurations  
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_pins ==%SCLB%[&lt;CS Channel Index&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*: 
+      * w/o argument %BR% 
+       %BGCDIV% SPI cs_pins%BR%
+     	        ==RECV SPI cs_pins %SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%== %ENDBGCDIV% 
+         * e.g.: %BR% 
+                %BGCDIV% ==RECV SPI cs_pins 1:PORTB,0 2:PORTA,4 3:PORTG,4 7:PORTF,5== %ENDBGCDIV%
+      * w/ ==%SCLB%&lt;CS Channel Index&gt;%SCLE%== %BR% 
+       %BGCDIV% SPI cs_pins ==%SCLB%&lt;CS Channel Index&gt;%SCLE%== %BR%
+     	 ==RECV SPI cs_pins %SCLB%&lt;Index&gt;&lt;PORTx&gt;,&lt;Pin&gt;,&lt;Status&gt;%SCLE%== %ENDBGCDIV% 
+         * e.g.:  %BR%
+                %BGCDIV% SPI cs_pins 1%BR%	        
+     			==RECV SPI cs_pins 1:PORTB,0,ON== %ENDBGCDIV%
+   $ *Description*:  		
+      $ *Arguments*: 
+         * optional ==%SCLB%&lt;CS Channel Index&gt;%SCLE%==
+            * chip select index
+            * ==1 ... 8==  		
+      $ *Return values*: 
+         * ==%SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%== %BR%
+           or %BR%
+           ==%SCLB%&lt;&lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt;,&lt;Status&gt; CS Configuration&gt;%SCLE%==
+            * ==%SCLB%&lt;Index&gt;%SCLE%==   
+               * chip select index
+               * ==1 ... 8==
+            * ==%SCLB%&lt;PORTx&gt;%SCLE%==   
+		   	   * ==PORTx==
+		   	      * ==x==: ==A ... G==
+            * ==%SCLB%&lt;Pin&gt;%SCLE%==   
+               * pin number of ==PORTx==
+                  * ==0 ... 7==                
+            * ==%SCLB%&lt;Status&gt;%SCLE%==
+               * status of chosen chip select index
+                  * ==ON==: active
+                  * ==OFF==: deactivated    
+   $ *Comments*:  
+      * see [[#SPI_cs_add_pin][SPI cs_add_pin]]
+      * see [[#SPI_cs_remove_pin][SPI cs_remove_pin]]
+</ul>
+---
+</ul>
+
+</ul>
+---
+<ul>
+---+++++ Chip Select Configuration
+---
+
+<ul>
+<a name="SPI_cs_select_mask" />
+---++++++ SPI cs_select_mask
+<ul>
+
+   $ *Task*: get / set external chip select mask 
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_select_mask ==%SCLB%[&lt;Chip Select Mask&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*: %BGCDIV% 
+      ==RECV SPI cs_select_mask %SCLB%&lt;Value&gt;%SCLE%== %BR%
+        %ENDBGCDIV%
+   $ *Description*: 
+      The chip select mask allows to select a subset of the available, defined chip select channels. %BR%
+   	  Each bit of this mask represents a channel which can be selected or ignored. %BR%
+   	  This mask is used in all cases where chip select actions are required and not explicitly given.
+      * w/o argument: the current mask is shown
+      * w/ argument: ==%SCLB%&lt;Value&gt;%SCLE%== is assigned to the configuration
+      $ *Arguments*: 
+         * optional, ==%SCLB%&lt;Value&gt;%SCLE%==
+         	* chip select mask
+         	* range ==[0 ... FF]==
+         	* each bit represents a chip select channel
+               * 1:chosen, 0:ignore        	
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_add_pin" />
+---++++++ SPI csap/cs_add_pin
+<ul>
+
+   $ *Task*: add chip select channel configuration
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_add_pin ==%SCLB%&lt;Symbolic Output Port Address&gt; &lt;Output Port Pin&gt; [&lt;Channel Select Index/Slot&gt;]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI csap       ==%SCLB%&lt;Symbolic Output Port Address&gt; &lt;Output Port Pin&gt; [&lt;Channel Select Index/Slot&gt;]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*: %BGCDIV% 
+      ==RECV SPI cs_pins %SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%== %ENDBGCDIV% 
+      see [[#SPI_cs_pins][SPI cs_pins]]
+   $ *Description*: 
+   	  Allows to add up to 8 output port ==PORTX:Pin== combinations to act as channel select channels.
+   	  Provided the chosen slots aren't used yet or the address set is already defined
+   	  (see [[#SPI_cs_pins][SPI cs_pins]], [[#SPI_cs_remove_pin][SPI cs_remove_pin]]).%BR%
+   	  A successful operation is reported via [[#SPI_cs_pins][SPI cs_pins]]    	  
+      * w/o ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==:
+         * adds channel to next free slot
+      * w/  ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==:
+         * adds channel to assigned index
+      $ *Arguments*: 
+         * ==%SCLB%&lt;Symbolic Output Port Address&gt;%SCLE%==
+			* symbolic name for the available output port addresses
+            * ==PORTx==
+               * ==x==: ==A ... G==
+         * ==%SCLB%&lt;Output Port Pin&gt;%SCLE%==
+            * pin number of ==PORTx==
+               * ==0 ... 7==                
+         * optionally ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==
+            * chip select index
+               * ==1 ... 8==
+   $ *Comments*:  
+      * see [[#SPI_cs_pins][SPI cs_pins]]
+      * see [[#SPI_cs_remove_pin][SPI cs_remove_pin]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_cs_remove_pin" />
+---++++++ SPI csrp/cs_remove_pin
+<ul>
+   $ *Task*: remove chip select channel configuration
+   $ *Format*: 
+      * %BGCSPAN% SPI cs_remove_pin ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI csrp          ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI cs_pins %SCLB%&lt;List of active &lt;Index&gt;:&lt;PORTx&gt;,&lt;Pin&gt; CS Configurations&gt;%SCLE%== %ENDBGCDIV% 
+      see [[#SPI_cs_pins][SPI cs_pins]]
+   $ *Description*: 
+      Removes a chip select configuration from set of pin configuration
+   	  (see [[#SPI_cs_pins][SPI cs_pins]]).%BR%
+   	  A successful operation is reported via [[#SPI_cs_pins][SPI cs_pins]].    	  
+      $ *Arguments*: 
+         * ==%SCLB%&lt;Channel Select Index/Slot&gt;%SCLE%==
+            * chip select index
+               * ==1 ... 8==       
+   $ *Comments*:  
+      * see [[#SPI_cs_pins][SPI cs_pins]]
+      * see [[#SPI_cs_add_pin][SPI cs_add_pin]]
+</ul>
+---
+</ul>
+
+
+</ul>
+---
+<ul>
+---+++++ SPI Configuration
+---
+<ul>
+
+<a name="SPI_control_bits" />
+---++++++ SPI c/control_bits
+<ul>
+
+   $ *Task*: set/get SPI hardware configuraton/status
+   $ *Format*: 
+      * %BGCSPAN% SPI control_bits ==%SCLB%[&lt;Extended SPI Control Register&gt;]%SCLE%== %ENDBGCSPAN%
+      * %BGCSPAN% SPI c            ==%SCLB%[&lt;Extended SPI Control Register&gt;]%SCLE%== %ENDBGCSPAN%  
+   $ *Response*:  
+          e.g. :%BGCDIV% 
+      ==RECV SPI control_bits 50== %BR%
+      ==RECV SPI spi_enable TRUE== %BR%
+      ==RECV SPI data_order 0== %BR%
+      ==RECV SPI master TRUE== %BR%
+      ==RECV SPI clock_polarity 0== %BR%
+      ==RECV SPI clock_phase 0== %BR%
+      ==RECV SPI speed 0== %BR%
+      ==RECV SPI double_speed TRUE== %BR%
+      ==RECV SPI speed_divider 4 (2500000Hz @ 10000000Hz)==
+          %ENDBGCDIV%
+   $ *Description*: 
+      Allows to set/get the combined information/settings of 
+      the __SPI Control Register__ ==SPCR== and the __SPI Status Register__ ==SPSR== en bloc. 
+      Therefore those two registers are combinded into one 16bit data word with ==SPCR== as LSB and ==SPSR== as MSB. 
+      Since ==SPSR==, despite its name, does have one control bit. %BR%
+      * w/o ==%SCLB%&lt;Extended SPI Control Register&gt;%SCLE%==:
+         * reports status
+      * w/  ==%SCLB%&lt;Extended SPI Control Register&gt;%SCLE%==:
+         * changes configuration      
+      $ *Note*: all settings can be done alone using the functions described below.
+      Success is reported via its get mode and the get functions of the seperate properties.
+      $ *Arguments*: 
+         * ==%SCLB%&lt;Extended SPI Control Register&gt;%SCLE%==
+            * ==0 ... 1FF== 
+   $ *Comments*:  
+      * See [[#SPI_spi_enable][SPI spi_enable]]
+      * See [[#SPI_data_order][SPI data order]]
+      * See [[#SPI_master][SPI master]]
+      * See [[#SPI_clock_polarity][SPI clock polarity]]
+      * See [[#SPI_clock_phase][SPI clock phase ]]
+      * See [[#SPI_speed][SPI speed]]
+      * See [[#SPI_speed_divider][SPI speed divider]]
+      * See [[#SPI_double_speed][SPI double speed]]
+</ul>
+---
+</ul>
+
+
+<ul>
+<a name="SPI_spi_enable" />
+---++++++ SPI spi_enable
+<ul>
+
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI enable state: SPE%SCLE%== 
+   $ *Format*: 
+      * %BGCSPAN% SPI spi_enable ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI spi_enable ==%SCLB%SPI enable state: SPE%SCLE%==== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+      _"When the SPE bit is written to one, the SPI is enabled. \
+        This bit must be set to enable any SPI operation."_ %BR%(from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_data_order" />
+---++++++ SPI data_order
+<ul>
+
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI Data Order: DORD%SCLE%== 
+   $ *Format*: 
+      * %BGCSPAN% SPI data_order ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI data_order== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+ 	  _"When the DORD bit is written to one, the LSB of the data word is transmitted first.\
+        When the DORD bit is written to zero, the MSB of the data word is transmitted first.
+ 	  "_ %BR%(from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
+   $ *Comments*:  
+      * Don't mix up with [[#SPI_transmit_byte_order][API's transmit_byte_order]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_master" />
+---++++++ SPI master
+<ul>
+
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI Master/Slave Select: MSTR%SCLE%==
+   $ *Format*: 
+      * %BGCSPAN% SPI master ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI master== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+ 	  _"This bit selects Master SPI mode when written to one, and Slave SPI mode when written logic zero. \
+ 	  If <span style="text-decoration: overline">SS</span> [the 'Chip Select Pin'] is configured as an input and is driven low while MSTR is set, MSTR will be cleared"_ %BR%(from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==(0,) 1, &ne;0, ON, (OFF), TRUE, (FALSE)==
+   $ *Comments*:  
+      * _Slave_ mode not implemented
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_clock_polarity" />
+---++++++ SPI clock_polarity
+<ul>
+
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI Clock Polarity: CPOL%SCLE%==
+   $ *Format*: 
+      * %BGCSPAN% SPI clock_polarity ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI clock_polarity== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+ 	  _"When this bit is written to one, SCK is high when idle. When CPOL is written to zero, \
+ 	  SCK is low when idle."_ %BR%
+ 	  (from Manual: AT90CANxx)
+      * %BR% 
+		| *CPOL* | *Leading Edge* | *Trailing Edge* |
+        |  0     |  Rising        |  Falling        |		 
+        |  1     |  Falling       |  Rising         |		 
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_clock_phase" />
+---++++++ SPI clock_phase
+<ul>
+
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI Clock Phase: CPHA%SCLE%==
+   $ *Format*: 
+      * %BGCSPAN% SPI clock_phase ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI clock_phase== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+ 	  _"The settings of the Clock Phase bit (CPHA) determine if data \
+ 	  is sampled on the leading (first) or trailing (last) edge of SCK."_ 
+		| *CPHA* | *Leading Edge* | *Trailing Edge* |
+        |  0     |  Sample        |  Setup          |		 
+        |  1     |  Setup         |  Sample         |		 
+ 	  (from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_speed" />
+---++++++ SPI speed
+<ul>
+
+   $ *Task*: get/set spi configuration's bits ==%SCLB%SPI Clock Rate Select 1/0: SPR1/0%SCLE%==
+   $ *Format*: 
+      * %BGCSPAN% SPI speed ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI speed== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+ 	  _"These two bits control the SCK rate of the device configured as a Master. \
+ 	    SPR1 and SPR0 have no effect on the Slave. "_ %BR%
+ 	    (from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0 ... 3== 
+            * %BR% 
+			| *speed* | *double speed* | *clock rate: <i>SCK frequency</i>* |
+			|  ==0==  |  ==OFF==       |  f<sub>clkIO</sub>/4               | 
+			|  ==1==  |  ==OFF==       |  f<sub>clkIO</sub>/16              | 
+			|  ==2==  |  ==OFF==       |  f<sub>clkIO</sub>/64              | 
+			|  ==3==  |  ==OFF==       |  f<sub>clkIO</sub>/128             | 
+			|  ==0==  |  ==ON==        |  f<sub>clkIO</sub>/2               | 
+			|  ==1==  |  ==ON==        |  f<sub>clkIO</sub>/8               | 
+			|  ==2==  |  ==ON==        |  f<sub>clkIO</sub>/32              | 
+			|  ==3==  |  ==ON==        |  f<sub>clkIO</sub>/64              | 
+   $ *Comments*:  
+      * See [[#SPI_double_speed][SPI double speed]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_speed_divider" />
+---++++++ SPI speed_divider
+<ul>
+
+   $ *Task*: get/set spi configuration's ==%SCLB%Clock Rate Divider %SCLE%==
+   $ *Format*: 
+      * %BGCSPAN% SPI speed_divider ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI speed_divider== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+ 	  Set the ratio between f<sub>clkIO</sub> and ==SCK frequency==
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==2, 4, 8, 0x10, 0x20, 0x40, 0x80==
+   $ *Comments*:  
+      * See [[#SPI_speed][SPI speed]]
+      * See [[#SPI_double_speed][SPI double speed]]
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_double_speed" />
+---++++++ SPI double_speed
+<ul>
+
+   $ *Task*: get/set spi configuration's bit ==%SCLB%SPI Double Speed Bit: SPI2X%SCLE%==
+   $ *Format*: 
+      * %BGCSPAN% SPI double_speed ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI double_speed== %BR%
+          %ENDBGCDIV%
+   $ *Description*: 
+ 	  _"When this bit is written logic one the SPI speed (SCK Frequency) will be doubled \
+ 	  when the SPI is in Master mode. This means that the minimum SCK period will be two CPU clock periods.\
+ 	  When the SPI is configured as Slave, the SPI is only guaranteed to work at f<sub>clkio</sub>/4 or lower."_ %BR%
+ 	  (from Manual: AT90CANxx)
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+</ul>
+---
+<ul>
+---+++++ API Configuration
+---
+<ul>
+
+<a name="SPI_transmit_byte_order" />
+---++++++ SPI transmit_byte_order
+<ul>
+
+   $ *Task*: get/set the transmit order the data bytes of the buffer are written to the devices
+   $ *Format*: 
+      * %BGCSPAN% SPI transmit_byte_order ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI transmit_byte_order== %BR%
+          %ENDBGCDIV%
+   $ *Description*:      
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1== %BR%
+            | *%SCLB%&lt;value&gt;%SCLE%* | *transmit byte order*   |
+            |            0                |  MSB, big endian, FIFO  |
+            |            1                |  LSB, little endian, LIFO  |
+            
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+<ul>
+<a name="SPI_transmit_report" />
+---++++++ SPI transmit_report
+<ul>
+
+   $ *Task*:  get status of / enable/disable additional transmission reports after sending the write buffer 
+   $ *Format*: 
+      * %BGCSPAN% SPI transmit_report ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI transmit_report== %BR%
+          %ENDBGCDIV%
+   $ *Description*:
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+<ul>
+<a name="SPI_auto_purge_write_buffer" />
+---++++++ SPI auto_purge_write_buffer
+<ul>
+
+   $ *Task*:  get status of / enable/disable automatic write buffer purge after sending its content
+   $ *Format*: 
+      * %BGCSPAN% SPI auto_purge_write_buffer ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI auto_purge_write_buffer== %BR%
+          %ENDBGCDIV%
+   $ *Description*:
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+<ul>
+<a name="SPI_auto_purge_read_buffer" />
+---++++++ SPI auto_purge_read_buffer
+<ul>
+
+   $ *Task*:  get status of / enable/disable automatic read buffer purge before sending data
+   $ *Format*: 
+      * %BGCSPAN% SPI auto_purge_read_buffer ==%SCLB%[&lt;value&gt;]%SCLE%== %ENDBGCSPAN%
+   $ *Response*:  %BGCDIV% 
+      ==RECV SPI auto_purge_read_buffer== %BR%
+          %ENDBGCDIV%
+   $ *Description*:
+      * w/o argument: get value
+      * w/  argument: set value
+      $ *Arguments*: 
+         * ==%SCLB%&lt;value&gt;%SCLE%==
+            * ==0, 1, &ne;0, ON, OFF, TRUE, FALSE==
+   $ *Comments*:  
+      * -
+</ul>
+---
+</ul>
+
+</ul>
+%STOPINCLUDE%
+
+---
+-- Main.PeterZumbruch - 16 Jul 2013

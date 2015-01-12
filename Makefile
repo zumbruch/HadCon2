@@ -18,11 +18,12 @@ HADCON_TARGET_SUFFIX ?= _hadcon_
 ifndef HADCON_VERSION
 all: both
 else
-all: $(foreach hadcon, $(HADCON_VERSION), all$(HADCON_TARGET_SUFFIX)$(hadcon))
+all: all$(HADCON_TARGET_SUFFIX)$(HADCON_VERSION)
 endif
 	
-all_hadcon_%: 
-	HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@)
+#all_hadcon_%: 
+all$(HADCON_TARGET_SUFFIX)%: 
+	@HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@) 
 
 both: $(foreach hadcon, $(HADCON_TYPES), all$(HADCON_TARGET_SUFFIX)$(hadcon))
 	
@@ -57,7 +58,7 @@ set_fuses: $(foreach hadcon, $(HADCON_VERSION), set_fuses$(HADCON_TARGET_SUFFIX)
 endif
 	
 set_fuses_hadcon_%:
-	HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@)
+	@HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@)
 
 # Program the device.  
 ifndef HADCON_VERSION
@@ -131,18 +132,18 @@ COFFCONVERT += --change-section-address .eeprom-0x810000
 coff: $(foreach hadcon, $(HADCON_TYPES), coff$(HADCON_TARGET_SUFFIX)$(hadcon))
 	
 coff_hadcon_%:
-	HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@)
+	@HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@)
 
 extcoff: $(foreach hadcon, $(HADCON_TYPES), extcoff$(HADCON_TARGET_SUFFIX)$(hadcon))
 	
 extcoff_hadcon_%:
-	HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@)
+	@HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@)
 
 # Target: clean project.
 clean: $(foreach hadcon, $(HADCON_TYPES), clean$(HADCON_TARGET_SUFFIX)$(hadcon))
 	
 clean_hadcon_%:
-	HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@)
+	@HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@)
 
 # Listing of phony targets.
 .PHONY : all begin finish end sizebefore sizeafter gccversion \

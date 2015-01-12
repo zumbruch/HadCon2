@@ -42,6 +42,11 @@
 #include "OWIBitFunctions.h"
 
 #include "twi_master.h"
+#ifdef TESTING_ENABLE
+#include "testing.h"
+#endif
+
+static const char filename[] 		PROGMEM = __FILE__;
 
 char currentCommandKeyword[MAX_LENGTH_KEYWORD];/*variable to store command keyword e.g. "SEND"*/
 char currentResponseKeyword[MAX_LENGTH_KEYWORD];/*variable to store response keyword e.g. "RECV"*/
@@ -123,8 +128,6 @@ char canStoreString[MAX_LENGTH_CAN_DATA];
 
 volatile unsigned char uartReady;/*variable for Uart interrupt*/
 
-char keepAliveString[15] = "PING";/*only for keep_alive function*/
-
 char uartString[BUFFER_SIZE]; /* variable for storage received a complete string via UART */
 char decrypt_uartString[BUFFER_SIZE];
 char decrypt_uartString_remainder[BUFFER_SIZE];
@@ -143,6 +146,7 @@ char message[BUFFER_SIZE];
 char resultString[BUFFER_SIZE];
 
 unsigned char nextCharPos; /*pointer of the variable uartString  */
+bool uartInputBufferExceeded = false;
 uint16_t canErrorCode = 0; /* error code for CAN-communication */
 uint16_t twiErrorCode = 0; /* error code for I2C/TWI-communication */
 uint16_t uartErrorCode = 0; /* error code for UART-communication */
@@ -225,30 +229,35 @@ int main( void )
 
    Initialization();
 
-   printDebug_p(debugLevelEventDebug, debugSystemMain, __LINE__, PSTR(__FILE__), PSTR("starting main (after init)"));
+   printDebug_p(debugLevelEventDebug, debugSystemMain, __LINE__, filename, PSTR("starting main (after init)"));
 
    // Start
 
    startMessage();
 
-	// main endless loop
+#ifdef TESTING_ENABLE
+   // Testing
+   testingOneShot();
+#endif
+
+   // main endless loop
    uint32_t mainLoopIndex = 0;
 
    while ( 1 )
    {
 	   mainLoopIndex++;
 
- 	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__), PSTR("ALIV --- alive --- %i"), mainLoopIndex);
+ 	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemMain, __LINE__, filename, PSTR("ALIV --- alive --- %i"), mainLoopIndex);
 
 #warning TODO make it switchable, up-to-now disabled
  	   // watchdog
  	   wdt_enable(WDTO_2S);
- 	   wdt_disable();
+ 	   //wdt_disable();
 
 #warning think of using ATOMIC_BLOCK() from util/atomic.h
 
 	   // UART has received a string
-	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemUART, __LINE__, PSTR(__FILE__), PSTR("UART %s"), ( 1 == uartReady ) ? "--yes" : "");
+	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemUART, __LINE__, filename, PSTR("UART %s"), ( 1 == uartReady ) ? "--yes" : "");
 
 	   if ( 1 == uartReady )/* of the ISR was completely receive a string */
 	   {
@@ -263,7 +272,7 @@ int main( void )
 	   }
 
 	   // CANbus interface has received a message / error
-	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN %s"), ( canState_IDLE != canReady ) ? "--yes" : "");
+	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemCAN, __LINE__, filename, PSTR("CAN %s"), ( canState_IDLE != canReady ) ? "--yes" : "");
 
 	   if ( canState_IDLE != canReady)
 	   {
@@ -280,7 +289,7 @@ int main( void )
 			   break;
 		   case canState_GENERAL_BXOK:
 		   case canState_GENERAL_OVRTIM:
-			   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+			   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
 								   PSTR("CAN canReady %i received"), canReady);
 			   break;
 		   case canState_MOB_ERROR:
@@ -289,7 +298,7 @@ int main( void )
 		   default:
 			   /* can error detected */
 
-			   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+			   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
 					   PSTR("CAN canReady %i received -> ErrorHandling"), canReady);
 
 			   canErrorHandling(canReady);
@@ -297,7 +306,7 @@ int main( void )
 			   break;
 		   }
 
-		   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, PSTR(__FILE__),
+		   printDebug_p(debugLevelEventDebug, debugSystemCAN, __LINE__, filename,
 				   PSTR("CAN canReady %i reset to %i"), canReady, canState_IDLE);
 
 		   canReady = canState_IDLE; /* restore flag */
@@ -307,7 +316,7 @@ int main( void )
 	   }
 
 	   // CAN timer overrun 
-	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN TIMER OVR %s"), ( TRUE == canTimerOverrun ) ? "--yes" : "");
+	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemCAN, __LINE__, filename, PSTR("CAN TIMER OVR %s"), ( TRUE == canTimerOverrun ) ? "--yes" : "");
 
 	   if ( TRUE == canTimerOverrun)
 	   {
@@ -316,14 +325,14 @@ int main( void )
 #warning define probable delayed action if OVR occurs
 
 		   canTimerOverrun = FALSE;
-		   printDebug_p(debugLevelPeriodicDebug, debugSystemCAN, __LINE__, PSTR(__FILE__), PSTR("CAN Timer Overrun received"));
+		   printDebug_p(debugLevelPeriodicDebug, debugSystemCAN, __LINE__, filename, PSTR("CAN Timer Overrun received"));
 
 		   // (re)enable interrupts
 		   sei();
 	   }
 
 	   // timer 0 set by ISR
-	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemTIMER0, __LINE__, PSTR(__FILE__), PSTR("timer0 %s"), ( 1 == timer0Ready ) ? "--yes" : "");
+	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemTIMER0, __LINE__, filename, PSTR("timer0 %s"), ( 1 == timer0Ready ) ? "--yes" : "");
 
 	   if ( 1 == timer0Ready )
 	   {
@@ -333,24 +342,29 @@ int main( void )
 	   }
 
 	   // timer 1 set by ISR
-	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemTIMER1, __LINE__, PSTR(__FILE__), PSTR("timer1 %s"), ( 1 == timer1Ready ) ? "--yes" : "");
+	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemTIMER1, __LINE__, filename, PSTR("timer1 %s"), ( 1 == timer1Ready ) ? "--yes" : "");
 
 	   if ( 1 == timer1Ready )
 	   {
+		   static unsigned int pingCtr = 0;
 		   if ( flag_pingActive )
 		   {
-			   cli();
 			   // disable interrupts
-			   strncpy(uart_message_string, keepAliveString, BUFFER_SIZE - 1);
-			   UART0_Send_Message_String_p(NULL,0);
-
+			   cli();
+			   if (0 == pingCtr % 10)
+			   {
+				   clearString(uart_message_string, BUFFER_SIZE);
+				   strncpy_P(uart_message_string, (const char*) ( pgm_read_word( &(commandKeywords[commandKeyNumber_PING]))), BUFFER_SIZE - 1);
+				   UART0_Send_Message_String_p(NULL,0);
+			   }
+			   pingCtr++;
 			   timer1Ready = 0;
 			   sei();
 		   }
 	   }
 
 	   // timer 0A set by ISR
-	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemTIMER0A, __LINE__, PSTR(__FILE__), PSTR("timer0A %s"), ( 1 == timer0AReady ) ? "--yes" : "");
+	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemTIMER0A, __LINE__, filename, PSTR("timer0A %s"), ( 1 == timer0AReady ) ? "--yes" : "");
 
 	   if ( 1 == timer0AReady )
 	   {
@@ -360,7 +374,7 @@ int main( void )
 	   }
 
 	   // timer 0Aready set by ISR
-	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemTIMER0AScheduler, __LINE__, PSTR(__FILE__), PSTR("timer0AScheduler %s"), ( 1 == timer0ASchedulerReady ) ? "--yes" : "");
+	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemTIMER0AScheduler, __LINE__, filename, PSTR("timer0AScheduler %s"), ( 1 == timer0ASchedulerReady ) ? "--yes" : "");
 
 	   if(1 == timer0ASchedulerReady )
 	   {
@@ -375,11 +389,11 @@ int main( void )
 	   }
 
 	   /*relay block*/
-	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemRELAY, __LINE__, PSTR(__FILE__), PSTR("Relays"));
+	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemRELAY, __LINE__, filename, PSTR("Relays"));
 
 	   if (relayThresholdEnable_flag && relayThresholdAllThresholdsValid)
 	   {
-		   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemRELAY, __LINE__, PSTR(__FILE__), PSTR("Relays enable and valid"));
+		   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemRELAY, __LINE__, filename, PSTR("Relays enable and valid"));
 #warning TODO: too often cli/sei disable slow interactions, find solution maybe timer
 		   cli(); //clear all interrupts active
 		   //         relayThresholdDetermineStateAndTriggerRelay(relayThresholdInputSource_RADC);
@@ -392,10 +406,16 @@ int main( void )
 	   }
 	   else
 	   {
-		   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemRELAY, __LINE__, PSTR(__FILE__), PSTR("relay enable: %i - thr valid: %i"),
+		   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemRELAY, __LINE__, filename, PSTR("relay enable: %i - thr valid: %i"),
 				        relayThresholdEnable_flag, relayThresholdAllThresholdsValid);
 	   }
-	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemMain, __LINE__, PSTR(__FILE__), PSTR("-------------------------"));
+
+#ifdef TESTING_ENABLE
+	   // Testing
+	   testingPeriodic();
+#endif
+
+	   printDebug_p(debugLevelPeriodicDebugVerbose, debugSystemMain, __LINE__, filename, PSTR("-------------------------"));
    }// END of while
 
    return 0; //EXIT_SUCCESS;

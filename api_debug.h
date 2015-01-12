@@ -52,6 +52,7 @@ enum debugSystems
       debugSystemTIMER0A,
       debugSystemTIMER0AScheduler,
       debugSystemTWI,
+      debugSystemSPI,
       debugSystem_MAXIMUM_INDEX
 };
 

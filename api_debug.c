@@ -31,6 +31,8 @@
 #include "api_show.h"
 #include "api_help.h"
 
+static const char filename[] 		PROGMEM = __FILE__;
+
 /* max length defined by MAX_LENGTH_PARAMETER */
 static const char commandDebugKeyword00[] PROGMEM = "all";
 static const char commandDebugKeyword01[] PROGMEM = "level";
@@ -78,6 +80,7 @@ static const char debugSystemName19[] PROGMEM = "TIMER1";
 static const char debugSystemName20[] PROGMEM = "TIMER0A";
 static const char debugSystemName21[] PROGMEM = "TIMER0AScheduler";
 static const char debugSystemName22[] PROGMEM = "TWI";
+static const char debugSystemName23[] PROGMEM = "SPI";
 
 const char *debugSystemNames[] PROGMEM =
 {
@@ -85,7 +88,7 @@ const char *debugSystemNames[] PROGMEM =
 		debugSystemName06, debugSystemName07, debugSystemName08, debugSystemName09, debugSystemName10,
 		debugSystemName11, debugSystemName12, debugSystemName13, debugSystemName14, debugSystemName15,
 		debugSystemName16, debugSystemName17, debugSystemName18, debugSystemName19, debugSystemName20,
-		debugSystemName21, debugSystemName22
+		debugSystemName21, debugSystemName22, debugSystemName23
 };
 
 int8_t apiDebug(struct uartStruct *ptr_uartStruct)
@@ -99,10 +102,13 @@ int8_t apiDebug(struct uartStruct *ptr_uartStruct)
 	    	hasSubCommand = FALSE;
 	    	break;
 	    default:
-
-	    	if (0 == getNumericLength(&setParameter[1][0], MAX_LENGTH_PARAMETER))
+	    	if ( FALSE == isNumericArgument(&setParameter[1][0], MAX_LENGTH_PARAMETER))
 	    	{
 	    		hasSubCommand = TRUE;
+	    	}
+	    	else
+	    	{
+	    		hasSubCommand = FALSE;
 	    	}
 	    	break;
 	}
@@ -157,34 +163,19 @@ int8_t apiDebug(struct uartStruct *ptr_uartStruct)
 
 int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandIndex)
 {
-	uint32_t status = 0;
-	uint32_t value = 0;
+	int8_t status = 0;
+	uint64_t value = 0;
 
 	if ( 0 > subCommandIndex )
 	{
-		subCommandIndex = 0;
-		// find matching command keyword
-		while ( subCommandIndex < commandDebugKeyNumber_MAXIMUM_NUMBER )
-		{
-			if ( 0 == strncmp_P(setParameter[1], (const char*) ( pgm_read_word( &(commandDebugKeywords[subCommandIndex])) ), MAX_LENGTH_PARAMETER) )
-			{
- 				printDebug_p(debugLevelEventDebug, debugSystemDEBUG, __LINE__, PSTR(__FILE__), PSTR("keyword %s matches"), &setParameter[1][0]);
-				break;
-			}
-			else
-			{
- 				printDebug_p(debugLevelEventDebug, debugSystemDEBUG, __LINE__, PSTR(__FILE__), PSTR("keyword %s doesn't match"), &setParameter[1][0]);
-			}
-			subCommandIndex++;
-		}
+        subCommandIndex = apiFindCommandKeywordIndex(setParameter[1], commandDebugKeywords, commandDebugKeyNumber_MAXIMUM_NUMBER);
 	}
 
 	/* TODO: relayThresholdMiscSubCommandsChooseFunction(ptr_uartStruct, index)*/
 	switch ( ptr_uartStruct->number_of_arguments - 1 /* arguments of argument */)
 	{
-
 		case 0:
-	{
+		{
 		/* printout status*/
 
 		/* generate message */
@@ -226,7 +217,7 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
 	case 1:
 	{
         /* set values*/
-		status = getNumericValueFromParameter(2, &value);
+		status = getUnsignedNumericValueFromParameterIndex(2, &value);
 		if ( 0 != status ) { return -1 ; }
         switch ( subCommandIndex )
         {
@@ -254,7 +245,7 @@ int8_t apiDebugSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommand
     break;
     case 2:
     {
-		status = getNumericValueFromParameter(3, &value);
+		status = getUnsignedNumericValueFromParameterIndex(3, &value);
 		if ( 0 != status ) { return -1 ; }
         switch ( subCommandIndex )
         {
@@ -297,7 +288,7 @@ void apiDebugReadModifyDebugLevelAndMask(struct uartStruct *ptr_uartStruct)
 	 * set response: ...
 	 * get response: RECV DEBG level mask*/
 
-	uint32_t value = 0;
+	uint64_t value = 0;
     int8_t status = 0;
 	switch (ptr_uartStruct->number_of_arguments)
 	{
@@ -311,7 +302,7 @@ void apiDebugReadModifyDebugLevelAndMask(struct uartStruct *ptr_uartStruct)
 		apiDebugReadModifyDebugLevel(ptr_uartStruct);
 		break;
 	case 2: /*write debug and mask*/
-        status = getNumericValueFromParameter(2, &value);
+        status = getUnsignedNumericValueFromParameterIndex(2, &value);
         if ( 0 != status ) { return; }
 		apiDebugReadModifyDebugLevel(ptr_uartStruct);
         status = apiDebugSetDebugMask(value);
@@ -343,7 +334,7 @@ void apiDebugReadModifyDebugLevel(struct uartStruct *ptr_uartStruct)
 
 	/*TODO: change CAN naming to more general */
 
-	uint32_t value = 0;
+	uint64_t value = 0;
     int8_t status = 0;
 
 	switch (ptr_uartStruct->number_of_arguments)
@@ -356,7 +347,7 @@ void apiDebugReadModifyDebugLevel(struct uartStruct *ptr_uartStruct)
 			UART0_Send_Message_String_p(NULL,0);
 			break;
 		case 1: /*write debug*/
-			status = getNumericValueFromParameter(1, &value);
+			status = getUnsignedNumericValueFromParameterIndex(1, &value);
 			if ( 0 != status ) { return; }
             status = apiDebugSetDebugLevel(value);
 			if ( 0 != status ) { return; }
@@ -387,7 +378,7 @@ void apiDebugReadModifyDebugMask(struct uartStruct *ptr_uartStruct)
 	 * get response: RECV DBGM level*/
 
 	int8_t status;
-	uint32_t value;
+	uint64_t value;
 
 	switch (ptr_uartStruct->number_of_arguments)
 	{
@@ -399,7 +390,7 @@ void apiDebugReadModifyDebugMask(struct uartStruct *ptr_uartStruct)
 			UART0_Send_Message_String_p(NULL,0);
 			break;
 		case 1: /*write debug*/
-			status = getNumericValueFromParameter(1, &value);
+			status = getUnsignedNumericValueFromParameterIndex(1, &value);
 			if ( 0 != status ) { return; }
             status = apiDebugSetDebugMask(value);
 			if ( 0 != status ) { return; }

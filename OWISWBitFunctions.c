@@ -37,6 +37,8 @@
 #include "twi_mpx_functions.h"
 #include "twi_ow_functions.h"
 
+static const char filename[] 		PROGMEM = __FILE__;
+
 /* not used *
 void OWI_ResetPulse(unsigned char pins)
 {
