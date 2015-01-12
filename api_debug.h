@@ -56,7 +56,7 @@ enum debugSystems
       debugSystem_MAXIMUM_INDEX
 };
 
-extern const char* commandDebugKeywords[] PROGMEM;
+extern const char* const commandDebugKeywords[] PROGMEM;
 
 enum cmdDebugKeyNumber
 {

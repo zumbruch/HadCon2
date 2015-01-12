@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cdtprojectproperties>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.IncludePaths">
+<language name="holder for library settings">
+
+</language>
+<language name="Assembly">
+<includepath>/opt/cross/avr/avr/include</includepath>
+<includepath>/opt/cross/avr/include</includepath>
+<includepath>/opt/cross/avr/lib/gcc/avr/4.8.3/include</includepath>
+
+</language>
+<language name="GNU C++">
+<includepath>/opt/cross/avr/avr/include</includepath>
+<includepath>/opt/cross/avr/include</includepath>
+<includepath>/opt/cross/avr/lib/gcc/avr/4.8.3/include</includepath>
+
+</language>
+<language name="GNU C">
+<includepath>/opt/cross/avr/avr/include</includepath>
+<includepath>/opt/cross/avr/include</includepath>
+<includepath>/opt/cross/avr/lib/gcc/avr/4.8.3/include</includepath>
+
+</language>
+</section>
+<section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.Macros">
+<language name="holder for library settings">
+
+</language>
+<language name="Assembly">
+
+</language>
+<language name="GNU C++">
+
+</language>
+<language name="GNU C">
+
+</language>
+</section>
+</cdtprojectproperties>

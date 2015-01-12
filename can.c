@@ -72,7 +72,7 @@ static const char ce12[] PROGMEM = "CRC Error General";
 static const char ce13[] PROGMEM = "Form Error General";
 static const char ce14[] PROGMEM = "Acknowledgment Error General";
 
-const char *can_error[] PROGMEM = { ce00, ce01, ce02, ce03, ce04, ce05, ce06, ce07, ce08, ce09, ce10, ce11, ce12, ce13, ce14 };
+const char* const can_error[] PROGMEM = { ce00, ce01, ce02, ce03, ce04, ce05, ce06, ce07, ce08, ce09, ce10, ce11, ce12, ce13, ce14 };
 
 /* pointer of array for defined mailbox error */
 
@@ -80,7 +80,7 @@ static const char me00[] PROGMEM = "all mailboxes already in use";
 static const char me01[] PROGMEM = "message ID not found";
 static const char me02[] PROGMEM = "this message already exists";
 
-const char *mob_error[] PROGMEM = { me00, me01, me02 };
+const char* const mob_error[] PROGMEM = { me00, me01, me02 };
 
 static const char cb00[] PROGMEM = "error active";
 static const char cb01[] PROGMEM = "error passive";
@@ -88,7 +88,7 @@ static const char cb02[] PROGMEM = "bus off";
 static const char cb03[] PROGMEM = "can disabled";
 static const char cb04[] PROGMEM = "undefined";
 
-const char *canBusModes[] PROGMEM = { cb00, cb01, cb02, cb03, cb04 };
+const char* const canBusModes[] PROGMEM = { cb00, cb01, cb02, cb03, cb04 };
 
 /*
  * canSubscribeMessage creates/sets a listener to an ID/mask for a free MOb
