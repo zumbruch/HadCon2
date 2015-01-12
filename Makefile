@@ -1,4 +1,6 @@
-
+#
+# Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+#
 #------------------------ Olimex Options -----------------------
 OLIMEX_JTAG_DEFAULT_DEV = /dev/olimex
 OLIMEX_JTAG_ALTERNATIVE = /dev/ttyUSB0
@@ -13,13 +15,14 @@ HADCON_TYPES ?= 1 2
 HADCON_MAKEFILE ?= Makefile_HadconX
 HADCON_TARGET_BASE ?= api
 HADCON_TARGET_SUFFIX ?= _hadcon_
+HADCON_VERSION_DEFAULT ?= 2
+
+ifndef HADCON_VERSION
+HADCON_VERSION=$(HADCON_VERSION_DEFAULT)
+endif 
 
 # Default target.
-ifndef HADCON_VERSION
-all: both
-else
 all: all$(HADCON_TARGET_SUFFIX)$(HADCON_VERSION)
-endif
 	
 #all_hadcon_%: 
 all$(HADCON_TARGET_SUFFIX)%: 
@@ -29,7 +32,7 @@ both: $(foreach hadcon, $(HADCON_TYPES), all$(HADCON_TARGET_SUFFIX)$(hadcon))
 	
 help:
 	@echo -e '\n  Available (reasonable) targets: \n\t(automatically determined)\n' 
-	@targets=$$( $(MAKE) --print-data-base --dry-run | grep '^[[:alpha:]_-]*:.*$$' | grep -v '^Makefile.*:$$' | cut -d ":" -f 1 | sort); \
+	@targets=$$( $(MAKE) --print-data-base --dry-run | grep '^[[:alpha:]_-]*:.*$$' | grep -v '^Makefile.*:$$' | cut -d ":" -f 1 | sort | uniq); \
 	list=""; \
 	for item in $$( echo $${targets}); \
 	do \
@@ -39,7 +42,7 @@ help:
 		list="$$list $$item"; \
 		fi; \
 	done; \
-	for item in $$( echo $${list}); \
+	for item in $$( echo $${list} ); \
 	do \
 		echo -e "\t$$item"; \
 	done; \
@@ -50,23 +53,13 @@ gccversion :
 	@$(MAKE) -f $(HADCON_MAKEFILE) $@
 
 #Set fuses - initial use of device
-ifndef HADCON_VERSION
-set_fuses:
-	@echo "HADCON_VERSION undefined, does not make sense to set fuses for more than one version"
-else
 set_fuses: $(foreach hadcon, $(HADCON_VERSION), set_fuses$(HADCON_TARGET_SUFFIX)$(hadcon))
-endif
 	
 set_fuses_hadcon_%:
 	@HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@)
 
 # Program the device.  
-ifndef HADCON_VERSION
-program: 
-	@echo "HADCON_VERSION undefined, does not make sense to program for more than one version"
-else
 program: $(foreach hadcon, $(HADCON_VERSION), program$(HADCON_TARGET_SUFFIX)$(hadcon))
-endif
 	
 program_hadcon_%:
 #make sure api_version.c gets newest compile date

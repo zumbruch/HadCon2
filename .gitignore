@@ -11,3 +11,4 @@ obj_hadcon_*/
 /HADCON_VERSION=1 TARGET=api_hadcon1 make -f Makefile_HadconX program
 /HADCON_make.log
 /HADCON_VERSION=2 TARGET=api_hadcon2 make -f Makefile_HadconX program
+/hs_err_pid*.log

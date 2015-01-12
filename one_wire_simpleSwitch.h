@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 /* The one_wire_simpleSwitch.h is a header file for the functions specific to simpleSwitch via one wire bus*/
 
 #ifndef ONE_WIRE_SIMPLESWITCH__H

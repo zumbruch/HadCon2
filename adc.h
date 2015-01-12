@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 #ifndef ADC__H
 #define ADC__H
 #include "api_define.h"

@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 /* The one_wire_ADC.h is a header file for the functions specific to analog to digital converter via one wire bus*/
 #ifndef ONE_WIRE_ADC__H
 #define ONE_WIRE_ADC__H

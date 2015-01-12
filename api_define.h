@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 #ifndef API_DEFINE__H
 #define API_DEFINE__H
 /*the define.h header file contents all define variable*/

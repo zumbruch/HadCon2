@@ -1,4 +1,7 @@
 /*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
+/*
  * one_wire_api_settings.c
  *
  *  Created on: May 3, 2010
