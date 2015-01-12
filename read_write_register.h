@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 #ifndef READ_WRITE_REGISTER_H
 #define READ_WRITE_REGISTER_H
 #include "api_define.h"

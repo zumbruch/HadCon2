@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 /* TWI addresses of TW-Multiplexer */
 #define TWI_MPX_ADDRESS 0x70			// PCA9547
 

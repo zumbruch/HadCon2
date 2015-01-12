@@ -1,4 +1,7 @@
 /*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
+/*
  * spi.c
  *
  *  Created on: 12.06.2013

@@ -1,4 +1,7 @@
 /*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
+/*
  * api-version.c
  *
  *  Created on: Oct 10, 2011
