@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 #ifndef API_GLOBAL__H
 #define API_GLOBAL__H
 

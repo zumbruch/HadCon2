@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 /*******************************************************
  File:	Delay.h
  Latest version generated:	02.06.2007

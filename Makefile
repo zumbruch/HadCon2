@@ -1,4 +1,6 @@
-
+#
+# Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+#
 #------------------------ Olimex Options -----------------------
 OLIMEX_JTAG_DEFAULT_DEV = /dev/olimex
 OLIMEX_JTAG_ALTERNATIVE = /dev/ttyUSB0

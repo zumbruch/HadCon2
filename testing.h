@@ -1,4 +1,7 @@
 /*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
+/*
  * testing.h
  *
  *  Created on: 18.06.2013

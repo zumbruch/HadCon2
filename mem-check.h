@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 #ifndef MEM_CHECK__H
 #define MEM_CHECK__H
 

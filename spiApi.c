@@ -1,4 +1,7 @@
 /*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
+/*
  * spiApi.c
  *
  *  Created on: 22.05.2013

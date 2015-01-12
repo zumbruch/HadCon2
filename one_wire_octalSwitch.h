@@ -1,3 +1,6 @@
+/*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1 
+*/
 #ifndef ONE_WIRE_OCTALSWITCH__H
 #define ONE_WIRE_OCTALSWITCH__H
 #include "api_define.h"
