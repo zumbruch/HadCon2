@@ -584,8 +584,8 @@ void apfel_Inline()
 
 	inline void apfelApi_Inline(void)
 	{
-		uint32_t arg[7] =
-		{ -1, -1, -1, -1, -1, -1, -1 };
+		uint32_t arg[6] =
+		{ -1, -1, -1, -1, -1, -1 };
 		int8_t nArguments = ptr_uartStruct->number_of_arguments;
 		int8_t nSubCommandsArguments = nArguments - 1;
 
@@ -745,9 +745,6 @@ void apfel_Inline()
 					case 5:
 						apfelSetDac_Inline('A', arg[4], arg[5], arg[1], arg[2], arg[3]);
 						break;
-					case 6:
-						apfelSetDac_Inline(arg[6], arg[4], arg[5], arg[1], arg[2], arg[3]);
-						break;
 				}
 			}
 			break;
@@ -763,12 +760,6 @@ void apfel_Inline()
 						break;
 					case 2:
 						apfelReadDac_Inline('A', 1, 1, arg[1], arg[2], 0);
-						break;
-					case 4:
-						apfelReadDac_Inline('A', arg[3], arg[4], arg[1], arg[2], 0);
-						break;
-					case 5:
-						apfelReadDac_Inline(arg[5], arg[3], arg[4], arg[1], arg[2], 0);
 						break;
 				}
 			}
@@ -796,12 +787,6 @@ void apfel_Inline()
 					case 1:
 						apfelAutoCalibration_Inline('A', 1, 1, arg[1]);
 						break;
-					case 3:
-						apfelAutoCalibration_Inline('A', arg[2], arg[3], arg[1]);
-						break;
-					case 4:
-						apfelAutoCalibration_Inline(arg[4], arg[2], arg[3], arg[1]);
-						break;
 				}
 			}
 			break;
@@ -815,14 +800,8 @@ void apfel_Inline()
 					case 1:
 						apfelTestPulseSequence_Inline('A', 1, 1, arg[1], 30);
 						break;
-					case 2:
+					case 0x2:
 						apfelTestPulseSequence_Inline('A', 1, 1, arg[1], arg[2]);
-						break;
-					case 4:
-						apfelTestPulseSequence_Inline('A', arg[3], arg[4], arg[1], arg[2]);
-						break;
-					case 5:
-						apfelTestPulseSequence_Inline(arg[5], arg[3], arg[4], arg[1], arg[2]);
 						break;
 				}
 			}
@@ -843,12 +822,6 @@ void apfel_Inline()
 					case 3:
 						apfelTestPulse_Inline('A', 1, 1, arg[1], arg[2], arg[3]);
 						break;
-					case 5:
-						apfelTestPulse_Inline('A', arg[4], arg[5], arg[1], arg[2], arg[3]);
-						break;
-					case 6:
-						apfelTestPulse_Inline(arg[6], arg[4], arg[5], arg[1], arg[2], arg[3]);
-						break;
 				}
 			}
 			break;
@@ -865,12 +838,6 @@ void apfel_Inline()
 					case 2:
 						apfelSetAmplitude_Inline('A', 1, 1, arg[1], arg[2]);
 						break;
-					case 4:
-						apfelSetAmplitude_Inline('A', arg[3], arg[4], arg[1], arg[2]);
-						break;
-					case 5:
-						apfelSetAmplitude_Inline(arg[5], arg[3], arg[4], arg[1], arg[2]);
-						break;
 				}
 			}
 			break;
@@ -886,12 +853,6 @@ void apfel_Inline()
 						break;
 					case 2:
 						apfelResetAmplitude_Inline('A', 1, 1, arg[1], arg[2]);
-						break;
-					case 4:
-						apfelResetAmplitude_Inline('A', arg[3], arg[4], arg[1], arg[2]);
-						break;
-					case 5:
-						apfelResetAmplitude_Inline(arg[5], arg[3], arg[4], arg[1], arg[2]);
 						break;
 				}
 			}
