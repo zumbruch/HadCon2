@@ -648,7 +648,7 @@ void helpAll(uint8_t mode, char prefix[])
 		UART0_Send_Message_String_p(NULL,0);
 
 		// syntaxes
-		void* syntaxes_p[] = { &(commandSyntaxes[index]), &(commandSyntaxAlternatives[index]), NULL };
+		const void* syntaxes_p[] = { &(commandSyntaxes[index]), &(commandSyntaxAlternatives[index]), NULL };
 		for (int var = 0; NULL != syntaxes_p[var]; ++var)
 		{
 			if ( 0 == strlen_P( (const char*) (pgm_read_word( syntaxes_p[var])) ) ) { break; }

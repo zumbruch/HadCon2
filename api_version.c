@@ -11,6 +11,7 @@
 #include <avr/pgmspace.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include "api_define.h"
 #include "api_global.h"
 

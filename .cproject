@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="0.156350869">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="0.156350869" moduleId="org.eclipse.cdt.core.settings" name="Default">
@@ -75,6 +73,7 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.827192496" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/opt/cross/avr/avr/include"/>
 									<listOptionValue builtIn="false" value="/opt/cross/avr/include"/>
+									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.8.3/include"/>
 									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.3.3/include"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.169984826" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
@@ -83,6 +82,7 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1783573149" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/opt/cross/avr/avr/include"/>
 									<listOptionValue builtIn="false" value="/opt/cross/avr/include"/>
+									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.8.3/include"/>
 									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.3.3/include"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1394305769" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
@@ -91,6 +91,7 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1922189582" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/opt/cross/avr/avr/include"/>
 									<listOptionValue builtIn="false" value="/opt/cross/avr/include"/>
+									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.8.3/include"/>
 									<listOptionValue builtIn="false" value="/opt/cross/avr/lib/gcc/avr/4.3.3/include"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1185048645" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
@@ -105,6 +106,8 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="API-Slave.git.null.912774011" name="API-Slave.git"/>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile">
@@ -133,7 +136,8 @@
 		<scannerConfigBuildInfo instanceId="0.156350869">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="0.156350869.190855603">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
-	<storageModule moduleId="refreshScope"/>
 </cproject>
