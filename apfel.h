@@ -46,8 +46,8 @@ void     apfelSendCommandValueChipIdSequence(uint8_t command, uint16_t value, ui
 void     apfelSetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t channel, uint8_t chipId);
 void     apfelSetDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t value, uint8_t dacNr, uint16_t chipId);
 void     apfelStartStreamHeader_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection);
-void     apfelTestPulse_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t pulseHeightPattern, uint8_t channel, uint8_t chipId);
-void     apfelTestPulseSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t pulseHeightPattern, uint8_t chipId);
+void     apfelTestPulse_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t pulseHeight, uint8_t channel, uint8_t chipId);
+void     apfelTestPulseSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t pulseHeightPattern, uint8_t chipId);
 int8_t   apfelWriteBit_Inline(uint8_t bit, char port, uint8_t pinSetIndex, uint8_t sideSelection);
 void     apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, int8_t nBits, uint16_t data, uint8_t endianness);
 void     apfelWriteClockSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t nClk);

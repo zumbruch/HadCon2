@@ -229,6 +229,7 @@ void apfelInit_Inline(void)
 
 uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t nBits)
 {
+	/* bits are supplied in BIG ENDIAN */
 	static uint16_t value = 0;
 	static uint8_t bitIndex = 0;
 	value = 0;
@@ -268,7 +269,7 @@ uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sid
 	// clock low
 	apfelWritePort((0 << pinClk), port, pinSetIndex, sideSelection);
 	// read data in
-	value |= (apfelReadPort(port, pinSetIndex, sideSelection) << bitIndex);
+	value |= (apfelReadPort(port, pinSetIndex, sideSelection) << (nBits - bitIndex));
 
 	while (bitIndex < nBits)
 	{
@@ -276,7 +277,7 @@ uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sid
 		// clock high
 		apfelWritePort((1 << pinClk), port, pinSetIndex, sideSelection);
 		// read data in
-		value |= (apfelReadPort(port, pinSetIndex, sideSelection) << bitIndex);
+		value |= (apfelReadPort(port, pinSetIndex, sideSelection) << (nBits - bitIndex));
 		// clock low
 		apfelWritePort((0 << pinClk), port, pinSetIndex, sideSelection);
 	}
@@ -513,16 +514,16 @@ void apfelAutoCalibration_Inline(char port, uint8_t pinSetIndex, uint8_t sideSel
 }
 
 /* #testPulseSequence pulseHeightPattern[0 ... 1F] chipId[0 ... FF] */
-void apfelTestPulseSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t pulseHeightPattern, uint8_t chipId)
+void apfelTestPulseSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t pulseHeightPattern, uint8_t chipId)
 {
 	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_TestPulse, pulseHeightPattern, chipId, port, pinSetIndex, sideSelection);
 	apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 3);
 }
 
 /* #testPulse pulseHeight[0 ... 1F] channel[1 .. 2 ] chipId[0 ... FF] */
-void apfelTestPulse_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t pulseHeightPattern, uint8_t channel, uint8_t chipId)
+void apfelTestPulse_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t pulseHeight, uint8_t channel, uint8_t chipId)
 {
-	apfelTestPulseSequence_Inline(port, pinSetIndex, sideSelection, (pulseHeightPattern << ((channel==1)?6:1)), chipId);
+	apfelTestPulseSequence_Inline(port, pinSetIndex, sideSelection, 0x3FF & (pulseHeight << ((channel==1)?1:6)), chipId);
 	apfelTestPulseSequence_Inline(port, pinSetIndex, sideSelection, 0, chipId);
 }
 
@@ -560,7 +561,9 @@ void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, 
 			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport/pinSet/side %c/%x/%x %x%s"),
 					uart_message_string, port, pinSetIndex, sideSelection, chipId);
 			if (all)
+			{
 				strncat_P(uart_message_string, (0 <= value) ? PSTR(" yes") : PSTR(" no"), BUFFER_SIZE - 1);
+			}
 			UART0_Send_Message_String_p(NULL, 0);
 		}
 	}
