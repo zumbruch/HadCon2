@@ -419,6 +419,9 @@ void apfelSendCommandValueChipIdSequence(uint8_t command, uint16_t value, uint16
 	apfelWriteBitSequence_Inline(port, pinSetIndex, sideSelection, APFEL_N_ValueBits, value, APFEL_DEFAULT_ENDIANNESS);
 	// chipId
 	apfelWriteBitSequence_Inline(port, pinSetIndex, sideSelection, APFEL_N_ChipIdBits, chipId, APFEL_DEFAULT_ENDIANNESS);
+#warning just for debugging
+	// DEBUG: external trigger//
+	apfelWriteClockSequence_Inline(port, 2, sideSelection, 1);
 }
 
 void (*apfelSendCommandValueChipIdSequence_p)(uint8_t command, uint16_t value, uint16_t chipId, char port, uint8_t pinSetIndex, uint8_t sideSelection) = apfelSendCommandValueChipIdSequence;
