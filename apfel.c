@@ -79,7 +79,7 @@ static const char filename[] 		PROGMEM = __FILE__;
 static bool apfelOsziTestMode = 0;
 
 /* functions */
-inline int8_t apfelWritePort(uint8_t val, char port, uint8_t pinSetIndex, uint8_t sideSelection)
+int8_t apfelWritePort(uint8_t val, char port, uint8_t pinSetIndex, uint8_t sideSelection)
 {
 	if (0 == pinSetIndex || pinSetIndex > 2)
 	{
@@ -122,7 +122,7 @@ inline int8_t apfelWritePort(uint8_t val, char port, uint8_t pinSetIndex, uint8_
 	return 0;
 }
 
-inline int8_t apfelReadPort(char port, uint8_t pinSetIndex, uint8_t sideSelection)
+int8_t apfelReadPort(char port, uint8_t pinSetIndex, uint8_t sideSelection)
 {
 	if (0 == pinSetIndex || pinSetIndex > 2)
 	{
@@ -187,7 +187,7 @@ static char const apfelLow[][5] =
 								| 1 << APFEL_PIN_CLK2), (0 << APFEL_PIN_DOUT2 | 1 << APFEL_PIN_CLK2), (0 << APFEL_PIN_DOUT2
 										| 0 << APFEL_PIN_CLK2) } };
 
-inline int8_t apfelWriteBit_Inline(uint8_t bit, char port, uint8_t pinSetIndex, uint8_t sideSelection)
+int8_t apfelWriteBit_Inline(uint8_t bit, char port, uint8_t pinSetIndex, uint8_t sideSelection)
 {
 	if (0 == pinSetIndex || pinSetIndex > 2)
 	{
@@ -214,7 +214,7 @@ inline int8_t apfelWriteBit_Inline(uint8_t bit, char port, uint8_t pinSetIndex, 
 	return 0;
 }
 
-inline void apfelInit_Inline(void)
+void apfelInit_Inline(void)
 {
 	/* init IO ports */
 	//configure I/O port A
@@ -227,7 +227,7 @@ inline void apfelInit_Inline(void)
 	PORTF = 0;
 }
 
-inline uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t nBits)
+uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t nBits)
 {
 	static uint16_t value = 0;
 	static uint8_t bitIndex = 0;
@@ -283,7 +283,7 @@ inline uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint
 	return value;
 }
 
-inline void apfelWriteClockSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t nClk)
+void apfelWriteClockSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t nClk)
 {
 	uint16_t a = nClk;
 	while (a > 0)
@@ -296,7 +296,7 @@ inline void apfelWriteClockSequence_Inline(char port, uint8_t pinSetIndex, uint8
 /*  apfelClearDataInput
 	 sends enough empty clock cycles to clear input buffer
 	 after each byte add 3 0 writes */
-inline void apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection)
+void apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection)
 {
 	uint8_t a = (APFEL_N_CommandBits + APFEL_N_ValueBits + APFEL_N_ChipIdBits);
 	uint8_t i = 0;
@@ -344,7 +344,7 @@ inline void apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t s
 }
 
 //mandatory header to all command sequences
-inline void apfelStartStreamHeader_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection)
+void apfelStartStreamHeader_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection)
 {
 	apfelClearDataInput_Inline(port, pinSetIndex, sideSelection);
 
@@ -381,7 +381,7 @@ inline void apfelStartStreamHeader_Inline(char port, uint8_t pinSetIndex, uint8_
 }
 
 /* writeBitSequence #bits #data #endianess (0: little, 1:big)*/
-inline void apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, int8_t nBits, uint16_t data, uint8_t endianness)
+void apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, int8_t nBits, uint16_t data, uint8_t endianness)
 {
 	int8_t bitPos = 0;
 
@@ -410,7 +410,7 @@ inline void apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t
 	}
 }
 
-inline void apfelSendCommandValueChipIdSequence(uint8_t command, uint16_t value, uint16_t chipId, char port, uint8_t pinSetIndex, uint8_t sideSelection)
+void apfelSendCommandValueChipIdSequence(uint8_t command, uint16_t value, uint16_t chipId, char port, uint8_t pinSetIndex, uint8_t sideSelection)
 {
 	apfelStartStreamHeader_Inline(port, pinSetIndex, sideSelection);
 	// command
@@ -425,7 +425,7 @@ void (*apfelSendCommandValueChipIdSequence_p)(uint8_t command, uint16_t value, u
 
 /* #setDac value[ 0 ... 3FF ] dacNr[1..4] chipID[0 ... FF]	*/
 
-inline void apfelSetDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t value, uint8_t dacNr, uint16_t chipId)
+void apfelSetDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t value, uint8_t dacNr, uint16_t chipId)
 {
 	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_SetDac + dacNr, value, chipId, port, pinSetIndex, sideSelection);
 
@@ -434,7 +434,7 @@ inline void apfelSetDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelec
 }
 
 /* #readDac dacNr[1..4] chipID[0 ... FF] */
-inline int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t dacNr, uint16_t chipId, uint8_t quiet)
+int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t dacNr, uint16_t chipId, uint8_t quiet)
 {
 	uint16_t value = 0;
 	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_ReadDac + dacNr, 0, chipId, port, pinSetIndex, sideSelection);
@@ -485,7 +485,7 @@ inline int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideS
 }
 
 /* #autoCalibration chipId[0 ... FF] */
-inline void apfelAutoCalibration_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t chipId)
+void apfelAutoCalibration_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t chipId)
 {
 	if (0xFF==chipId)
 	{
@@ -510,35 +510,35 @@ inline void apfelAutoCalibration_Inline(char port, uint8_t pinSetIndex, uint8_t 
 }
 
 /* #testPulseSequence pulseHeightPattern[0 ... 1F] chipId[0 ... FF] */
-inline void apfelTestPulseSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t pulseHeightPattern, uint8_t chipId)
+void apfelTestPulseSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t pulseHeightPattern, uint8_t chipId)
 {
 	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_TestPulse, pulseHeightPattern, chipId, port, pinSetIndex, sideSelection);
 	apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 3);
 }
 
 /* #testPulse pulseHeight[0 ... 1F] channel[1 .. 2 ] chipId[0 ... FF] */
-inline void apfelTestPulse_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t pulseHeightPattern, uint8_t channel, uint8_t chipId)
+void apfelTestPulse_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t pulseHeightPattern, uint8_t channel, uint8_t chipId)
 {
 	apfelTestPulseSequence_Inline(port, pinSetIndex, sideSelection, (pulseHeightPattern << ((channel==1)?6:1)), chipId);
 	apfelTestPulseSequence_Inline(port, pinSetIndex, sideSelection, 0, chipId);
 }
 
 /*#setAmplitude channelId[1 ... 2] chipId[0 ... FF]*/
-inline void apfelSetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t channel, uint8_t chipId)
+void apfelSetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t channel, uint8_t chipId)
 {
 	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_SetAmplitude + ((channel==1)?1:0), 0, chipId, port, pinSetIndex, sideSelection);
 	apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 3);
 }
 
 /*#resetAmplitude channelId[1 ... 2] chipId[0 ... FF]*/
-inline void apfelResetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t channel, uint8_t chipId)
+void apfelResetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t channel, uint8_t chipId)
 {
 	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_ResetAmplitude + ((channel==2)?2:0), 0, chipId, port, pinSetIndex, sideSelection);
 	apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 3);
 }
 
 /*#list Ids by checking result for dacRead */
-inline void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t all)
+void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t all)
 {
 	uint8_t chipId;
 	uint16_t value;
@@ -563,16 +563,18 @@ inline void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSele
 	}
 }
 
-inline void apfelApi_Inline(void)
+void apfelApi_Inline(void)
 {
 	uint32_t arg[7] =
 	{ -1, -1, -1, -1, -1, -1, -1 };
 	int8_t nArguments = ptr_uartStruct->number_of_arguments;
 	int8_t nSubCommandsArguments = nArguments - 1;
 
-	apfelAddress address = { .port = 'A',
+	apfelAddress address = {
+			.port = 'A',
 			.pinSetIndex = 1,
-			.sideSelection = 1 };
+			.sideSelection = 1
+	};
 	switch (nArguments)
 	{
 		case 0:
