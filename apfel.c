@@ -884,54 +884,54 @@ void apfelApi_Inline(void)
 	/*----------------------------------------------------*/
 	void apfel_Inline()
 	{
-	apfelInit_Inline();
+		apfelInit_Inline();
 
-	if (apfelOsziTestMode)
-	{
-//		_delay_us(0);
-//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-//		_delay_us(0);
-//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-//		_delay_us(0);
-//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-//		_delay_us(10);
-//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-//		_delay_us(1);
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 1);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
-	}
+		if (apfelOsziTestMode)
+		{
+			//		_delay_us(0);
+			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
+			//		_delay_us(0);
+			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
+			//		_delay_us(0);
+			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
+			//		_delay_us(10);
+			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
+			//		_delay_us(1);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 1);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
+		}
 
-	apfelApi_Inline();
-	//apfelApi_Inline_p();
+		apfelApi_Inline();
+		//apfelApi_Inline_p();
 
-	if (apfelOsziTestMode)
-	{
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 1);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
+		if (apfelOsziTestMode)
+		{
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 1);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
 
-//		_delay_us(0);
-//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-//		_delay_us(10);
-//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-//		_delay_us(0);
-//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-//		_delay_us(0);
-//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
+			//		_delay_us(0);
+			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
+			//		_delay_us(10);
+			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
+			//		_delay_us(0);
+			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
+			//		_delay_us(0);
+			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
 	}
 }
 
