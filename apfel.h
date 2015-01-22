@@ -33,6 +33,26 @@ typedef struct apfelAddressStruct
 	uint8_t sideSelection;
 } apfelAddress;
 
+void	 apfelApi_Inline(void);
+void 	 apfelAutoCalibration_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t chipId);
+void 	 apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection);
+void 	 apfelInit_Inline(void);
+void 	 apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t all);
+uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t nBits);
+int16_t	 apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t dacNr, uint16_t chipId, uint8_t quiet);
+int8_t	 apfelReadPort(char port, uint8_t pinSetIndex, uint8_t sideSelection);
+void	 apfelResetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t channel, uint8_t chipId);
+void     apfelSendCommandValueChipIdSequence(uint8_t command, uint16_t value, uint16_t chipId, char port, uint8_t pinSetIndex, uint8_t sideSelection);
+void     apfelSetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t channel, uint8_t chipId);
+void     apfelSetDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t value, uint8_t dacNr, uint16_t chipId);
+void     apfelStartStreamHeader_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection);
+void     apfelTestPulse_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t pulseHeightPattern, uint8_t channel, uint8_t chipId);
+void     apfelTestPulseSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t pulseHeightPattern, uint8_t chipId);
+int8_t   apfelWriteBit_Inline(uint8_t bit, char port, uint8_t pinSetIndex, uint8_t sideSelection);
+void     apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, int8_t nBits, uint16_t data, uint8_t endianness);
+void     apfelWriteClockSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t nClk);
+int8_t   apfelWritePort(uint8_t val, char port, uint8_t pinSetIndex, uint8_t sideSelection);
+
 void apfelEnable(bool enable);
 
 
