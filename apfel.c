@@ -78,7 +78,8 @@ static const char filename[] 		PROGMEM = __FILE__;
 #define APFEL_readPort(A,pinSetIndex) ((PIN##A >> (APFEL_PIN_DIN##pinSetIndex )) & 0x1)
 
 bool apfelOscilloscopeTestFrameMode = false;
-bool apfelOppositeTrigger = false;
+bool apfelEnableTrigger = false;
+apfelPin apfelTrigger = {&PINA, APFEL_PIN_CLK2 + 1, 0};
 
 /* functions */
 int8_t apfelWritePort(uint8_t val, char port, uint8_t pinSetIndex, uint8_t sideSelection)
@@ -424,9 +425,13 @@ void apfelSendCommandValueChipIdSequence(uint8_t command, uint16_t value, uint16
 	apfelWriteBitSequence_Inline(port, pinSetIndex, sideSelection, APFEL_N_ChipIdBits, chipId, APFEL_DEFAULT_ENDIANNESS);
 
 	// add  external trigger on opposite clock pin//
-	if (apfelOppositeTrigger)
+	if (apfelEnableTrigger)
 	{
-		apfelWriteClockSequence_Inline(port, (~pinSetIndex) & 0x3 , sideSelection, 1);
+		_delay_us(0);
+		*(apfelTrigger.ptrPort) = 0x1 << (apfelTrigger.pinNumber - 1);
+		_delay_us(0);
+		*(apfelTrigger.ptrPort) = 0x1 << (apfelTrigger.pinNumber - 1);
+		_delay_us(0);
 	}
 }
 
@@ -608,6 +613,8 @@ void apfelApi_Inline(void)
 	{
 		case 0:
 			return;
+			break;
+		case 0x11: /*own parsing*/
 			break;
 		default:
 			for (uint8_t index=1; index <= min((uint8_t)(nArguments),sizeof(arg)/sizeof(uint32_t)); index++)
@@ -926,16 +933,88 @@ void apfelApi_Inline(void)
 			}
 		}
 		break;
-		case 0x11: /*apfelOscilloscopeTestFrameMode*/
+		case 0x11: /*apfelEnableTrigger*/
 		{
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
+				case 3:
+					/* pin */
+					if (apiCommandResult_FAILURE_QUIET == apiAssignParameterToValue(4, &apfelTrigger.pinNumber, apiVarType_UINT8, 1, 8))
+					{
+						apfelTrigger.pinNumber = 0xFF;
+						return;
+					}
+					/*port*/
+					switch(setParameter[3][0])
+					{
+						case 'A':
+							apfelTrigger.ptrPort = &PINA;
+							DDRA &= 0x1 << (apfelTrigger.pinNumber -1);
+							break;
+						case 'B':
+							apfelTrigger.ptrPort = &PINB;
+							DDRB &= 0x1 << (apfelTrigger.pinNumber -1);
+							break;
+						case 'C':
+							apfelTrigger.ptrPort = &PINC;
+							DDRC &= 0x1 << (apfelTrigger.pinNumber -1);
+							break;
+						case 'D':
+							apfelTrigger.ptrPort = &PIND;
+							DDRD &= 0x1 << (apfelTrigger.pinNumber -1);
+							break;
+						case 'E':
+							apfelTrigger.ptrPort = &PINE;
+							DDRE &= 0x1 << (apfelTrigger.pinNumber -1);
+							break;
+						case 'F':
+							apfelTrigger.ptrPort = &PINF;
+							DDRF &= 0x1 << (apfelTrigger.pinNumber -1);
+							break;
+						case 'G':
+							apfelTrigger.ptrPort = &PING;
+							DDRG &= 0x1 << (apfelTrigger.pinNumber -1);
+							break;
+						default:
+							CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[A,G] %c"), setParameter[3][0]);
+							return;
+							break;
+					}
 				case 1:
-					apiAssignParameterToValue(2, &apfelOppositeTrigger, apiVarType_BOOL, 0, 1);
+					apiAssignParameterToValue(2, &apfelEnableTrigger, apiVarType_BOOL, 0, 1);
+					apiAssignParameterToValue(2, &apfelTrigger.isUsed, apiVarType_BOOL, 0, 1);
 				case 0:
 					createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
-					strncat_P(uart_message_string, PSTR("opposite trigger "),BUFFER_SIZE-1);
-					apiShowValue(uart_message_string, &apfelOppositeTrigger, apiVarType_BOOL_OnOff);
+					strncat_P(uart_message_string, PSTR("trigger "),BUFFER_SIZE-1);
+					apiShowValue(uart_message_string, &apfelEnableTrigger, apiVarType_BOOL_OnOff);
+					strncat_P(uart_message_string, PSTR(" "),BUFFER_SIZE-1);
+					switch((int) apfelTrigger.ptrPort)
+					{
+						case (int) &PINA:
+								strncat_P(uart_message_string, PSTR("A"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PINB:
+								strncat_P(uart_message_string, PSTR("B"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PINC:
+								strncat_P(uart_message_string, PSTR("C"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PIND:
+								strncat_P(uart_message_string, PSTR("D"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PINE:
+								strncat_P(uart_message_string, PSTR("E"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PINF:
+								strncat_P(uart_message_string, PSTR("F"), BUFFER_SIZE - 1);
+						break;
+						case (int) &PING:
+								strncat_P(uart_message_string, PSTR("G"), BUFFER_SIZE - 1);
+						break;
+					}
+					strncat_P(uart_message_string, PSTR(" "),BUFFER_SIZE-1);
+					apiShowValue(uart_message_string, &apfelTrigger.pinNumber, apiVarType_UINT8);
+
 					apfelApiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 					break;
 			}

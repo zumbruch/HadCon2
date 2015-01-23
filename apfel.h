@@ -33,6 +33,15 @@ typedef struct apfelAddressStruct
 	uint8_t sideSelection;
 } apfelAddress;
 
+#warning double struct should go to api
+typedef struct apfelPinStruct
+{
+  volatile uint8_t *ptrPort;
+  uint8_t pinNumber;
+  bool isUsed;
+} apfelPin;
+
+
 void	 apfelApi_Inline(void);
 void 	 apfelAutoCalibration_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t chipId);
 void 	 apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection);
