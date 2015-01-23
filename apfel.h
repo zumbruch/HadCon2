@@ -37,7 +37,7 @@ void	 apfelApi_Inline(void);
 void 	 apfelAutoCalibration_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t chipId);
 void 	 apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection);
 void 	 apfelInit_Inline(void);
-void 	 apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t all);
+void 	 apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, bool all, uint8_t max);
 uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t nBits);
 int16_t	 apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t dacNr, uint16_t chipId, uint8_t quiet);
 int8_t	 apfelReadPort(char port, uint8_t pinSetIndex, uint8_t sideSelection);

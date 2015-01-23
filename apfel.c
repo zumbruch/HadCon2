@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #define __DELAY_BACKWARD_COMPATIBLE__
 #include <util/delay.h>
+#include <string.h>
 
 /*eclipse specific setting, not used during build process*/
 #ifndef __AVR_AT90CAN128__
@@ -76,7 +77,8 @@ static const char filename[] 		PROGMEM = __FILE__;
 		               _delay_us(APFEL_US_TO_DELAY_DEFAULT);}
 #define APFEL_readPort(A,pinSetIndex) ((PIN##A >> (APFEL_PIN_DIN##pinSetIndex )) & 0x1)
 
-static bool apfelOsziTestMode = 0;
+bool apfelOscilloscopeTestFrameMode = false;
+bool apfelOppositeTrigger = false;
 
 /* functions */
 int8_t apfelWritePort(uint8_t val, char port, uint8_t pinSetIndex, uint8_t sideSelection)
@@ -420,9 +422,12 @@ void apfelSendCommandValueChipIdSequence(uint8_t command, uint16_t value, uint16
 	apfelWriteBitSequence_Inline(port, pinSetIndex, sideSelection, APFEL_N_ValueBits, value, APFEL_DEFAULT_ENDIANNESS);
 	// chipId
 	apfelWriteBitSequence_Inline(port, pinSetIndex, sideSelection, APFEL_N_ChipIdBits, chipId, APFEL_DEFAULT_ENDIANNESS);
-#warning just for debugging
-	// DEBUG: external trigger//
-	apfelWriteClockSequence_Inline(port, 2, sideSelection, 1);
+
+	// add  external trigger on opposite clock pin//
+	if (apfelOppositeTrigger)
+	{
+		apfelWriteClockSequence_Inline(port, (~pinSetIndex) & 0x3 , sideSelection, 1);
+	}
 }
 
 void (*apfelSendCommandValueChipIdSequence_p)(uint8_t command, uint16_t value, uint16_t chipId, char port, uint8_t pinSetIndex, uint8_t sideSelection) = apfelSendCommandValueChipIdSequence;
@@ -450,7 +455,6 @@ int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelectio
 
 	apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 0x3);
 
-	printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("raw value 0x%x"), value);
 #if 0
 	if (0 > value)
 	{
@@ -465,10 +469,12 @@ int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelectio
 	if ( APFEL_READ_CHECK_VALUE != (value & APFEL_READ_CHECK_MASK))
 	{
 		if (0 == quiet)
+		{
 			CommunicationError_p(ERRA, -1, 1,
-					PSTR("port/pinSet/side/dac/chipId:'%c/%i/%i/%i/%x': validity check failed, raw value:0x%x"), port, pinSetIndex,
-					sideSelection, dacNr, chipId, value);
+					PSTR("|port|pinSet|side|chipId|dac:|%c|%x|%x|%x|%x|: validity check failed, raw value:0x%x"), port, pinSetIndex,
+					sideSelection, chipId, dacNr, value);
 		/* Error */
+		}
 		return -10;
 	}
 	else
@@ -479,12 +485,12 @@ int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelectio
 
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL,
 					apfelApiCommandKeyNumber_DAC, apfelApiCommandKeywords);
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport/pinSet/side/dac/chipId:'%c/%x/%x/%x/%x"),
-					uart_message_string, port, pinSetIndex, sideSelection, dacNr, chipId);
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s|port|pinSet|side|chipId|dac:|%c|%x|%x|%x|%x| 0x"),
+					uart_message_string, port, pinSetIndex, sideSelection, chipId, dacNr);
 			apiShowValue(uart_message_string, &value, apiVarType_UINT16);
 			apfelApiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 		}
-		return 0;
+		return value;
 	}
 }
 
@@ -542,31 +548,48 @@ void apfelResetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSele
 }
 
 /*#list Ids by checking result for dacRead */
-void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t all)
+/* all lists all chipIds independent of presence*/
+void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, bool all, uint8_t max)
 {
 	uint8_t chipId;
-	uint16_t value;
-	uint8_t ctr;
-	for (chipId = 0; chipId < 0xFF; chipId++)
+	int16_t value;
+    uint8_t result[32];
+    memset(result,0,sizeof(result));
+
+    if (0==max)
+    {
+    	max = 0xFF;
+    }
+
+    for (chipId = 0; chipId < max; chipId++)
 	{
-		value = apfelReadDac_Inline(port, pinSetIndex, sideSelection, 1, chipId, 1);
-		if (0 <= value)
+		value = apfelReadDac_Inline(port, pinSetIndex, sideSelection, 1, chipId, true);
+
+		if ( 0 <= value )
 		{
-			ctr++;
+			result[chipId >> 3] |= (1 << (chipId % 8));
 		}
-		if (0 <= value || all)
-		{
+	}
+
+    wdt_disable();
+
+    for (chipId = 0; chipId < max; chipId++)
+	{
+    	if ( all || (result[chipId >> 3] & 1 << (chipId % 8 )))
+    	{
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL,
 					apfelApiCommandKeyNumber_LIST, apfelApiCommandKeywords);
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport/pinSet/side %c/%x/%x %x%s"),
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s|port|pinSet|side|chipId |%c|%x|%x|%x|"),
 					uart_message_string, port, pinSetIndex, sideSelection, chipId);
 			if (all)
 			{
-				strncat_P(uart_message_string, (0 <= value) ? PSTR(" yes") : PSTR(" no"), BUFFER_SIZE - 1);
+				strncat_P(uart_message_string, (result[chipId >> 3] & 1 << (chipId % 8 )) ? PSTR(" yes") : PSTR(" no"), BUFFER_SIZE - 1);
 			}
 			UART0_Send_Message_String_p(NULL, 0);
-		}
+    	}
 	}
+#warning get current  watchdog setting
+    wdt_enable(WDTO_2S);
 }
 
 void apfelApi_Inline(void)
@@ -596,16 +619,18 @@ void apfelApi_Inline(void)
 
 	switch(arg[0])
 	{
-		case 0: /*apfelOsziTestMode*/
+		case 0: /*apfelOscilloscopeTestFrameMode*/
 		{
 			PORTG =(1 << PG0 | 1 << PG1 | 0 << PG2) | (PORTG & 0x18);
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
 				case 1:
-					apfelOsziTestMode = arg[1];
+					apiAssignParameterToValue(2, &apfelOscilloscopeTestFrameMode, apiVarType_BOOL, 0, 1);
+					//apfelOscilloscopeTestFrameMode = arg[1];
 				case 0:
 					createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
-					apiShowValue(uart_message_string, &apfelOsziTestMode, apiVarType_BOOL_OnOff);
+					strncat_P(uart_message_string, PSTR("Oscilloscope Test Frame "),BUFFER_SIZE-1);
+					apiShowValue(uart_message_string, &apfelOscilloscopeTestFrameMode, apiVarType_BOOL_OnOff);
 					apfelApiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 					break;
 			}
@@ -879,6 +904,43 @@ void apfelApi_Inline(void)
 			}
 		}
 		break;
+		case 0x10:
+		{
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 0:
+					apfelListIds_Inline('A', 1, 1, 1, 0);
+					break;
+				case 1:
+					apfelListIds_Inline('A', 1, 1, arg[1], 0);
+					break;
+				case 2:
+					apfelListIds_Inline('A', 1, 1, arg[1], arg[2]);
+					break;
+				case 4:
+					apfelListIds_Inline('A', arg[3], arg[4], arg[1], arg[2]);
+					break;
+				case 5:
+					apfelListIds_Inline(arg[5], arg[3], arg[4], arg[1], arg[2]);
+					break;
+			}
+		}
+		break;
+		case 0x11: /*apfelOscilloscopeTestFrameMode*/
+		{
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 1:
+					apiAssignParameterToValue(2, &apfelOppositeTrigger, apiVarType_BOOL, 0, 1);
+				case 0:
+					createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
+					strncat_P(uart_message_string, PSTR("opposite trigger "),BUFFER_SIZE-1);
+					apiShowValue(uart_message_string, &apfelOppositeTrigger, apiVarType_BOOL_OnOff);
+					apfelApiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
+					break;
+			}
+		}
+		break;
 		default:
 			CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
 			return;
@@ -892,7 +954,7 @@ void apfelApi_Inline(void)
 	{
 		apfelInit_Inline();
 
-		if (apfelOsziTestMode)
+		if (apfelOscilloscopeTestFrameMode)
 		{
 			//		_delay_us(0);
 			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
@@ -913,7 +975,7 @@ void apfelApi_Inline(void)
 		apfelApi_Inline();
 		//apfelApi_Inline_p();
 
-		if (apfelOsziTestMode)
+		if (apfelOscilloscopeTestFrameMode)
 		{
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
