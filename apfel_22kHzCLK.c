@@ -604,7 +604,7 @@ void apfel_Inline()
 
 		switch(arg[0])
 		{
-			case 0: /*apfelOsziTestMode*/
+			case 0: /*apfelOscilloscopeTestFrameMode*/
 			{
 				PORTG =(1 << PG0 | 1 << PG1 | 0 << PG2) | (PORTG & 0x18);
 				switch (nSubCommandsArguments /* arguments of argument */)
