@@ -476,7 +476,7 @@ void apfel_Inline()
 		snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport/pinSet/side/dac/chipId:'%c/%x/%x/%x/%x"),
 				uart_message_string, port, pinSetIndex, sideSelection, dacNr, chipId);
 		apiShowValue(uart_message_string, &value, apiVarType_UINT16);
-		apfelApiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
+		apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 
 		return 0;
 	}
@@ -614,7 +614,7 @@ void apfel_Inline()
 					case 0:
 						createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
 						apiShowValue(uart_message_string, &apfelOsziTestMode, apiVarType_BOOL_OnOff);
-						apfelApiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
+						apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 						break;
 				}
 			}
@@ -671,7 +671,7 @@ void apfel_Inline()
 				}
 				createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
 				apiShowValue(uart_message_string, &value, apiVarType_UINT16);
-				apfelApiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
+				apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 			}
 			break;
 			case 5: /* write sequence */

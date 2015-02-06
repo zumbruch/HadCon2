@@ -259,45 +259,12 @@ uint8_t apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subComman
 	/* not a recursive call */
 	if (0 < parameterIndex)
 	{
-		apfelApiSubCommandsFooter( result );
+		apiSubCommandsFooter( result );
 	}
 #endif
 	return result;
 }
 
-void apfelApiSubCommandsFooter( uint16_t result )
-{
-	switch (result)
-	{
-		case apiCommandResult_SUCCESS_WITH_OUTPUT:
-			UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
-			break;
-		case apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT:
-			/* verbose response to commands*/
-			if (debugLevelVerboseDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemAPFEL) & 1))
-			{
-				strncat_P(uart_message_string, PSTR("OK"), BUFFER_SIZE - 1);
-				UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
-			}
-			else
-			{
-				clearString(uart_message_string, BUFFER_SIZE);
-			}
-			break;
-		case apiCommandResult_FAILURE_NOT_A_SUB_COMMAND:
-			CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name, true, PSTR("not a sub command"));
-			break;
-		case apiCommandResult_SUCCESS_QUIET:
-		case apiCommandResult_FAILURE_QUIET:
-			clearString(uart_message_string, BUFFER_SIZE);
-			/* printouts elsewhere generated */
-			break;
-		case apiCommandResult_FAILURE:
-		default:
-			CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("command failed"));
-			break;
-	}
-}
 
 #if 0
 apiCommandResult apfelApiSubCommandShowStatus              (void){return apiCommandResult_SUCCESS_QUIET;}

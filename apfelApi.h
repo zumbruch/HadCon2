@@ -57,7 +57,6 @@ extern apfelApiConfig* ptr_apfelApiConfiguration;
 
 void apfelApi(struct uartStruct *ptr_uartStruct);
 uint8_t apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandIndex, uint8_t parameterIndex);
-void apfelApiSubCommandsFooter( uint16_t result );
 void apfelApiShowStatus( uint8_t status[], uint8_t size );
 void apfelApiShowStatusApiSettings(void);
 

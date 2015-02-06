@@ -473,14 +473,14 @@ int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelectio
 	}
 #endif
 	// check validity for correct header (10) and trailing bits (111)
+	/* Error */
 	if ( APFEL_READ_CHECK_VALUE != (value & APFEL_READ_CHECK_MASK))
 	{
 		if (0 == quiet)
 		{
 			CommunicationError_p(ERRA, -1, 1,
-					PSTR("|port|pinSet|side|chipId|dac:|%c|%x|%x|%x|%x|: validity check failed, raw value:0x%x"), port, pinSetIndex,
+					PSTR("port:%c pinSet:%x side:%x chip:%x dac:%x - read validity check failed, raw value:0x%x"), port, pinSetIndex,
 					sideSelection, chipId, dacNr, value);
-		/* Error */
 		}
 		return -10;
 	}
@@ -492,10 +492,10 @@ int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelectio
 
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL,
 					apfelApiCommandKeyNumber_DAC, apfelApiCommandKeywords);
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s|port|pinSet|side|chipId|dac:|%c|%x|%x|%x|%x| 0x"),
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport:%c pinSet:%x side:%x chip:%x dac:%x "),
 					uart_message_string, port, pinSetIndex, sideSelection, chipId, dacNr);
 			apiShowValue(uart_message_string, &value, apiVarType_UINT16);
-			apfelApiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
+			apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 		}
 		return value;
 	}
@@ -586,12 +586,9 @@ void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, 
     	{
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL,
 					apfelApiCommandKeyNumber_LIST, apfelApiCommandKeywords);
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s|port|pinSet|side|chipId |%c|%x|%x|%x|"),
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport:%c pinSet:%x side:%x chip:%x "),
 					uart_message_string, port, pinSetIndex, sideSelection, chipId);
-			if (all)
-			{
-				strncat_P(uart_message_string, (result[chipId >> 3] & 1 << (chipId % 8 )) ? PSTR(" yes") : PSTR(" no"), BUFFER_SIZE - 1);
-			}
+			strncat_P(uart_message_string, (result[chipId >> 3] & 1 << (chipId % 8 )) ? PSTR("yes") : PSTR("no"), BUFFER_SIZE - 1);
 			UART0_Send_Message_String_p(NULL, 0);
     	}
 	}
@@ -640,7 +637,7 @@ void apfelApi_Inline(void)
 					createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
 					strncat_P(uart_message_string, PSTR("Oscilloscope Test Frame "),BUFFER_SIZE-1);
 					apiShowValue(uart_message_string, &apfelOscilloscopeTestFrameMode, apiVarType_BOOL_OnOff);
-					apfelApiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
+					apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 					break;
 			}
 		}
@@ -697,7 +694,7 @@ void apfelApi_Inline(void)
 			}
 			createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
 			apiShowValue(uart_message_string, &value, apiVarType_UINT16);
-			apfelApiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
+			apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 		}
 		break;
 		case 5: /* write sequence */
@@ -1017,7 +1014,7 @@ void apfelApi_Inline(void)
 					strncat_P(uart_message_string, PSTR(" "),BUFFER_SIZE-1);
 					apiShowValue(uart_message_string, &apfelTrigger.pinNumber, apiVarType_UINT8);
 
-					apfelApiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
+					apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 					break;
 			}
 		}
