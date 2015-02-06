@@ -2710,9 +2710,6 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 		case apiVarType_DOUBLE:
 			*((double*)value) = inputValue;
 			break;
-		case apiVarType_DOUBLE:
-			*((double*)value) = inputValue;
-			break;
 		default:
 			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
 			return apiCommandResult_FAILURE_QUIET;
