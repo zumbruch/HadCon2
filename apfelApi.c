@@ -82,17 +82,19 @@ void apfelApi(struct uartStruct *ptr_uartStruct)
 {
 	apfel_Inline();
 	return;
-#if 0
+#if 0 //TODO
 	if (!apfelApiInitialized )
 	{
-		apfelApiInit();
+#warning apiInit to be implemented
+		//	apfelApiInit();
 		apfelApiInitialized = true;
 	}
 
+#warning move to api and generalize it to be used via fcn pointer also by sub commands
 	switch(ptr_uartStruct->number_of_arguments)
 	{
 		case 0:
-			apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_STATUS, 1);
+//			apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_STATUS, 1);
 			break;
 		default:
 		{
@@ -132,6 +134,7 @@ uint8_t apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subComman
 {
 	uint8_t result = apiCommandResult_UNDEFINED;
 	// find matching command keyword
+#if 0 // TODO
 
 	if ( 0 > subCommandIndex )
 	{
@@ -151,8 +154,18 @@ uint8_t apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subComman
 			break;
 	}
 
+# error	replace by call to sub fcn via fcn pointer array.l
+
 	switch (subCommandIndex)
 	{
+		case apfelApiCommandKeyNumber_DAC:
+			result = apfelApiSubCommandDac();
+			break;
+
+		case apfelApiCommandKeyNumber_D:
+			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_DAC, 0);
+			break;
+
 		case apfelApiCommandKeyNumber_STATUS:
 			/* show apfel status of control bits and operation settings*/
 			result = apfelApiSubCommandShowStatus();
@@ -162,13 +175,6 @@ uint8_t apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subComman
 			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_STATUS, 0);
 			break;
 
-		case apfelApiCommandKeyNumber_DAC:
-			result = apfelApiSubCommandDac();
-			break;
-
-		case apfelApiCommandKeyNumber_D:
-			result = apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_DAC, 0);
-			break;
 
 		case apfelApiCommandKeyNumber_TESTPULSE:
 			result = apfelApiSubCommandTestPulse();
@@ -255,6 +261,7 @@ uint8_t apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subComman
 	{
 		apfelApiSubCommandsFooter( result );
 	}
+#endif
 	return result;
 }
 
