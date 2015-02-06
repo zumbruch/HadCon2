@@ -33,7 +33,7 @@ typedef struct apfelAddressStruct
 	uint8_t sideSelection;
 } apfelAddress;
 
-#warning double struct should go to api
+#warning struct should go to api.h since spiApi also uses this
 typedef struct apfelPinStruct
 {
   volatile uint8_t *ptrPort;
