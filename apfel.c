@@ -445,6 +445,8 @@ void apfelSetDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, u
 
 	//3 intermediate clock cycles equiv. 3 writeDataLow
 	apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 3);
+
+	apfelReadDac_Inline(port, pinSetIndex, sideSelection, dacNr, chipId, false);
 }
 
 /* #readDac dacNr[1..4] chipID[0 ... FF] */
