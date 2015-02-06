@@ -12,3 +12,4 @@ obj_hadcon_*/
 /HADCON_make.log
 /HADCON_VERSION=2 TARGET=api_hadcon2 make -f Makefile_HadconX program
 /hs_err_pid*.log
+/delme_*

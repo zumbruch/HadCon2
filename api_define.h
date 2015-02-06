@@ -29,7 +29,7 @@
 
 #define F_CPU 10000000UL
 
-#define MAX_LENGTH_KEYWORD   4
+#define MAX_LENGTH_KEYWORD  5
 /* maximum length of their respective parameters of the strings via UART */
 
 /*  Formula for calculating UBBR0:
@@ -99,7 +99,7 @@
 #define  THIGH    900
 #define  TLOW     100
 
-#warning HADCON devices are around, which exceed those 20 devices, formerly to be 60
+/*#warning HADCON devices are around, which exceed those 20 devices, formerly to be 60*/
 #define OWI_MAX_NUM_DEVICES       20
 
 #define TRUE    1

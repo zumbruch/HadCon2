@@ -19,6 +19,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stddef.h>
+#define __DELAY_BACKWARD_COMPATIBLE__
 #include <util/delay.h>
 #include <util/atomic.h>
 #include <avr/io.h>
@@ -1312,13 +1313,13 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		/* command      : RGWR Register Value */
 		/* response now : RECV the value %x has been written in Register */
 		/* response TODO: RECV RGWR Register Value (OldValue) */
-		writeRegister(ptr_uartStruct); /* call function with name writeRegister  */
+		registerWriteRegister(ptr_uartStruct); /* call function with name registerWriteRegister  */
 		break;
 	case commandKeyNumber_RGRE:
 		/* command      : RGRE Register*/
 		/* response now : RECV the value %x has been written in Register */
 		/* response TODO: RECV RGWR Register Value */
-		readRegister(ptr_uartStruct); /* call function with name  readRegister */
+		registerReadRegister(ptr_uartStruct); /* call function with name  registerReadRegister */
 		break;
 	case commandKeyNumber_RADC: /* read AVR's ADCs */
 		atmelReadADCs(ptr_uartStruct);
@@ -1341,7 +1342,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
         init(ptr_uartStruct);
 		break;
 	case commandKeyNumber_OWSS:
-		read_status_simpleSwitches(ptr_uartStruct); /* call function with name  readRegister */
+		read_status_simpleSwitches(ptr_uartStruct); /* call function with name  registerReadRegister */
 		break;
 	case commandKeyNumber_OWLS:
        /* command : OWLS
@@ -2666,7 +2667,7 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 
 	if ( (min > inputValue) || (max < inputValue) )
 	{
-		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[%ul,%ul] %ul"), min, max, inputValue);
 		return apiCommandResult_FAILURE_QUIET;
 	}
 
@@ -2693,6 +2694,9 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 			break;
 		case apiVarType_UINTPTR:
 			*((uintptr_t*)value) = UINTPTR_MAX & inputValue;
+			break;
+		case apiVarType_DOUBLE:
+			*((double*)value) = inputValue;
 			break;
 		default:
 			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
@@ -2735,11 +2739,13 @@ uint8_t apiShowValue(char string[], void *value, uint8_t type )
 		case apiVarType_UINT64:
 			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint64_t*)value));
 			break;
+		case apiVarType_DOUBLE:
+			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((double*)value));
+			break;
 		default:
 			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
 			return apiCommandResult_FAILURE_QUIET;
 			break;
 	}
 	return apiCommandResult_SUCCESS_WITH_OUTPUT;
-
 }
