@@ -2759,7 +2759,7 @@ void apiSubCommandsFooter( uint16_t result )
 			break;
 		case apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK:
 			/* verbose response to commands*/
-			if (debugLevelVerboseDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemAPFEL) & 1))
+			if (debugLevelVerboseDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemApi) & 1))
 			{
 				strncat_P(uart_message_string, PSTR("OK"), BUFFER_SIZE - 1);
 				UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
