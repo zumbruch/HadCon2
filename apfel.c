@@ -100,23 +100,11 @@ int8_t apfelWritePort(uint8_t val, char port, uint8_t pinSetIndex, uint8_t sideS
 		case 'A':
 			APFEL_writePort(val, A, pinSetIndex);
 			break;
-		case 'B':
-			APFEL_writePort(val, B, pinSetIndex);
-			break;
 		case 'C':
 			APFEL_writePort(val, C, pinSetIndex);
 			break;
-		case 'D':
-			APFEL_writePort(val, D, pinSetIndex);
-			break;
-		case 'E':
-			APFEL_writePort(val, E, pinSetIndex);
-			break;
 		case 'F':
 			APFEL_writePort(val, F, pinSetIndex);
-			break;
-		case 'G':
-			APFEL_writePort(val, G, pinSetIndex);
 			break;
 		default:
 			return -1;
@@ -136,23 +124,11 @@ int8_t apfelReadPort(char port, uint8_t pinSetIndex, uint8_t sideSelection)
 		case 'A':
 			return (1 == pinSetIndex) ? (APFEL_readPort(A, 1)) : (APFEL_readPort(A, 2));
 			break;
-		case 'B':
-			return (1 == pinSetIndex) ? (APFEL_readPort(B, 1)) : (APFEL_readPort(B, 2));
-			break;
 		case 'C':
 			return (1 == pinSetIndex) ? (APFEL_readPort(C, 1)) : (APFEL_readPort(C, 2));
 			break;
-		case 'D':
-			return (1 == pinSetIndex) ? (APFEL_readPort(D, 1)) : (APFEL_readPort(D, 2));
-			break;
-		case 'E':
-			return (1 == pinSetIndex) ? (APFEL_readPort(E, 1)) : (APFEL_readPort(E, 2));
-			break;
 		case 'F':
 			return (1 == pinSetIndex) ? (APFEL_readPort(F, 1)) : (APFEL_readPort(F, 2));
-			break;
-		case 'G':
-			return (1 == pinSetIndex) ? (APFEL_readPort(G, 1)) : (APFEL_readPort(G, 2));
 			break;
 		default:
 			return -1;
@@ -950,29 +926,13 @@ void apfelApi_Inline(void)
 							apfelTrigger.ptrPort = &PINA;
 							DDRA &= 0x1 << (apfelTrigger.pinNumber -1);
 							break;
-						case 'B':
-							apfelTrigger.ptrPort = &PINB;
-							DDRB &= 0x1 << (apfelTrigger.pinNumber -1);
-							break;
 						case 'C':
 							apfelTrigger.ptrPort = &PINC;
 							DDRC &= 0x1 << (apfelTrigger.pinNumber -1);
 							break;
-						case 'D':
-							apfelTrigger.ptrPort = &PIND;
-							DDRD &= 0x1 << (apfelTrigger.pinNumber -1);
-							break;
-						case 'E':
-							apfelTrigger.ptrPort = &PINE;
-							DDRE &= 0x1 << (apfelTrigger.pinNumber -1);
-							break;
 						case 'F':
 							apfelTrigger.ptrPort = &PINF;
 							DDRF &= 0x1 << (apfelTrigger.pinNumber -1);
-							break;
-						case 'G':
-							apfelTrigger.ptrPort = &PING;
-							DDRG &= 0x1 << (apfelTrigger.pinNumber -1);
 							break;
 						default:
 							CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[A,G] %c"), setParameter[3][0]);
@@ -1034,15 +994,6 @@ void apfelApi_Inline(void)
 
 		if (apfelOscilloscopeTestFrameMode)
 		{
-			//		_delay_us(0);
-			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-			//		_delay_us(0);
-			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-			//		_delay_us(0);
-			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-			//		_delay_us(10);
-			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-			//		_delay_us(1);
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 1);
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
 			apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
@@ -1070,14 +1021,6 @@ void apfelApi_Inline(void)
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
 			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
 
-			//		_delay_us(0);
-			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-			//		_delay_us(10);
-			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-			//		_delay_us(0);
-			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
-			//		_delay_us(0);
-			//		PINA = (APFEL_PIN_MASK1 | APFEL_PIN_MASK2);
 	}
 }
 
