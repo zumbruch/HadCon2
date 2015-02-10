@@ -601,6 +601,7 @@ void apfelApi_Inline(void)
 
 	switch(arg[0])
 	{
+#ifdef DEUBG_APFEL
 		case 0: /*apfelOscilloscopeTestFrameMode*/
 		{
 			PORTG =(1 << PG0 | 1 << PG1 | 0 << PG2) | (PORTG & 0x18);
@@ -725,6 +726,7 @@ void apfelApi_Inline(void)
 			}
 		}
 		break;
+#endif
 		case 9:
 		{
 			switch (nSubCommandsArguments /* arguments of argument */)
