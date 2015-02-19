@@ -31,6 +31,7 @@ typedef struct apfelAddressStruct
 	char port;
 	uint8_t pinSetIndex;
 	uint8_t sideSelection;
+	uint8_t chipId;
 } apfelAddress;
 
 #warning struct should go to api.h since spiApi also uses this

@@ -582,7 +582,8 @@ void apfelApi_Inline(void)
 	apfelAddress address = {
 			.port = 'A',
 			.pinSetIndex = 1,
-			.sideSelection = 1
+			.sideSelection = 1,
+			.chipId = 0
 	};
 	switch (nArguments)
 	{
@@ -729,30 +730,35 @@ void apfelApi_Inline(void)
 #endif
 		case 9:
 		{
+			address.port = 'A';
+			address.pinSetIndex = 1;
+			address.sideSelection = 1;
+			address.chipId = 1;
+
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
-				case 0:
-					apfelSetDac_Inline('A', 1, 1, 0x2ee, 2, 30);
-					break;
-				case 1:
-					apfelSetDac_Inline('A', 1, 1, arg[1], 1, 30);
-					apfelSetDac_Inline('A', 1, 1, arg[1], 2, 30);
-					apfelSetDac_Inline('A', 1, 1, arg[1], 3, 30);
-					apfelSetDac_Inline('A', 1, 1, arg[1], 4, 30);
-					break;
 				case 2:
-					apfelSetDac_Inline('A', 1, 1, arg[1], arg[2], 30);
 					break;
 				case 3:
-					apfelSetDac_Inline('A', 1, 1, arg[1], arg[2], arg[3]);
+					address.chipId = arg[3];
 					break;
 				case 5:
-					apfelSetDac_Inline('A', arg[4], arg[5], arg[1], arg[2], arg[3]);
+					address.pinSetIndex = arg[4];
+					address.sideSelection = arg[5];
+					address.chipId = arg[3];
 					break;
 				case 6:
-					apfelSetDac_Inline(arg[6], arg[4], arg[5], arg[1], arg[2], arg[3]);
+					address.port = setParameter[7][0];
+					address.pinSetIndex = arg[4];
+					address.sideSelection = arg[5];
+					address.chipId = arg[3];
+					break;
+				default:
+					CommunicationError_p(ERRA, -1, 1, PSTR("wrong number of arguments"), arg[0]);
+					return;
 					break;
 			}
+			apfelSetDac_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], arg[2], address.chipId);
 		}
 		break;
 		case 0xA:
@@ -760,23 +766,14 @@ void apfelApi_Inline(void)
 			/*apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t dacNr, uint16_t chipId, uint8_t quiet*/
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
-				case 0:
-					apfelReadDac_Inline('A', 1, 1, 2, 30, 0);
-					break;
-				case 1:
-					apfelReadDac_Inline('A', 1, 1, arg[1], 30, 0);
-					break;
 				case 2:
 					apfelReadDac_Inline('A', 1, 1, arg[1], arg[2], 0);
-					break;
-				case 3:
-					apfelReadDac_Inline('A', 1, arg[3], arg[1], arg[2], 0);
 					break;
 				case 4:
 					apfelReadDac_Inline('A', arg[3], arg[4], arg[1], arg[2], 0);
 					break;
 				case 5:
-					apfelReadDac_Inline(arg[5], arg[3], arg[4], arg[1], arg[2], 0);
+					apfelReadDac_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2], 0);
 					break;
 			}
 		}
@@ -792,7 +789,7 @@ void apfelApi_Inline(void)
 					apfelAutoCalibration_Inline('A', arg[2], arg[3], arg[1]);
 					break;
 				case 4:
-					apfelAutoCalibration_Inline(arg[4], arg[2], arg[3], arg[1]);
+					apfelAutoCalibration_Inline(setParameter[5][0], arg[2], arg[3], arg[1]);
 					break;
 			}
 		}
@@ -814,7 +811,7 @@ void apfelApi_Inline(void)
 					apfelTestPulseSequence_Inline('A', arg[3], arg[4], arg[1], arg[2]);
 					break;
 				case 5:
-					apfelTestPulseSequence_Inline(arg[5], arg[3], arg[4], arg[1], arg[2]);
+					apfelTestPulseSequence_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2]);
 					break;
 			}
 		}
@@ -839,7 +836,7 @@ void apfelApi_Inline(void)
 					apfelTestPulse_Inline('A', arg[4], arg[5], arg[1], arg[2], arg[3]);
 					break;
 				case 6:
-					apfelTestPulse_Inline(arg[6], arg[4], arg[5], arg[1], arg[2], arg[3]);
+					apfelTestPulse_Inline(setParameter[7][0], arg[4], arg[5], arg[1], arg[2], arg[3]);
 					break;
 			}
 		}
@@ -861,7 +858,7 @@ void apfelApi_Inline(void)
 					apfelSetAmplitude_Inline('A', arg[3], arg[4], arg[1], arg[2]);
 					break;
 				case 5:
-					apfelSetAmplitude_Inline(arg[5], arg[3], arg[4], arg[1], arg[2]);
+					apfelSetAmplitude_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2]);
 					break;
 			}
 		}
@@ -883,7 +880,7 @@ void apfelApi_Inline(void)
 					apfelResetAmplitude_Inline('A', arg[3], arg[4], arg[1], arg[2]);
 					break;
 				case 5:
-					apfelResetAmplitude_Inline(arg[5], arg[3], arg[4], arg[1], arg[2]);
+					apfelResetAmplitude_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2]);
 					break;
 			}
 		}
@@ -905,7 +902,7 @@ void apfelApi_Inline(void)
 					apfelListIds_Inline('A', arg[3], arg[4], arg[1], arg[2]);
 					break;
 				case 5:
-					apfelListIds_Inline(arg[5], arg[3], arg[4], arg[1], arg[2]);
+					apfelListIds_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2]);
 					break;
 			}
 		}
