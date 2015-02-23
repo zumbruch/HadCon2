@@ -544,7 +544,7 @@ void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, 
     	max = 0xFF;
     }
 
-    for (chipId = 0; chipId < max; chipId++)
+    for (chipId = 1; chipId < max; chipId++)
 	{
 		value = apfelReadDac_Inline(port, pinSetIndex, sideSelection, 1, chipId, true);
 
