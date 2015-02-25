@@ -539,12 +539,13 @@ void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, 
     uint8_t result[32];
     memset(result,0,sizeof(result));
 
-    if (0==max)
+    if (0 == max)
     {
-    	max = 0xFF;
+    	max = 0xFE;
     }
 
-    for (chipId = 1; chipId < max; chipId++)
+    /*check store result in an bit array*/
+    for (chipId = 1; chipId <= max; chipId++)
 	{
 		value = apfelReadDac_Inline(port, pinSetIndex, sideSelection, 1, chipId, true);
 
@@ -556,9 +557,10 @@ void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, 
 
     wdt_disable();
 
-    for (chipId = 0; chipId < max; chipId++)
+    /* print out */
+    for (chipId = 1; chipId <= max; chipId++)
 	{
-    	if ( all || (result[chipId >> 3] & 1 << (chipId % 8 )))
+    	if ( all || (result[chipId >> 3] & (1 << (chipId % 8 ))))
     	{
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL,
 					apfelApiCommandKeyNumber_LIST, apfelApiCommandKeywords);
@@ -602,6 +604,12 @@ void apfelApi_Inline(void)
 
 	switch(arg[0])
 	{
+		address.port = 'A';
+		address.pinSetIndex = 1;
+		address.sideSelection = 1;
+		address.chipId = 1;
+		uint8_t dacNr = 0;
+
 #ifdef DEUBG_APFEL
 		case 0: /*apfelOscilloscopeTestFrameMode*/
 		{
@@ -728,54 +736,54 @@ void apfelApi_Inline(void)
 		}
 		break;
 #endif
+
 		case 9:
 		{
-			address.port = 'A';
-			address.pinSetIndex = 1;
-			address.sideSelection = 1;
-			address.chipId = 1;
-
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
-				case 2:
-					break;
 				case 3:
-					address.chipId = arg[3];
-					break;
-				case 5:
-					address.pinSetIndex = arg[4];
-					address.sideSelection = arg[5];
+					dacNr = arg[2];
 					address.chipId = arg[3];
 					break;
 				case 6:
-					address.port = setParameter[7][0];
+					dacNr = arg[2];
+					address.chipId = arg[3];
 					address.pinSetIndex = arg[4];
 					address.sideSelection = arg[5];
-					address.chipId = arg[3];
+					address.port = setParameter[7][0];
 					break;
 				default:
 					CommunicationError_p(ERRA, -1, 1, PSTR("wrong number of arguments"), arg[0]);
 					return;
 					break;
 			}
-			apfelSetDac_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], arg[2], address.chipId);
+			apfelSetDac_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], dacNr, address.chipId);
 		}
 		break;
 		case 0xA:
 		{
-			/*apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t dacNr, uint16_t chipId, uint8_t quiet*/
+			bool quiet = false;
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
 				case 2:
-					apfelReadDac_Inline('A', 1, 1, arg[1], arg[2], 0);
-					break;
-				case 4:
-					apfelReadDac_Inline('A', arg[3], arg[4], arg[1], arg[2], 0);
+					dacNr = arg[1];
+					address.chipId = arg[2];
+					quiet = false;
 					break;
 				case 5:
-					apfelReadDac_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2], 0);
+					dacNr = arg[1];
+					address.chipId = arg[2];
+					address.pinSetIndex = arg[3];
+					address.sideSelection = arg[4];
+					address.port = setParameter[6][0];
+					quiet = false;
+					break;
+				default:
+					CommunicationError_p(ERRA, -1, 1, PSTR("wrong number of arguments"), arg[0]);
+					return;
 					break;
 			}
+			apfelReadDac_Inline(address.port, address.pinSetIndex, address.sideSelection, dacNr, address.chipId, quiet);
 		}
 		break;
 		case 0xB:
