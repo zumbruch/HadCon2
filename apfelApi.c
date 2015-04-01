@@ -24,15 +24,15 @@
 
 static const char filename[] PROGMEM = __FILE__;
 
-static const char string_3dots[] 	PROGMEM = "...";
-//static const char string_empty[]  PROGMEM = "";
-static const char string_sX[]   	PROGMEM = "%s%X";
-//static const char string_sx[]     PROGMEM = "%s%x";
-static const char string_PORT[]     PROGMEM = "PORT";
-
-static const char string_sKommax[]  PROGMEM = "%s,%x";
-
-static char byte[3]= "00";
+//static const char string_3dots[] 	PROGMEM = "...";
+////static const char string_empty[]  PROGMEM = "";
+//static const char string_sX[]   	PROGMEM = "%s%X";
+////static const char string_sx[]     PROGMEM = "%s%x";
+//static const char string_PORT[]     PROGMEM = "PORT";
+//
+//static const char string_sKommax[]  PROGMEM = "%s,%x";
+//
+//static char byte[3]= "00";
 
 static const char apfelApiCommandKeyword00[] PROGMEM = "dac";
 static const char apfelApiCommandKeyword01[] PROGMEM = "d";
