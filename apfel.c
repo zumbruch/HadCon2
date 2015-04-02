@@ -23,8 +23,14 @@
 #include <avr/iocan128.h>
 #endif
 
-static const const char filename[] 		PROGMEM = __FILE__;
-
+static const char const filename[] 		                      PROGMEM = __FILE__;
+static const char const string_wrong_number_of_arguments_PS[] PROGMEM = "wrong number of arguments: %S";
+static const char const string_bracket_5_bracket[] 		      PROGMEM = "[5]";
+static const char const string_bracket_6_bracket[] 		      PROGMEM = "[6]";
+static const char const string_bracket_7_bracket[] 		      PROGMEM = "[7]";
+static const char const string_address[]                      PROGMEM = "port:%c pinSet:%x side:%x chip:%x";
+static const char const string_dac_[]                         PROGMEM = "dac:%x ";
+static const char const string_blank[]                        PROGMEM = " ";
 #define APFEL_US_TO_DELAY_DEFAULT 0
 
 	/* definitions */
@@ -415,37 +421,37 @@ void (*apfelSendCommandValueChipIdSequence_p)(uint8_t command, uint16_t value, u
 
 /* #setDac value[ 0 ... 3FF ] dacNr[1..4] chipID[0 ... FF]	*/
 
-void apfelSetDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t value, uint8_t dacNr, uint16_t chipId, uint8_t quiet)
+void apfelSetDac_Inline(apfelAddress *address, uint16_t value, uint8_t dacNr, uint8_t quiet)
 {
-	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_SetDac + dacNr, value, chipId, port, pinSetIndex, sideSelection);
+	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_SetDac + dacNr, value, address->chipId, address->port, address->pinSetIndex, address->sideSelection);
 
 	//3 intermediate clock cycles equiv. 3 writeDataLow
-	apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 3);
+	apfelWriteClockSequence_Inline(address->port, address->pinSetIndex, address->sideSelection, 3);
 
 	if (! quiet) {
-			apfelReadDac_Inline(port, pinSetIndex, sideSelection, dacNr, chipId, false);
+			apfelReadDac_Inline(address, dacNr, false);
 	}
 }
 
 /* #readDac dacNr[1..4] chipID[0 ... FF] */
-int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t dacNr, uint16_t chipId, uint8_t quiet)
+int16_t apfelReadDac_Inline(apfelAddress *address, uint8_t dacNr, uint8_t quiet)
 {
 	uint16_t value = 0;
-	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_ReadDac + dacNr, 0, chipId, port, pinSetIndex, sideSelection);
+	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_ReadDac + dacNr, 0, address->chipId, address->port, address->pinSetIndex, address->sideSelection);
 
 	// read 15 bits
-	value = apfelReadBitSequence_Inline(port, pinSetIndex, sideSelection,
+	value = apfelReadBitSequence_Inline(address->port, address->pinSetIndex, address->sideSelection,
 			(APFEL_READ_N_HEADER_BITS + APFEL_N_ValueBits + APFEL_READ_N_TRAILING_BITS));
 
 
-	apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 0x3);
+	apfelWriteClockSequence_Inline(address->port, address->pinSetIndex, address->sideSelection, 0x3);
 
 #if 0
 	if (0 > value)
 	{
 		if (!quiet)
-			CommunicationError_p(ERRA, -1, 1, PSTR("port/pinSet/side/dac/chipId:'%c/%i/%i/%i/%x': readDac failed"),
-					port, pinSetIndex, sideSelection, dacNr, chipId);
+			CommunicationError_p(ERRA, -1, 1, PSTR("%S %S: readDac failed"), string_address, string_dac_,
+					address->port, address->pinSetIndex, address->sideSelection, dacNr, address->chipId);
 		/* Error */
 		return -1;
 	}
@@ -457,8 +463,7 @@ int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelectio
 		if (0 == quiet)
 		{
 			CommunicationError_p(ERRA, -1, 1,
-					PSTR("port:%c pinSet:%x side:%x chip:%x dac:%x - read validity check failed, raw value:0x%x"), port, pinSetIndex,
-					sideSelection, chipId, dacNr, value);
+					PSTR("%S %S- read validity check failed, raw value:0x%x"), string_address, string_dac_, address->port, address->pinSetIndex, address->sideSelection, address->chipId, dacNr, value);
 		}
 		return -10;
 	}
@@ -470,8 +475,11 @@ int16_t apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelectio
 
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL,
 					apfelApiCommandKeyNumber_DAC, apfelApiCommandKeywords);
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport:%c pinSet:%x side:%x chip:%x dac:%x "),
-					uart_message_string, port, pinSetIndex, sideSelection, chipId, dacNr);
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, string_address,
+					uart_message_string, address->port, address->pinSetIndex, address->sideSelection, address->chipId);
+			strncat_P(uart_message_string, string_blank, BUFFER_SIZE - 1);
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, string_dac_,
+					uart_message_string, dacNr);
 			apiShowValue(uart_message_string, &value, apiVarType_UINT16);
 			apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 		}
@@ -555,9 +563,14 @@ void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, 
     max = max > 0xFF ? 0xFF : max;
 
     /*check store result in an bit array*/
+   	apfelAddress address;
     for (chipId = min; chipId < max; chipId++)
 	{
-		value = apfelReadDac_Inline(port, pinSetIndex, sideSelection, 1, chipId, true);
+    	address.port=port;
+    	address.pinSetIndex=pinSetIndex;
+    	address.sideSelection=sideSelection;
+    	address.chipId=chipId;
+		value = apfelReadDac_Inline(&address, 1, true);
 
 		if ( 0 <= value )
 		{
@@ -578,8 +591,8 @@ void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, 
     	{
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL,
 					apfelApiCommandKeyNumber_LIST, apfelApiCommandKeywords);
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%sport:%c pinSet:%x side:%x chip:%x "),
-					uart_message_string, port, pinSetIndex, sideSelection, chipId);
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%S "),
+					uart_message_string, string_address, port, pinSetIndex, sideSelection, chipId);
 			strncat_P(uart_message_string, (result[chipId >> 3] & 1 << (chipId % 8 )) ? PSTR("yes") : PSTR("no"), BUFFER_SIZE - 1);
 			UART0_Send_Message_String_p(NULL, 0);
     	}
@@ -592,6 +605,48 @@ void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, 
     }
 }
 
+apiCommandResult apfelParseAddress(apfelAddress *address, uint8_t portArgumentIndex, uint8_t sideSelectionArgumentIndex, uint8_t pinSetIndexArgumentIndex, uint8_t chipIdArgumentIndex )
+{
+	if (NULL == address)
+	{
+		return apiCommandResult_FAILURE_QUIET;
+	}
+
+	if (0 == portArgumentIndex || MAX_PARAMETER -1 < portArgumentIndex)
+	{
+		return apiCommandResult_FAILURE_QUIET;
+	}
+	else
+	{
+		address->port = setParameter[portArgumentIndex + 1][0];
+	}
+
+	if ( apiCommandResult_SUCCESS_QUIET != apiAssignParameterToValue(  pinSetIndexArgumentIndex + 1, &(address->  pinSetIndex),apiVarType_UINT8,1,2))
+	{
+//		printDebug(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("argIndex %i, setParameter %s"), pinSetIndexArgumentIndex, setParameter[pinSetIndexArgumentIndex+1]);
+		return apiCommandResult_FAILURE_QUIET;
+	}
+	if ( apiCommandResult_SUCCESS_QUIET != apiAssignParameterToValue(sideSelectionArgumentIndex + 1, &(address->sideSelection),apiVarType_UINT8,0,1))
+	{
+//		printDebug(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("argIndex %i, setParameter %s"), sideSelectionArgumentIndex, setParameter[sideSelectionArgumentIndex+1]);
+		return apiCommandResult_FAILURE_QUIET;
+	}
+	if ( apiCommandResult_SUCCESS_QUIET != apiAssignParameterToValue(       chipIdArgumentIndex + 1, &(address->       chipId),apiVarType_UINT8,0,0xFF))
+	{
+//		printDebug(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("argIndex %i, setParameter %s"), chipIdArgumentIndex, setParameter[chipIdArgumentIndex+1]);
+		return apiCommandResult_FAILURE_QUIET;
+	}
+
+//	printDebug(debugLevelNoDebug, debugSystemAPFEL, __LINE__, filename, PSTR("port:%c sideSelect:%i pinSet:%i chipId:%x"),
+//			address->port,
+//			address->sideSelection,
+//			address->pinSetIndex,
+//			address->chipId
+//			);
+
+	return apiCommandResult_SUCCESS_QUIET;
+}
+
 void apfelApi_Inline(void)
 {
 	uint32_t arg[8] =
@@ -599,18 +654,13 @@ void apfelApi_Inline(void)
 	int8_t nArguments = ptr_uartStruct->number_of_arguments;
 	int8_t nSubCommandsArguments = nArguments - 1;
 
-	apfelAddress address = {
-			.port = 'A',
-			.pinSetIndex = 1,
-			.sideSelection = 1,
-			.chipId = 0
-	};
+	apfelAddress address;
+	uint8_t dacNr = 0;
+
 	switch (nArguments)
 	{
 		case 0:
 			return;
-			break;
-		case 0x11: /*own parsing*/
 			break;
 		default:
 			for (uint8_t index=1; index <= min((uint8_t)(nArguments),sizeof(arg)/sizeof(uint32_t)); index++)
@@ -620,13 +670,46 @@ void apfelApi_Inline(void)
 			break;
 	}
 
+	//parse address
 	switch(arg[0])
 	{
-		address.port = 'A';
-		address.pinSetIndex = 1;
-		address.sideSelection = 1;
-		address.chipId = 1;
-		uint8_t dacNr = 0;
+		case 9:
+		case 0xD:
+		case 0x20:
+			if (nSubCommandsArguments >= 6)
+			{
+				if (apiCommandResult_SUCCESS_QUIET != apfelParseAddress(&address,6,5,4,3))
+				{
+					return;
+				}
+			}
+			break;
+		case 0xA:
+		case 0xC:
+		case 0xE:
+		case 0xF:
+		case 0x10:
+			if (nSubCommandsArguments >= 5)
+			{
+				if (apiCommandResult_SUCCESS_QUIET != apfelParseAddress(&address,5,4,3,2))
+				{
+					return;
+				}
+			}
+			break;
+		case 0xB:
+			if (nSubCommandsArguments >= 4)
+			{
+				if (apiCommandResult_SUCCESS_QUIET != apfelParseAddress(&address,4,3,2,1))
+				{
+					return;
+				}
+			}
+			break;
+	}
+
+	switch(arg[0])
+	{
 
 #ifdef DEBUG_APFEL
 		case 0: /*apfelOscilloscopeTestFrameMode*/
@@ -760,173 +843,123 @@ void apfelApi_Inline(void)
 			bool quiet = false;
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
-				case 3:
-					dacNr = arg[2];
-					address.chipId = arg[3];
-					quiet = false;
-					break;
+				case 7:
+					quiet = arg[7];
 				case 6:
 					dacNr = arg[2];
-					address.chipId = arg[3];
-					address.pinSetIndex = arg[4];
-					address.sideSelection = arg[5];
-					address.port = setParameter[7][0];
-					quiet = false;
-					break;
-				case 7:
-					dacNr = arg[2];
-					address.chipId = arg[3];
-					address.pinSetIndex = arg[4];
-					address.sideSelection = arg[5];
-					address.port = setParameter[7][0];
-					quiet = arg[7];
 					break;
 				default:
-					CommunicationError_p(ERRA, -1, 1, PSTR("wrong number of arguments"), arg[0]);
+					CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, PSTR("[7,8]"));
 					return;
 					break;
 			}
-			apfelSetDac_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], dacNr, address.chipId, quiet);
+			apfelSetDac_Inline(&address, arg[1], dacNr, quiet);
 		}
 		break;
 		case 0xA:
 		{
 			bool quiet = false;
-			switch (nSubCommandsArguments /* arguments of argument */)
+			if (5 == nSubCommandsArguments )
 			{
-				case 2:
-					dacNr = arg[1];
-					address.chipId = arg[2];
-					quiet = false;
-					break;
-				case 5:
-					dacNr = arg[1];
-					address.chipId = arg[2];
-					address.pinSetIndex = arg[3];
-					address.sideSelection = arg[4];
-					address.port = setParameter[6][0];
-					quiet = false;
-					break;
-				default:
-					CommunicationError_p(ERRA, -1, 1, PSTR("wrong number of arguments"), arg[0]);
-					return;
-					break;
+				dacNr = arg[1];
+				apfelReadDac_Inline(&address, dacNr, quiet);
 			}
-			apfelReadDac_Inline(address.port, address.pinSetIndex, address.sideSelection, dacNr, address.chipId, quiet);
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
+				return;
+			}
+			apfelReadDac_Inline(&address, dacNr, quiet);
 		}
 		break;
 		case 0xB:
 		{
-			switch (nSubCommandsArguments /* arguments of argument */)
+			if (4 == nSubCommandsArguments )
 			{
-				case 3:
-					apfelAutoCalibration_Inline('A', arg[2], arg[3], arg[1]);
-					break;
-				case 4:
-					apfelAutoCalibration_Inline(setParameter[5][0], arg[2], arg[3], arg[1]);
-					break;
+				apfelAutoCalibration_Inline(address.port, address.pinSetIndex, address.sideSelection, address.chipId);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_5_bracket);
+				return;
 			}
 		}
 		break;
 		case 0xC:
 		{
-			switch (nSubCommandsArguments /* arguments of argument */)
+			if (5 == nSubCommandsArguments )
 			{
-				case 2:
-					apfelTestPulseSequence_Inline('A', 1, 1, arg[1], arg[2]);
-					break;
-				case 4:
-					apfelTestPulseSequence_Inline('A', arg[3], arg[4], arg[1], arg[2]);
-					break;
-				case 5:
-					apfelTestPulseSequence_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2]);
-					break;
+				apfelTestPulseSequence_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], address.chipId);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
+				return;
 			}
 		}
 		break;
 		case 0xD:
 		{
-			switch (nSubCommandsArguments /* arguments of argument */)
+			if (6 == nSubCommandsArguments )
 			{
-				case 3:
-					apfelTestPulse_Inline('A', 1, 1, arg[1], arg[2], arg[3]);
-					break;
-				case 5:
-					apfelTestPulse_Inline('A', arg[4], arg[5], arg[1], arg[2], arg[3]);
-					break;
-				case 6:
-					apfelTestPulse_Inline(setParameter[7][0], arg[4], arg[5], arg[1], arg[2], arg[3]);
-					break;
+				apfelTestPulse_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], arg[2], address.chipId);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_7_bracket);
+				return;
 			}
 		}
 		break;
 		case 0xE:
 		{
-			switch (nSubCommandsArguments /* arguments of argument */)
+			if (5 == nSubCommandsArguments )
 			{
-				case 2:
-					apfelSetAmplitude_Inline('A', 1, 1, arg[1], arg[2]);
-					break;
-				case 4:
-					apfelSetAmplitude_Inline('A', arg[3], arg[4], arg[1], arg[2]);
-					break;
-				case 5:
-					apfelSetAmplitude_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2]);
-					break;
+				apfelSetAmplitude_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], address.chipId);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
+				return;
 			}
 		}
 		break;
 		case 0xF:
 		{
-			switch (nSubCommandsArguments /* arguments of argument */)
+			if (5 == nSubCommandsArguments )
 			{
-				case 2:
-					apfelResetAmplitude_Inline('A', 1, 1, arg[1], arg[2]);
-					break;
-				case 4:
-					apfelResetAmplitude_Inline('A', arg[3], arg[4], arg[1], arg[2]);
-					break;
-				case 5:
-					apfelResetAmplitude_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2]);
-					break;
+				apfelResetAmplitude_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], address.chipId);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
+				return;
 			}
 		}
 		break;
 		case 0x10:
 		{
-			switch (nSubCommandsArguments /* arguments of argument */)
+			if (5 == nSubCommandsArguments )
 			{
-				case 0:
-					apfelListIds_Inline('A', 1, 1,                               1, 0,      0);
-					break;
-				case 1:
-					apfelListIds_Inline('A', 1, 1,                          arg[1], 0,      0);
-					break;
-				case 2:
-					apfelListIds_Inline('A', 1, 1,                          arg[1], arg[2], 0);
-					break;
-				case 4:
-					apfelListIds_Inline('A', arg[3], arg[4],                arg[1], arg[2], 0);
-					break;
-				case 5:
-					apfelListIds_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2], 0);
-					break;
+					apfelListIds_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], arg[2], 0);
+			}
+			else
+			{
+					CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
+					return;
 			}
 		}
 		break;
 		case 0x20:
 		{
-			switch (nSubCommandsArguments /* arguments of argument */)
+			if (6 == nSubCommandsArguments )
 			{
-				case 3:
-					apfelListIds_Inline('A', 1, 1, arg[1], arg[2], arg[3]);
-					break;
-				case 5:
-					apfelListIds_Inline('A', arg[3], arg[4], arg[1], arg[2], arg[3]);
-					break;
-				case 6:
-					apfelListIds_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2], arg[3]);
-					break;
+			    apfelListIds_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], arg[2], arg[3]);
+			}
+			else
+			{
+					CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_7_bracket);
+					return;
 			}
 		}
 		break;
@@ -938,13 +971,11 @@ void apfelApi_Inline(void)
 					/* pin */
 					if (apiCommandResult_FAILURE_QUIET == apiAssignParameterToValue(4, &apfelTrigger.pinNumber, apiVarType_UINT8, 1, 8))
 					{
-						apfelTrigger.pinNumber = 0xFF;
 						return;
 					}
 					/*port*/
 					switch(setParameter[3][0])
 					{
-						DDRD = 1;
 						case 'A':
 							apfelTrigger.ptrPort = &PORTA;
 							break;
@@ -961,15 +992,15 @@ void apfelApi_Inline(void)
 							apfelTrigger.ptrPort = &PORTF;
 							break;
 						default:
-							CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[A,G] %c"), setParameter[3][0]);
+							CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[A,C,D,E,F] %c"), setParameter[3][0]);
 							return;
 							break;
 					}
 					/* access DDR register by decrementing the address by 1 and set the trigger pin to be an output */
 					*(apfelTrigger.ptrPort -1) = *(apfelTrigger.ptrPort -1) | (0xFF & (0x1 << (apfelTrigger.pinNumber -1)));
-				case 1:
+				case 1: /*enable/disable trigger */
 					apiAssignParameterToValue(2, &apfelEnableTrigger, apiVarType_BOOL, 0, 1);
-					apiAssignParameterToValue(2, &apfelTrigger.isUsed, apiVarType_BOOL, 0, 1);
+					apfelTrigger.isUsed = apfelEnableTrigger;
 					if (apfelEnableTrigger)
 					{
 						/*trigger data direction register*/
@@ -980,11 +1011,11 @@ void apfelApi_Inline(void)
 						/* set trigger to low */
 						*(apfelTrigger.ptrPort) = *(apfelTrigger.ptrPort) & (0xFF & ~(0x1 << (apfelTrigger.pinNumber - 1)));
 					}
-				case 0:
+				case 0: /* status */
 					createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
 					strncat_P(uart_message_string, PSTR("trigger "),BUFFER_SIZE-1);
 					apiShowValue(uart_message_string, &apfelEnableTrigger, apiVarType_BOOL_OnOff);
-					strncat_P(uart_message_string, PSTR(" "),BUFFER_SIZE-1);
+					strncat_P(uart_message_string, string_blank,BUFFER_SIZE-1);
 					switch((int) apfelTrigger.ptrPort)
 					{
 						case (int) &PORTA:
@@ -1009,16 +1040,15 @@ void apfelApi_Inline(void)
 								strncat_P(uart_message_string, PSTR("G"), BUFFER_SIZE - 1);
 						break;
 					}
-					strncat_P(uart_message_string, PSTR(" "),BUFFER_SIZE-1);
+					strncat_P(uart_message_string, string_blank,BUFFER_SIZE-1);
 					apiShowValue(uart_message_string, &apfelTrigger.pinNumber, apiVarType_UINT8);
-
 					apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 					break;
 			}
 		}
 		break;
 		default:
-			CommunicationError_p(ERRA, -1, 1, PSTR("wrong first argument : %x "), arg[0]);
+			CommunicationError_p(ERRA, SERIAL_ERROR_invalid_sub_command_name, 1, PSTR("'%s'"), setParameter[1]);
 			return;
 			break;
 	}
