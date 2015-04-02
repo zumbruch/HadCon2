@@ -216,7 +216,6 @@ void apfelInit_Inline(void)
 	PORTA = 0;
 	PORTC = 0;
 	PORTF = 0;
-
 }
 
 uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t nBits)
@@ -535,20 +534,28 @@ void apfelResetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSele
 
 /*#list Ids by checking result for dacRead */
 /* all lists all chipIds independent of presence*/
-void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, bool all, uint8_t max)
+void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, bool all, uint8_t nElements, uint8_t min)
 {
 	uint8_t chipId;
 	int16_t value;
     uint8_t result[32];
     memset(result,0,sizeof(result));
+    uint16_t max = 0;
 
-    if (0 == max)
+    if (0 == nElements)
     {
-    	max = 0xFE;
+    	nElements = 0xFF;
+    }
+    if (0 == min)
+    {
+    	min = 1;
     }
 
+    max = min + nElements;
+    max = max > 0xFF ? 0xFF : max;
+
     /*check store result in an bit array*/
-    for (chipId = 1; chipId <= max; chipId++)
+    for (chipId = min; chipId < max; chipId++)
 	{
 		value = apfelReadDac_Inline(port, pinSetIndex, sideSelection, 1, chipId, true);
 
@@ -558,10 +565,14 @@ void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, 
 		}
 	}
 
-    wdt_disable();
-
     /* print out */
-    for (chipId = 1; chipId <= max; chipId++)
+
+    // disable watchdog, since printout would take too, long.
+    if (20 < nElements )
+    {
+    	wdt_disable();
+    }
+    for (chipId = min; chipId < max; chipId++)
 	{
     	if ( all || (result[chipId >> 3] & (1 << (chipId % 8 ))))
     	{
@@ -573,8 +584,12 @@ void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, 
 			UART0_Send_Message_String_p(NULL, 0);
     	}
 	}
+    // reenable watchdog
+    if (20 < nElements )
+    {
 #warning get current  watchdog setting
-    wdt_enable(WDTO_2S);
+    	wdt_enable(WDTO_2S);
+    }
 }
 
 void apfelApi_Inline(void)
@@ -612,6 +627,8 @@ void apfelApi_Inline(void)
 		address.sideSelection = 1;
 		address.chipId = 1;
 		uint8_t dacNr = 0;
+
+#ifdef DEBUG_APFEL
 		case 0: /*apfelOscilloscopeTestFrameMode*/
 		{
 			PORTG =(1 << PG0 | 1 << PG1 | 0 << PG2) | (PORTG & 0x18);
@@ -630,7 +647,6 @@ void apfelApi_Inline(void)
 		}
 		break;
 //#define DEBUG_APFEL
-#ifdef DEBUG_APFEL
 		case 1: /* write High*/
 		{
 			PORTG = (0 << PG0 | 1 << PG1 | 0 << PG2) | (PORTG & 0x18);
@@ -803,9 +819,6 @@ void apfelApi_Inline(void)
 		{
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
-				case 1:
-					apfelAutoCalibration_Inline('A', 1, 1, arg[1]);
-					break;
 				case 3:
 					apfelAutoCalibration_Inline('A', arg[2], arg[3], arg[1]);
 					break;
@@ -819,12 +832,6 @@ void apfelApi_Inline(void)
 		{
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
-				case 0:
-					apfelTestPulseSequence_Inline('A', 1, 1, 0x10, 30);
-					break;
-				case 1:
-					apfelTestPulseSequence_Inline('A', 1, 1, arg[1], 30);
-					break;
 				case 2:
 					apfelTestPulseSequence_Inline('A', 1, 1, arg[1], arg[2]);
 					break;
@@ -841,15 +848,6 @@ void apfelApi_Inline(void)
 		{
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
-				case 0:
-					apfelTestPulse_Inline('A', 1, 1, 0x10, 1, 30);
-					break;
-				case 1:
-					apfelTestPulse_Inline('A', 1, 1, arg[1], 1, 30);
-					break;
-				case 2:
-					apfelTestPulse_Inline('A', 1, 1, arg[1], arg[2], 30);
-					break;
 				case 3:
 					apfelTestPulse_Inline('A', 1, 1, arg[1], arg[2], arg[3]);
 					break;
@@ -866,12 +864,6 @@ void apfelApi_Inline(void)
 		{
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
-				case 0:
-					apfelSetAmplitude_Inline('A', 1, 1, 1, 1);
-					break;
-				case 1:
-					apfelSetAmplitude_Inline('A', 1, 1, arg[1], 1);
-					break;
 				case 2:
 					apfelSetAmplitude_Inline('A', 1, 1, arg[1], arg[2]);
 					break;
@@ -888,12 +880,6 @@ void apfelApi_Inline(void)
 		{
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
-				case 0:
-					apfelResetAmplitude_Inline('A', 1, 1, 1, 1);
-					break;
-				case 1:
-					apfelResetAmplitude_Inline('A', 1, 1, arg[1], 1);
-					break;
 				case 2:
 					apfelResetAmplitude_Inline('A', 1, 1, arg[1], arg[2]);
 					break;
@@ -911,19 +897,35 @@ void apfelApi_Inline(void)
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
 				case 0:
-					apfelListIds_Inline('A', 1, 1, 1, 0);
+					apfelListIds_Inline('A', 1, 1,                               1, 0,      0);
 					break;
 				case 1:
-					apfelListIds_Inline('A', 1, 1, arg[1], 0);
+					apfelListIds_Inline('A', 1, 1,                          arg[1], 0,      0);
 					break;
 				case 2:
-					apfelListIds_Inline('A', 1, 1, arg[1], arg[2]);
+					apfelListIds_Inline('A', 1, 1,                          arg[1], arg[2], 0);
 					break;
 				case 4:
-					apfelListIds_Inline('A', arg[3], arg[4], arg[1], arg[2]);
+					apfelListIds_Inline('A', arg[3], arg[4],                arg[1], arg[2], 0);
 					break;
 				case 5:
-					apfelListIds_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2]);
+					apfelListIds_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2], 0);
+					break;
+			}
+		}
+		break;
+		case 0x20:
+		{
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 3:
+					apfelListIds_Inline('A', 1, 1, arg[1], arg[2], arg[3]);
+					break;
+				case 5:
+					apfelListIds_Inline('A', arg[3], arg[4], arg[1], arg[2], arg[3]);
+					break;
+				case 6:
+					apfelListIds_Inline(setParameter[6][0], arg[3], arg[4], arg[1], arg[2], arg[3]);
 					break;
 			}
 		}
