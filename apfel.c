@@ -1,8 +1,10 @@
 /*
- * apfel.c
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1
+*/
+/* apfel.c
  *
  *  Created on: 12.06.2013
- *      Author: Florian Brabetz, GSI, f.brabetz@gsi.de
+ *      Author: P.Zumbruch, GSI, p.zumbruch@gsi.de
  */
 
 
@@ -31,86 +33,35 @@ static const char const string_bracket_7_bracket[] 		      PROGMEM = "[7]";
 static const char const string_address[]                      PROGMEM = "port:%c pinSet:%x side:%x chip:%x";
 static const char const string_dac_[]                         PROGMEM = "dac:%x ";
 static const char const string_blank[]                        PROGMEM = " ";
-#define APFEL_US_TO_DELAY_DEFAULT 0
-
-	/* definitions */
-#define APFEL_N_CommandBits  4
-#define APFEL_N_ValueBits  10
-#define APFEL_ValueBits_MASK 0x3FF
-#define APFEL_N_ChipIdBits  8
-#define APFEL_N_Bits ({static const uint8_t a=APFEL_N_CommandBits + APFEL_N_ValueBits + APFEL_N_ChipIdBits;a;})
-#define APFEL_LITTLE_ENDIAN  0
-#define APFEL_BIG_ENDIAN  1
-#define APFEL_DEFAULT_ENDIANNESS APFEL_BIG_ENDIAN
-
-#define APFEL_COMMAND_SetDac  0x0
-#define APFEL_COMMAND_ReadDac  0x4
-#define APFEL_COMMAND_AutoCalibration  0xC
-#define APFEL_COMMAND_TestPulse  0x9
-#define APFEL_COMMAND_SetAmplitude  0xE
-#define APFEL_COMMAND_ResetAmplitude  0xB
-
-#define APFEL_READ_N_HEADER_BITS 2
-#define APFEL_READ_HEADER 0x2
-#define APFEL_READ_HEADER_MASK 0x3
-#define APFEL_READ_N_TRAILING_BITS 3
-#define APFEL_READ_TRAILER 0x7
-#define APFEL_READ_TRAILER_MASK 0x7
-#define APFEL_READ_CHECK_MASK  (( {static const uint16_t a = (((APFEL_READ_HEADER_MASK << (APFEL_N_ValueBits + APFEL_READ_N_TRAILING_BITS)) | APFEL_READ_TRAILER_MASK));a;}))
-#define APFEL_READ_CHECK_VALUE (( {static const uint16_t a = (((APFEL_READ_HEADER      << (APFEL_N_ValueBits + APFEL_READ_N_TRAILING_BITS)) | APFEL_READ_TRAILER));a;}))
-
-#define APFEL_N_PINS 4
-#define APFEL_PIN_DIN1 	PINA0
-#define APFEL_PIN_DOUT1 PINA1
-#define APFEL_PIN_CLK1 	PINA2
-#define APFEL_PIN_SS1 	PINA3
-
-#define APFEL_PIN_DIN2 	PINA4
-#define APFEL_PIN_DOUT2 PINA5
-#define APFEL_PIN_CLK2 	PINA6
-#define APFEL_PIN_SS2 	PINA7
-
-#define APFEL_PIN_MASK1    ( {static const uint8_t a = (0xFF & (1 << APFEL_PIN_CLK1 | 1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_SS1 ));a;})
-#define APFEL_PIN_MASK2    ( {static const uint8_t a = (0xFF & (1 << APFEL_PIN_CLK2 | 1 << APFEL_PIN_DOUT2 | 1 << APFEL_PIN_SS2 ));a;})
-#define APFEL_PIN_MASK_DIN ( {static const uint8_t a = (0xFF & (1 << APFEL_PIN_DIN1 | 1 << APFEL_PIN_DIN2 ))                      ;a;})
-
-#define APFEL_writePort_CalcPattern(val,A,pinSetIndex)\
-	    0xFF & (((0 == pinSetIndex-1) ? \
-		(~(APFEL_PIN_MASK_DIN)) &  (( PIN##A & APFEL_PIN_MASK2) | (val & APFEL_PIN_MASK1)): \
-		(~(APFEL_PIN_MASK_DIN)) &  (( PIN##A & APFEL_PIN_MASK1) | (val & APFEL_PIN_MASK2))))
-#define APFEL_writePort(val,A,pinSetIndex) \
-		    {PORT##A = (APFEL_writePort_CalcPattern(val,A,pinSetIndex));\
-		               _delay_us(APFEL_US_TO_DELAY_DEFAULT);}
-#define APFEL_readPort(A,pinSetIndex) ((PIN##A >> (APFEL_PIN_DIN##pinSetIndex )) & 0x1)
 
 bool apfelOscilloscopeTestFrameMode = false;
 bool apfelEnableTrigger = false;
 apfelPin apfelTrigger = {&PORTE, PINE7 + 1, 0};
 
 /* functions */
-int8_t apfelWritePort(uint8_t val, char port, uint8_t pinSetIndex, uint8_t sideSelection)
+int8_t apfelWritePort(uint8_t val, apfelAddress *address)
 {
-	if (0 == pinSetIndex || pinSetIndex > 2)
+	if (0 == address->pinSetIndex || address->pinSetIndex > 2)
 	{
 		return -1;
 	}
 
 	// add sideSelection bit
-	if (sideSelection)
+	if (address->sideSelection)
 	{
-		val = (0xFF & (val | 1 << ((1==pinSetIndex)?APFEL_PIN_SS1:APFEL_PIN_SS2)));
+		val = (0xFF & (val | 1 << ((1==address->pinSetIndex)?APFEL_PIN_SS1:APFEL_PIN_SS2)));
 	}
 
-	switch (port)
+	switch (address->port)
 	{
 		case 'A':
-			APFEL_writePort(val, A, pinSetIndex);
+			APFEL_writePort(val, A, address->pinSetIndex);
 			break;
 		case 'C':
-			APFEL_writePort(val, C, pinSetIndex);
+			APFEL_writePort(val, C, address->pinSetIndex);
 			break;
 		case 'F':
-			APFEL_writePort(val, F, pinSetIndex);
+			APFEL_writePort(val, F, address->pinSetIndex);
 			break;
 		default:
 			return -1;
@@ -119,22 +70,22 @@ int8_t apfelWritePort(uint8_t val, char port, uint8_t pinSetIndex, uint8_t sideS
 	return 0;
 }
 
-int8_t apfelReadPort(char port, uint8_t pinSetIndex, uint8_t sideSelection)
+int8_t apfelReadPort(apfelAddress *address)
 {
-	if (0 == pinSetIndex || pinSetIndex > 2)
+	if (0 == address->pinSetIndex || address->pinSetIndex > 2)
 	{
 		return -1;
 	}
-	switch (port)
+	switch (address->port)
 	{
 		case 'A':
-			return (1 == pinSetIndex) ? (APFEL_readPort(A, 1)) : (APFEL_readPort(A, 2));
+			return (1 == address->pinSetIndex) ? (APFEL_readPort(A, 1)) : (APFEL_readPort(A, 2));
 			break;
 		case 'C':
-			return (1 == pinSetIndex) ? (APFEL_readPort(C, 1)) : (APFEL_readPort(C, 2));
+			return (1 == address->pinSetIndex) ? (APFEL_readPort(C, 1)) : (APFEL_readPort(C, 2));
 			break;
 		case 'F':
-			return (1 == pinSetIndex) ? (APFEL_readPort(F, 1)) : (APFEL_readPort(F, 2));
+			return (1 == address->pinSetIndex) ? (APFEL_readPort(F, 1)) : (APFEL_readPort(F, 2));
 			break;
 		default:
 			return -1;
@@ -181,29 +132,29 @@ static const char const apfelLow[][5] =
 		  (0 << APFEL_PIN_DOUT2 | 1 << APFEL_PIN_CLK2),
 		  (0 << APFEL_PIN_DOUT2	| 0 << APFEL_PIN_CLK2) } };
 
-int8_t apfelWriteBit_Inline(uint8_t bit, char port, uint8_t pinSetIndex, uint8_t sideSelection)
+int8_t apfelWriteBit_Inline(uint8_t bit, apfelAddress *address)
 {
-	if (0 == pinSetIndex || pinSetIndex > 2)
+	if (0 == address->pinSetIndex || address->pinSetIndex > 2)
 	{
 		return -1;
 	}
-	sideSelection=(sideSelection)?1:0;
+//	sideSelection=(sideSelection)?1:0;
 
 	if (0 == bit)
 	{
-		apfelWritePort(apfelLow [pinSetIndex - 1][0], port, pinSetIndex, sideSelection );
-		apfelWritePort(apfelLow [pinSetIndex - 1][1], port, pinSetIndex, sideSelection );
-		apfelWritePort(apfelLow [pinSetIndex - 1][2], port, pinSetIndex, sideSelection );
-		apfelWritePort(apfelLow [pinSetIndex - 1][3], port, pinSetIndex, sideSelection );
-		apfelWritePort(apfelLow [pinSetIndex - 1][4], port, pinSetIndex, sideSelection );
+		apfelWritePort(apfelLow [address->pinSetIndex - 1][0], address );
+		apfelWritePort(apfelLow [address->pinSetIndex - 1][1], address );
+		apfelWritePort(apfelLow [address->pinSetIndex - 1][2], address );
+		apfelWritePort(apfelLow [address->pinSetIndex - 1][3], address );
+		apfelWritePort(apfelLow [address->pinSetIndex - 1][4], address );
 	}
 	else
 	{
-		apfelWritePort(apfelHigh[pinSetIndex - 1][0], port, pinSetIndex, sideSelection );
-		apfelWritePort(apfelHigh[pinSetIndex - 1][1], port, pinSetIndex, sideSelection );
-		apfelWritePort(apfelHigh[pinSetIndex - 1][2], port, pinSetIndex, sideSelection );
-		apfelWritePort(apfelHigh[pinSetIndex - 1][3], port, pinSetIndex, sideSelection );
-		apfelWritePort(apfelHigh[pinSetIndex - 1][4], port, pinSetIndex, sideSelection );
+		apfelWritePort(apfelHigh[address->pinSetIndex - 1][0], address );
+		apfelWritePort(apfelHigh[address->pinSetIndex - 1][1], address );
+		apfelWritePort(apfelHigh[address->pinSetIndex - 1][2], address );
+		apfelWritePort(apfelHigh[address->pinSetIndex - 1][3], address );
+		apfelWritePort(apfelHigh[address->pinSetIndex - 1][4], address );
 	}
 	return 0;
 }
@@ -224,7 +175,7 @@ void apfelInit_Inline(void)
 	PORTF = 0;
 }
 
-uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t nBits)
+uint16_t apfelReadBitSequence_Inline(apfelAddress *address, uint8_t nBits)
 {
 	/* bits are supplied in BIG ENDIAN */
 	static uint16_t value = 0;
@@ -234,7 +185,7 @@ uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sid
 	uint8_t pinClk;
 	uint8_t pinDout;
 
-	switch (pinSetIndex)
+	switch (address->pinSetIndex)
 	{
 		case 1:
 			pinClk = APFEL_PIN_CLK1;
@@ -252,7 +203,7 @@ uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sid
 	}
 
 	// make sure we start from clock 0 + data 0
-	apfelWritePort(((0 << pinClk) | (0 << pinDout)), port, pinSetIndex, sideSelection);
+	apfelWritePort(((0 << pinClk) | (0 << pinDout)), address);
 
 	// initial bit read differently !!! TNX^6 Peter Wieczorek ;-)
 	// since apfel needs first falling clock edge to activate the output pad
@@ -262,39 +213,39 @@ uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sid
 		nBits--;
 	}
 	// clock high
-	apfelWritePort((1 << pinClk), port, pinSetIndex, sideSelection);
+	apfelWritePort((1 << pinClk), address);
 	// clock low
-	apfelWritePort((0 << pinClk), port, pinSetIndex, sideSelection);
+	apfelWritePort((0 << pinClk), address);
 	// read data in
-	value |= (apfelReadPort(port, pinSetIndex, sideSelection) << (nBits - bitIndex));
+	value |= (apfelReadPort(address) << (nBits - bitIndex));
 
 	while (bitIndex < nBits)
 	{
 		bitIndex++;
 		// clock high
-		apfelWritePort((1 << pinClk), port, pinSetIndex, sideSelection);
+		apfelWritePort((1 << pinClk), address);
 		// read data in
-		value |= (apfelReadPort(port, pinSetIndex, sideSelection) << (nBits - bitIndex));
+		value |= (apfelReadPort(address) << (nBits - bitIndex));
 		// clock low
-		apfelWritePort((0 << pinClk), port, pinSetIndex, sideSelection);
+		apfelWritePort((0 << pinClk), address);
 	}
 	return value;
 }
 
-void apfelWriteClockSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t nClk)
+void apfelWriteClockSequence_Inline(apfelAddress *address, uint16_t nClk)
 {
 	uint16_t a = nClk;
 	while (a > 0)
 	{
 		a--;
-		apfelWriteBit_Inline(0, port, pinSetIndex, sideSelection);
+		apfelWriteBit_Inline(0, address);
 	}
 }
 
 /*  apfelClearDataInput
 	 sends enough empty clock cycles to clear input buffer
 	 after each byte add 3 0 writes */
-void apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection)
+void apfelClearDataInput_Inline(apfelAddress *address)
 {
 	uint8_t i = 0;
 	static const uint8_t const val[2] =
@@ -303,7 +254,7 @@ void apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t sideSele
 			(0 << APFEL_PIN_DOUT2 | 0 << APFEL_PIN_CLK2)
 	};
 
-	switch (pinSetIndex)
+	switch (address->pinSetIndex)
 	{
 		case 1:
 		case 2:
@@ -312,16 +263,16 @@ void apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t sideSele
 				i++;
 				if (0 == i % 8)
 				{
-					apfelWritePort(val[pinSetIndex], port, pinSetIndex, sideSelection);
-					apfelWritePort(val[pinSetIndex], port, pinSetIndex, sideSelection);
+					apfelWritePort(val[address->pinSetIndex], address);
+					apfelWritePort(val[address->pinSetIndex], address);
 				}
-				apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 1);
+				apfelWriteClockSequence_Inline(address,  1);
 			}
 			i = 10;
 			while (i > 0)
 			{
 				i--;
-				apfelWritePort(val[pinSetIndex], port, pinSetIndex, sideSelection);
+				apfelWritePort(val[address->pinSetIndex], address);
 			}
 			break;
 		default:
@@ -330,9 +281,9 @@ void apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t sideSele
 }
 
 //mandatory header to all command sequences
-void apfelStartStreamHeader_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection)
+void apfelStartStreamHeader_Inline(apfelAddress *address)
 {
-	apfelClearDataInput_Inline(port, pinSetIndex, sideSelection);
+	apfelClearDataInput_Inline(address);
 
 	//  1. clock Low
 	//  2. clock Low  + data high
@@ -342,7 +293,7 @@ void apfelStartStreamHeader_Inline(char port, uint8_t pinSetIndex, uint8_t sideS
 
 	uint8_t pinDout = 0xFF;
 	uint8_t pinClk = 0xFF;
-	switch (pinSetIndex)
+	switch (address->pinSetIndex)
 	{
 		case 1:
 			pinDout = APFEL_PIN_DOUT1;
@@ -357,17 +308,17 @@ void apfelStartStreamHeader_Inline(char port, uint8_t pinSetIndex, uint8_t sideS
 			break;
 	}
 	/*sideSelection*/
-	apfelWritePort((0 << pinDout | 0 << pinClk), port, pinSetIndex, sideSelection);
+	apfelWritePort((0 << pinDout | 0 << pinClk), address);
 	/* header */
-	apfelWritePort((0 << pinDout | 0 << pinClk), port, pinSetIndex, sideSelection);
-	apfelWritePort((1 << pinDout | 0 << pinClk), port, pinSetIndex, sideSelection);
-	apfelWritePort((1 << pinDout | 1 << pinClk), port, pinSetIndex, sideSelection);
-	apfelWritePort((1 << pinDout | 0 << pinClk), port, pinSetIndex, sideSelection);
-	apfelWritePort((0 << pinDout | 0 << pinClk), port, pinSetIndex, sideSelection);
+	apfelWritePort((0 << pinDout | 0 << pinClk), address);
+	apfelWritePort((1 << pinDout | 0 << pinClk), address);
+	apfelWritePort((1 << pinDout | 1 << pinClk), address);
+	apfelWritePort((1 << pinDout | 0 << pinClk), address);
+	apfelWritePort((0 << pinDout | 0 << pinClk), address);
 }
 
 /* writeBitSequence #bits #data #endianess (0: little, 1:big)*/
-void apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, int8_t nBits, uint16_t data, uint8_t endianness)
+void apfelWriteBitSequence_Inline(apfelAddress *address, int8_t nBits, uint16_t data, uint8_t endianness)
 {
 	int8_t bitPos = 0;
 
@@ -376,7 +327,7 @@ void apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSe
 		case APFEL_LITTLE_ENDIAN:
 			while (bitPos < nBits)
 			{
-				apfelWriteBit_Inline(((uint8_t) ((data >> bitPos) & 0x1)), port, pinSetIndex, sideSelection);
+				apfelWriteBit_Inline(((uint8_t) ((data >> bitPos) & 0x1)), address);
 				bitPos++;
 			}
 			break;
@@ -384,7 +335,7 @@ void apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSe
 			bitPos = nBits - 1;
 			while (bitPos >= 0)
 			{
-				apfelWriteBit_Inline(((uint8_t) ((data >> bitPos) & 0x1)), port, pinSetIndex, sideSelection);
+				apfelWriteBit_Inline(((uint8_t) ((data >> bitPos) & 0x1)), address);
 				bitPos--;
 			}
 			break;
@@ -396,15 +347,15 @@ void apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSe
 	}
 }
 
-void apfelSendCommandValueChipIdSequence(uint8_t command, uint16_t value, uint16_t chipId, char port, uint8_t pinSetIndex, uint8_t sideSelection)
+void apfelSendCommandValueChipIdClockSequence(uint8_t command, uint16_t value, uint16_t clockCycles, apfelAddress *address)
 {
-	apfelStartStreamHeader_Inline(port, pinSetIndex, sideSelection);
+	apfelStartStreamHeader_Inline(address);
 	// command
-	apfelWriteBitSequence_Inline(port, pinSetIndex, sideSelection, APFEL_N_CommandBits, command, APFEL_DEFAULT_ENDIANNESS);
+	apfelWriteBitSequence_Inline(address, APFEL_N_CommandBits, command, APFEL_DEFAULT_ENDIANNESS);
 	// pulse height
-	apfelWriteBitSequence_Inline(port, pinSetIndex, sideSelection, APFEL_N_ValueBits, value, APFEL_DEFAULT_ENDIANNESS);
+	apfelWriteBitSequence_Inline(address, APFEL_N_ValueBits, value, APFEL_DEFAULT_ENDIANNESS);
 	// chipId
-	apfelWriteBitSequence_Inline(port, pinSetIndex, sideSelection, APFEL_N_ChipIdBits, chipId, APFEL_DEFAULT_ENDIANNESS);
+	apfelWriteBitSequence_Inline(address, APFEL_N_ChipIdBits, address->chipId, APFEL_DEFAULT_ENDIANNESS);
 
 	// add  external trigger on opposite clock pin//
 	if (apfelEnableTrigger)
@@ -415,18 +366,21 @@ void apfelSendCommandValueChipIdSequence(uint8_t command, uint16_t value, uint16
 		*(apfelTrigger.ptrPort) = *(apfelTrigger.ptrPort) & (0xFF & ~(0x1 << (apfelTrigger.pinNumber - 1)));
 		_delay_us(0);
 	}
+
+	if (0 < clockCycles)
+	{
+		apfelWriteClockSequence_Inline(address, clockCycles);
+	}
 }
 
-void (*apfelSendCommandValueChipIdSequence_p)(uint8_t command, uint16_t value, uint16_t chipId, char port, uint8_t pinSetIndex, uint8_t sideSelection) = apfelSendCommandValueChipIdSequence;
+void (*apfelSendCommandValueChipIdClockSequence_p)(uint8_t command, uint16_t value, uint16_t clockCycles, apfelAddress *address) = apfelSendCommandValueChipIdClockSequence;
 
 /* #setDac value[ 0 ... 3FF ] dacNr[1..4] chipID[0 ... FF]	*/
 
 void apfelSetDac_Inline(apfelAddress *address, uint16_t value, uint8_t dacNr, uint8_t quiet)
 {
-	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_SetDac + dacNr, value, address->chipId, address->port, address->pinSetIndex, address->sideSelection);
-
-	//3 intermediate clock cycles equiv. 3 writeDataLow
-	apfelWriteClockSequence_Inline(address->port, address->pinSetIndex, address->sideSelection, 3);
+	apfelSendCommandValueChipIdClockSequence_p(APFEL_COMMAND_SetDac + dacNr, value, APFEL_COMMAND_SetDac_CommandClockCycles, address);
+	//inkl. 3 intermediate clock cycles equiv. 3 writeDataLow
 
 	if (! quiet) {
 			apfelReadDac_Inline(address, dacNr, false);
@@ -437,14 +391,13 @@ void apfelSetDac_Inline(apfelAddress *address, uint16_t value, uint8_t dacNr, ui
 int16_t apfelReadDac_Inline(apfelAddress *address, uint8_t dacNr, uint8_t quiet)
 {
 	uint16_t value = 0;
-	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_ReadDac + dacNr, 0, address->chipId, address->port, address->pinSetIndex, address->sideSelection);
+	apfelSendCommandValueChipIdClockSequence_p(APFEL_COMMAND_ReadDac + dacNr, 0, APFEL_COMMAND_ReadDac_CommandClockCycles, address);
 
 	// read 15 bits
-	value = apfelReadBitSequence_Inline(address->port, address->pinSetIndex, address->sideSelection,
-			(APFEL_READ_N_HEADER_BITS + APFEL_N_ValueBits + APFEL_READ_N_TRAILING_BITS));
+	value = apfelReadBitSequence_Inline(address, (APFEL_READ_N_HEADER_BITS + APFEL_N_ValueBits + APFEL_READ_N_TRAILING_BITS));
 
 
-	apfelWriteClockSequence_Inline(address->port, address->pinSetIndex, address->sideSelection, 0x3);
+	apfelWriteClockSequence_Inline(address,  APFEL_COMMAND_ReadDac_CommandClockCycles_Trailer);
 
 #if 0
 	if (0 > value)
@@ -488,64 +441,64 @@ int16_t apfelReadDac_Inline(apfelAddress *address, uint8_t dacNr, uint8_t quiet)
 }
 
 /* #autoCalibration chipId[0 ... FF] */
-void apfelAutoCalibration_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t chipId)
+void apfelAutoCalibration_Inline(apfelAddress *address)//char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t chipId)
 {
-	if (0xFF==chipId)
+	if (0xFF==address->chipId)
 	{
-#warning TODO implement readout of current watchdog timing from the WDT registers of ATMEL
-#warning or even better create kind of callback routine, and lock mechanism, while calibration is running
-		wdt_disable();
-		uint8_t id;
-		for (id = 0; id < 0xFF; id++)
+#warning TODO (implement readout of current watchdog timing from the WDT registers of ATMEL) or even better create kind of callback routine, and lock mechanism, while calibration is running
+		bool watchdogStatus = 1 << WDE & WDTCR;
+		uint8_t watchdogTiming;
+		if (watchdogStatus)
 		{
-			apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_AutoCalibration, 0, id, port, pinSetIndex, sideSelection);
-			// #calibration sequence clocks 4 * 10bit DAC
-			apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, (0x1 << APFEL_N_ValueBits)<<2);
+			watchdogTiming = (1 << WDP0 | 1 << WDP1 | 1<< WDP2) & WDTCR;
+			wdt_disable();
 		}
-		wdt_enable(WDTO_2S);
+		for (uint8_t id = 0; id < 0xFF; id++)
+		{
+			apfelSendCommandValueChipIdClockSequence_p(APFEL_COMMAND_AutoCalibration, 0, APFEL_COMMAND_AutoCalibration_CommandClockCycles, address);
+			// inkl. calibration sequence clocks 4 * 10bit DAC
+		}
+		if (watchdogStatus)
+		{
+			wdt_enable(watchdogTiming);
+		}
 	}
 	else
 	{
-		apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_AutoCalibration, 0, chipId, port, pinSetIndex, sideSelection);
-		// #calibration sequence clocks 4 * 10bit DAC
-		apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, (0x1 << APFEL_N_ValueBits)<<2);
+		apfelSendCommandValueChipIdClockSequence_p(APFEL_COMMAND_AutoCalibration, 0, APFEL_COMMAND_AutoCalibration_CommandClockCycles, address);
+		// inkl. calibration sequence clocks 4 * 10bit DAC
 	}
 }
 
 /* #testPulseSequence pulseHeightPattern[0 ... 1F] chipId[0 ... FF] */
-void apfelTestPulseSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t pulseHeightPattern, uint8_t chipId)
+void apfelTestPulseSequence_Inline(apfelAddress *address, uint16_t pulseHeightPattern)
 {
-	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_TestPulse, pulseHeightPattern, chipId, port, pinSetIndex, sideSelection);
-	apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 3);
+	apfelSendCommandValueChipIdClockSequence_p(APFEL_COMMAND_TestPulse, pulseHeightPattern, APFEL_COMMAND_TestPulseSequence_CommandClockCycles, address);
 }
 
 /* #testPulse pulseHeight[0 ... 1F] channel[1 .. 2 ] chipId[0 ... FF] */
-void apfelTestPulse_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t pulseHeight, uint8_t channel, uint8_t chipId)
+void apfelTestPulse_Inline(apfelAddress *address, uint16_t pulseHeight, uint8_t channel)
 {
-	apfelTestPulseSequence_Inline(port, pinSetIndex, sideSelection, 0x3FF & (pulseHeight << ((channel==1)?1:6)), chipId);
-	apfelTestPulseSequence_Inline(port, pinSetIndex, sideSelection, 0, chipId);
+	apfelTestPulseSequence_Inline(address, 0x3FF & (pulseHeight << ((channel==1)?1:6)));
+	apfelTestPulseSequence_Inline(address, 0);
 }
 
 /*#setAmplitude channelId[1 ... 2] chipId[0 ... FF]*/
-void apfelSetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t channel, uint8_t chipId)
+void apfelSetAmplitude_Inline(apfelAddress *address, uint8_t channel)
 {
-	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_SetAmplitude + ((channel==1)?1:0), 0, chipId, port, pinSetIndex, sideSelection);
-	apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 3);
+	apfelSendCommandValueChipIdClockSequence_p(APFEL_COMMAND_SetAmplitude + ((channel==1)?1:0), 0, APFEL_COMMAND_SetAmplification_CommandClockCycles, address);
 }
 
 /*#resetAmplitude channelId[1 ... 2] chipId[0 ... FF]*/
-void apfelResetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t channel, uint8_t chipId)
+void apfelResetAmplitude_Inline(apfelAddress *address, uint8_t channel)
 {
-	apfelSendCommandValueChipIdSequence_p(APFEL_COMMAND_ResetAmplitude + ((channel==2)?2:0), 0, chipId, port, pinSetIndex, sideSelection);
-	apfelWriteClockSequence_Inline(port, pinSetIndex, sideSelection, 3);
+	apfelSendCommandValueChipIdClockSequence_p(APFEL_COMMAND_ResetAmplitude + ((channel==2)?2:0), 0, APFEL_COMMAND_ResetAmplification_CommandClockCycles, address);
 }
 
 /*#list Ids by checking result for dacRead */
 /* all lists all chipIds independent of presence*/
-void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, bool all, uint8_t nElements, uint8_t min)
+void apfelListIds_Inline(apfelAddress *address, bool all, uint8_t nElements, uint8_t min)
 {
-	uint8_t chipId;
-	int16_t value;
     uint8_t result[32];
     memset(result,0,sizeof(result));
     uint16_t max = 0;
@@ -559,49 +512,44 @@ void apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, 
     	min = 1;
     }
 
-    max = min + nElements;
-    max = max > 0xFF ? 0xFF : max;
+    max = min((uint16_t)(min + nElements),0x00FFU);
 
     /*check store result in an bit array*/
-   	apfelAddress address;
-    for (chipId = min; chipId < max; chipId++)
+    for (address->chipId = min; address->chipId < max; (address->chipId)++)
 	{
-    	address.port=port;
-    	address.pinSetIndex=pinSetIndex;
-    	address.sideSelection=sideSelection;
-    	address.chipId=chipId;
-		value = apfelReadDac_Inline(&address, 1, true);
-
-		if ( 0 <= value )
+		if ( 0 <= apfelReadDac_Inline(address, 1, true) )
 		{
-			result[chipId >> 3] |= (1 << (chipId % 8));
+			result[(address->chipId) >> 3] |= (1 << ((address->chipId) % 8));
 		}
 	}
 
     /* print out */
 
     // disable watchdog, since printout would take too, long.
-    if (20 < nElements )
-    {
-    	wdt_disable();
-    }
-    for (chipId = min; chipId < max; chipId++)
+	bool watchdogStatus = 1 << WDE & WDTCR;
+	uint8_t watchdogTiming;
+	if (watchdogStatus)
+	{
+		watchdogTiming = (1 << WDP0 | 1 << WDP1 | 1<< WDP2) & WDTCR;
+		wdt_disable();
+	}
+
+    for (uint8_t chipId = min; chipId < max; chipId++)
 	{
     	if ( all || (result[chipId >> 3] & (1 << (chipId % 8 ))))
     	{
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL,
 					apfelApiCommandKeyNumber_LIST, apfelApiCommandKeywords);
 			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%S "),
-					uart_message_string, string_address, port, pinSetIndex, sideSelection, chipId);
+					uart_message_string, string_address, address->port, address->pinSetIndex, address->sideSelection, chipId);
 			strncat_P(uart_message_string, (result[chipId >> 3] & 1 << (chipId % 8 )) ? PSTR("yes") : PSTR("no"), BUFFER_SIZE - 1);
 			UART0_Send_Message_String_p(NULL, 0);
     	}
 	}
-    // reenable watchdog
-    if (20 < nElements )
-    {
-#warning get current  watchdog setting
-    	wdt_enable(WDTO_2S);
+    // re-enable watchdog
+	if (watchdogStatus)
+	{
+    	wdt_enable(watchdogTiming);
     }
 }
 
@@ -673,9 +621,9 @@ void apfelApi_Inline(void)
 	//parse address
 	switch(arg[0])
 	{
-		case 9:
-		case 0xD:
-		case 0x20:
+		case apfelApiCommandKeyNumber_SetDac:
+		case apfelApiCommandKeyNumber_TestPulseReset:
+		case apfelApiCommandKeyNumber_ListIdExtended:
 			if (nSubCommandsArguments >= 6)
 			{
 				if (apiCommandResult_SUCCESS_QUIET != apfelParseAddress(&address,6,5,4,3))
@@ -684,11 +632,11 @@ void apfelApi_Inline(void)
 				}
 			}
 			break;
-		case 0xA:
-		case 0xC:
-		case 0xE:
-		case 0xF:
-		case 0x10:
+		case apfelApiCommandKeyNumber_ReadDac:
+		case apfelApiCommandKeyNumber_TestPulseSingle:
+		case apfelApiCommandKeyNumber_SetAmplification:
+		case apfelApiCommandKeyNumber_ResetAmplification:
+		case apfelApiCommandKeyNumber_ListId:
 			if (nSubCommandsArguments >= 5)
 			{
 				if (apiCommandResult_SUCCESS_QUIET != apfelParseAddress(&address,5,4,3,2))
@@ -697,7 +645,7 @@ void apfelApi_Inline(void)
 				}
 			}
 			break;
-		case 0xB:
+		case apfelApiCommandKeyNumber_AutoCalibration:
 			if (nSubCommandsArguments >= 4)
 			{
 				if (apiCommandResult_SUCCESS_QUIET != apfelParseAddress(&address,4,3,2,1))
@@ -712,6 +660,7 @@ void apfelApi_Inline(void)
 	{
 
 #ifdef DEBUG_APFEL
+		static const apfelAddress address={.port='A',.pinSetIndex=1,.sideSelection=0};
 		case 0: /*apfelOscilloscopeTestFrameMode*/
 		{
 			PORTG =(1 << PG0 | 1 << PG1 | 0 << PG2) | (PORTG & 0x18);
@@ -729,7 +678,6 @@ void apfelApi_Inline(void)
 			}
 		}
 		break;
-//#define DEBUG_APFEL
 		case 1: /* write High*/
 		{
 			PORTG = (0 << PG0 | 1 << PG1 | 0 << PG2) | (PORTG & 0x18);
@@ -838,7 +786,7 @@ void apfelApi_Inline(void)
 		}
 		break;
 #endif
-		case 9:
+		case apfelApiCommandKeyNumber_SetDac:
 		{
 			bool quiet = false;
 			switch (nSubCommandsArguments /* arguments of argument */)
@@ -856,7 +804,7 @@ void apfelApi_Inline(void)
 			apfelSetDac_Inline(&address, arg[1], dacNr, quiet);
 		}
 		break;
-		case 0xA:
+		case apfelApiCommandKeyNumber_ReadDac:
 		{
 			bool quiet = false;
 			if (5 == nSubCommandsArguments )
@@ -872,11 +820,11 @@ void apfelApi_Inline(void)
 			apfelReadDac_Inline(&address, dacNr, quiet);
 		}
 		break;
-		case 0xB:
+		case apfelApiCommandKeyNumber_AutoCalibration:
 		{
 			if (4 == nSubCommandsArguments )
 			{
-				apfelAutoCalibration_Inline(address.port, address.pinSetIndex, address.sideSelection, address.chipId);
+				apfelAutoCalibration_Inline(&address);
 			}
 			else
 			{
@@ -885,11 +833,11 @@ void apfelApi_Inline(void)
 			}
 		}
 		break;
-		case 0xC:
+		case apfelApiCommandKeyNumber_TestPulseSingle:
 		{
 			if (5 == nSubCommandsArguments )
 			{
-				apfelTestPulseSequence_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], address.chipId);
+				apfelTestPulseSequence_Inline(&address, arg[1]);
 			}
 			else
 			{
@@ -898,11 +846,11 @@ void apfelApi_Inline(void)
 			}
 		}
 		break;
-		case 0xD:
+		case apfelApiCommandKeyNumber_TestPulseReset:
 		{
 			if (6 == nSubCommandsArguments )
 			{
-				apfelTestPulse_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], arg[2], address.chipId);
+				apfelTestPulse_Inline(&address, arg[1], arg[2]);
 			}
 			else
 			{
@@ -911,11 +859,12 @@ void apfelApi_Inline(void)
 			}
 		}
 		break;
-		case 0xE:
+
+		case apfelApiCommandKeyNumber_SetAmplification:
 		{
 			if (5 == nSubCommandsArguments )
 			{
-				apfelSetAmplitude_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], address.chipId);
+				apfelSetAmplitude_Inline(&address, arg[1]);
 			}
 			else
 			{
@@ -924,11 +873,11 @@ void apfelApi_Inline(void)
 			}
 		}
 		break;
-		case 0xF:
+		case apfelApiCommandKeyNumber_ResetAmplification:
 		{
 			if (5 == nSubCommandsArguments )
 			{
-				apfelResetAmplitude_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], address.chipId);
+				apfelResetAmplitude_Inline(&address, arg[1]);
 			}
 			else
 			{
@@ -937,44 +886,45 @@ void apfelApi_Inline(void)
 			}
 		}
 		break;
-		case 0x10:
+		case apfelApiCommandKeyNumber_ListId:
 		{
 			if (5 == nSubCommandsArguments )
 			{
-					apfelListIds_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], arg[2], 0);
+				apfelListIds_Inline(&address, arg[1], arg[2], 0);
 			}
 			else
 			{
-					CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
-					return;
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
+				return;
 			}
 		}
 		break;
-		case 0x20:
+		case apfelApiCommandKeyNumber_ListIdExtended:
 		{
 			if (6 == nSubCommandsArguments )
 			{
-			    apfelListIds_Inline(address.port, address.pinSetIndex, address.sideSelection, arg[1], arg[2], arg[3]);
+				apfelListIds_Inline(&address, arg[1], arg[2], arg[3]);
 			}
 			else
 			{
-					CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_7_bracket);
-					return;
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_7_bracket);
+				return;
 			}
 		}
 		break;
-		case 0x11: /*apfelEnableTrigger*/
+		case apfelApiCommandKeyNumber_Trigger: /*apfelEnableTrigger*/
 		{
 			switch (nSubCommandsArguments /* arguments of argument */)
 			{
 				case 3:
 					/* pin */
-					if (apiCommandResult_FAILURE_QUIET == apiAssignParameterToValue(4, &apfelTrigger.pinNumber, apiVarType_UINT8, 1, 8))
+					if (apiCommandResult_FAILURE_QUIET
+							== apiAssignParameterToValue(4, &apfelTrigger.pinNumber, apiVarType_UINT8, 1, 8))
 					{
 						return;
 					}
 					/*port*/
-					switch(setParameter[3][0])
+					switch (setParameter[3][0])
 					{
 						case 'A':
 							apfelTrigger.ptrPort = &PORTA;
@@ -992,55 +942,58 @@ void apfelApi_Inline(void)
 							apfelTrigger.ptrPort = &PORTF;
 							break;
 						default:
-							CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[A,C,D,E,F] %c"), setParameter[3][0]);
+							CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true,
+									PSTR("[A,C,D,E,F] %c"), setParameter[3][0]);
 							return;
 							break;
 					}
 					/* access DDR register by decrementing the address by 1 and set the trigger pin to be an output */
-					*(apfelTrigger.ptrPort -1) = *(apfelTrigger.ptrPort -1) | (0xFF & (0x1 << (apfelTrigger.pinNumber -1)));
+					*(apfelTrigger.ptrPort - 1) = *(apfelTrigger.ptrPort - 1)
+							| (0xFF & (0x1 << (apfelTrigger.pinNumber - 1)));
 				case 1: /*enable/disable trigger */
 					apiAssignParameterToValue(2, &apfelEnableTrigger, apiVarType_BOOL, 0, 1);
 					apfelTrigger.isUsed = apfelEnableTrigger;
 					if (apfelEnableTrigger)
 					{
 						/*trigger data direction register*/
-						if (!( (*(apfelTrigger.ptrPort - 1)) & (0xFF & (0x1 << (apfelTrigger.pinNumber -1)))))
+						if (!((*(apfelTrigger.ptrPort - 1)) & (0xFF & (0x1 << (apfelTrigger.pinNumber - 1)))))
 						{
-							(*(apfelTrigger.ptrPort - 1)) &= (0xFF & (0x1 << (apfelTrigger.pinNumber -1)));
+							(*(apfelTrigger.ptrPort - 1)) &= (0xFF & (0x1 << (apfelTrigger.pinNumber - 1)));
 						}
 						/* set trigger to low */
-						*(apfelTrigger.ptrPort) = *(apfelTrigger.ptrPort) & (0xFF & ~(0x1 << (apfelTrigger.pinNumber - 1)));
+						*(apfelTrigger.ptrPort) = *(apfelTrigger.ptrPort)
+								& (0xFF & ~(0x1 << (apfelTrigger.pinNumber - 1)));
 					}
 				case 0: /* status */
 					createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
-					strncat_P(uart_message_string, PSTR("trigger "),BUFFER_SIZE-1);
+					strncat_P(uart_message_string, PSTR("trigger "), BUFFER_SIZE - 1);
 					apiShowValue(uart_message_string, &apfelEnableTrigger, apiVarType_BOOL_OnOff);
-					strncat_P(uart_message_string, string_blank,BUFFER_SIZE-1);
-					switch((int) apfelTrigger.ptrPort)
+					strncat_P(uart_message_string, string_blank, BUFFER_SIZE - 1);
+					switch ((int) apfelTrigger.ptrPort)
 					{
 						case (int) &PORTA:
-								strncat_P(uart_message_string, PSTR("A"), BUFFER_SIZE - 1);
-						break;
+							strncat_P(uart_message_string, PSTR("A"), BUFFER_SIZE - 1);
+							break;
 						case (int) &PORTB:
-								strncat_P(uart_message_string, PSTR("B"), BUFFER_SIZE - 1);
-						break;
+							strncat_P(uart_message_string, PSTR("B"), BUFFER_SIZE - 1);
+							break;
 						case (int) &PORTC:
-								strncat_P(uart_message_string, PSTR("C"), BUFFER_SIZE - 1);
-						break;
+							strncat_P(uart_message_string, PSTR("C"), BUFFER_SIZE - 1);
+							break;
 						case (int) &PORTD:
-								strncat_P(uart_message_string, PSTR("D"), BUFFER_SIZE - 1);
-						break;
+							strncat_P(uart_message_string, PSTR("D"), BUFFER_SIZE - 1);
+							break;
 						case (int) &PORTE:
-								strncat_P(uart_message_string, PSTR("E"), BUFFER_SIZE - 1);
-						break;
+							strncat_P(uart_message_string, PSTR("E"), BUFFER_SIZE - 1);
+							break;
 						case (int) &PORTF:
-								strncat_P(uart_message_string, PSTR("F"), BUFFER_SIZE - 1);
-						break;
+							strncat_P(uart_message_string, PSTR("F"), BUFFER_SIZE - 1);
+							break;
 						case (int) &PORTG:
-								strncat_P(uart_message_string, PSTR("G"), BUFFER_SIZE - 1);
-						break;
+							strncat_P(uart_message_string, PSTR("G"), BUFFER_SIZE - 1);
+							break;
 					}
-					strncat_P(uart_message_string, string_blank,BUFFER_SIZE-1);
+					strncat_P(uart_message_string, string_blank, BUFFER_SIZE - 1);
 					apiShowValue(uart_message_string, &apfelTrigger.pinNumber, apiVarType_UINT8);
 					apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 					break;
@@ -1054,38 +1007,39 @@ void apfelApi_Inline(void)
 	}
 }
 
-	//void (*apfelApi_Inline_p)(void) = apfelApi_Inline;
-	/*----------------------------------------------------*/
-	void apfel_Inline()
+void apfel_Inline()
+{
+	apfelInit_Inline();
+
+	static const apfelAddress address={.port='A',.pinSetIndex=1,.sideSelection=0};
+	if (apfelOscilloscopeTestFrameMode)
 	{
-		apfelInit_Inline();
+		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+		apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+	}
 
-		if (apfelOscilloscopeTestFrameMode)
-		{
-			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 1);
-			apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
-			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
-			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
-		}
+	apfelApi_Inline();
+	//apfelApi_Inline_p();
 
-		apfelApi_Inline();
-		//apfelApi_Inline_p();
-
-		if (apfelOscilloscopeTestFrameMode)
-		{
-			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 1);
-			apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
-			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
-			apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 1);
-			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), 'A', 1, 0);
-			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), 'A', 1, 0);
+	if (apfelOscilloscopeTestFrameMode)
+	{
+		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+		apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+		apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
 
 	}
 }
 
 uint16_t apfelPortAddressSetMask = 0;
 
+#if 0
 apfelPortAddressSet apfelPortAddressSets[APFEL_MAX_N_PORT_ADDRESS_SETS];
+#endif
 
 //----------------
 void apfelInit(void)

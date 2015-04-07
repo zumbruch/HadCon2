@@ -1,12 +1,12 @@
 /*
+   Licensed under the EUPL V.1.1, Lizenziert unter EUPL V.1.1
+*/
+/*
  * apfel.h
  *
  *  Created on: 06.05.2014
  *      Author: P.Zumbruch, GSI, P.Zumbruch@gsi.de
  */
-
-
-
 
 #ifndef APFEL_H_
 #define APFEL_H_
@@ -14,17 +14,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "read_write_register.h"
-
-enum apfelChipSelects
-{
-	APFEL_PORT_ADDRESS_SET_0 = 0,
-	APFEL_PORT_ADDRESS_SET_1,
-	APFEL_PORT_ADDRESS_SET_2,
-	APFEL_PORT_ADDRESS_SET_3,
-	APFEL_PORT_ADDRESS_SET_4,
-	APFEL_PORT_ADDRESS_SET_5,
-	APFEL_PORT_ADDRESS_SET_MAXIMUM
-};
 
 typedef struct apfelAddressStruct
 {
@@ -44,49 +33,138 @@ typedef struct apfelPinStruct
 
 
 void	 apfelApi_Inline(void);
-void 	 apfelAutoCalibration_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t chipId);
-void 	 apfelClearDataInput_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection);
+void 	 apfelAutoCalibration_Inline(apfelAddress *address);
+void     apfelClearDataInput_Inline(apfelAddress *address);
 void 	 apfelInit_Inline(void);
-void 	 apfelListIds_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, bool all, uint8_t nElements, uint8_t min);
-uint16_t apfelReadBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t nBits);
+void 	 apfelListIds_Inline(apfelAddress *address, bool all, uint8_t nElements, uint8_t min);
+uint16_t apfelReadBitSequence_Inline(apfelAddress *address, uint8_t nBits);
 int16_t	 apfelReadDac_Inline(apfelAddress *address, uint8_t dacNr, uint8_t quiet);
-//int16_t	 apfelReadDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t dacNr, uint16_t chipId, uint8_t quiet);
-int8_t	 apfelReadPort(char port, uint8_t pinSetIndex, uint8_t sideSelection);
-void	 apfelResetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t channel, uint8_t chipId);
-void     apfelSendCommandValueChipIdSequence(uint8_t command, uint16_t value, uint16_t chipId, char port, uint8_t pinSetIndex, uint8_t sideSelection);
-void     apfelSetAmplitude_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint8_t channel, uint8_t chipId);
-void apfelSetDac_Inline(apfelAddress *address, uint16_t value, uint8_t dacNr, uint8_t quiet);
-//void     apfelSetDac_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t value, uint8_t dacNr, uint16_t chipId, uint8_t quiet);
-void     apfelStartStreamHeader_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection);
-void     apfelTestPulse_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t pulseHeight, uint8_t channel, uint8_t chipId);
-void     apfelTestPulseSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t pulseHeightPattern, uint8_t chipId);
-int8_t   apfelWriteBit_Inline(uint8_t bit, char port, uint8_t pinSetIndex, uint8_t sideSelection);
-void     apfelWriteBitSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, int8_t nBits, uint16_t data, uint8_t endianness);
-void     apfelWriteClockSequence_Inline(char port, uint8_t pinSetIndex, uint8_t sideSelection, uint16_t nClk);
-int8_t   apfelWritePort(uint8_t val, char port, uint8_t pinSetIndex, uint8_t sideSelection);
+int8_t	 apfelReadPort(apfelAddress *address);
+void	 apfelResetAmplitude_Inline(apfelAddress *address, uint8_t channel);
+void     apfelSendCommandValueChipIdClockSequence(uint8_t command, uint16_t value, uint16_t clockCycles, apfelAddress *address);
+void     apfelSetAmplitude_Inline(apfelAddress *address, uint8_t channel);
+void     apfelSetDac_Inline(apfelAddress *address, uint16_t value, uint8_t dacNr, uint8_t quiet);
+void     apfelStartStreamHeader_Inline(apfelAddress *address);
+void     apfelTestPulse_Inline(apfelAddress *address, uint16_t pulseHeight, uint8_t channel);
+void     apfelTestPulseSequence_Inline(apfelAddress *address, uint16_t pulseHeightPattern);
+int8_t   apfelWriteBit_Inline(uint8_t bit, apfelAddress *address);
+void     apfelWriteBitSequence_Inline(apfelAddress *address, int8_t nBits, uint16_t data, uint8_t endianness);
+void     apfelWriteClockSequence_Inline(apfelAddress *address, uint16_t nClk);
+int8_t   apfelWritePort(uint8_t val, apfelAddress *address);
 
 void apfelEnable(bool enable);
 apiCommandResult apfelParseAddress(apfelAddress *address, uint8_t portArgumentIndex, uint8_t pinSetIndexArgumentIndex, uint8_t sideSelectionArgumentIndex, uint8_t chipIdArgumentIndex );
+void apfel_Inline(void);
 
 
+	/* definitions */
+//#define DEBUG_APFEL
+#define APFEL_US_TO_DELAY_DEFAULT 0
+
+#define APFEL_N_CommandBits  4
+#define APFEL_N_ValueBits  10
+#define APFEL_ValueBits_MASK 0x3FF
+#define APFEL_N_ChipIdBits  8
+#define APFEL_N_Bits ({static const uint8_t a=APFEL_N_CommandBits + APFEL_N_ValueBits + APFEL_N_ChipIdBits;a;})
+#define APFEL_LITTLE_ENDIAN  0
+#define APFEL_BIG_ENDIAN  1
+#define APFEL_DEFAULT_ENDIANNESS APFEL_BIG_ENDIAN
+
+#define APFEL_COMMAND_KEY_SetDac             0x9
+#define APFEL_COMMAND_KEY_ReadDac            0xA
+#define APFEL_COMMAND_KEY_AutoCalibration    0xB
+#define APFEL_COMMAND_KEY_TestPulseSingle    0xC
+#define APFEL_COMMAND_KEY_TestPulseReset     0xD
+#define APFEL_COMMAND_KEY_SetAmplification   0xE
+#define APFEL_COMMAND_KEY_ResetAmplification 0xF
+#define APFEL_COMMAND_KEY_ListId             0x10
+#define APFEL_COMMAND_KEY_ListIdExtended     0x20
+#define APFEL_COMMAND_KEY_Trigger            0x11
+
+enum apfelApiCommandKeyNumber_Inline
+{
+	apfelApiCommandKeyNumber_SetDac             = APFEL_COMMAND_KEY_SetDac            ,
+	apfelApiCommandKeyNumber_ReadDac            = APFEL_COMMAND_KEY_ReadDac           ,
+	apfelApiCommandKeyNumber_AutoCalibration    = APFEL_COMMAND_KEY_AutoCalibration   ,
+	apfelApiCommandKeyNumber_TestPulseSingle    = APFEL_COMMAND_KEY_TestPulseSingle   ,
+	apfelApiCommandKeyNumber_TestPulseReset     = APFEL_COMMAND_KEY_TestPulseReset    ,
+	apfelApiCommandKeyNumber_SetAmplification   = APFEL_COMMAND_KEY_SetAmplification  ,
+	apfelApiCommandKeyNumber_ResetAmplification = APFEL_COMMAND_KEY_ResetAmplification,
+	apfelApiCommandKeyNumber_ListId             = APFEL_COMMAND_KEY_ListId            ,
+	apfelApiCommandKeyNumber_ListIdExtended     = APFEL_COMMAND_KEY_ListIdExtended    ,
+	apfelApiCommandKeyNumber_Trigger            = APFEL_COMMAND_KEY_Trigger
+
+};
+
+#define APFEL_COMMAND_SetDac  0x0
+#define APFEL_COMMAND_ReadDac  0x4
+#define APFEL_COMMAND_AutoCalibration  0xC
+#define APFEL_COMMAND_TestPulse  0x9
+#define APFEL_COMMAND_SetAmplitude  0xE
+#define APFEL_COMMAND_ResetAmplitude  0xB
+
+#define APFEL_COMMAND_SetDac_CommandClockCycles 3
+#define APFEL_COMMAND_ReadDac_CommandClockCycles 0
+#define APFEL_COMMAND_ReadDac_DataClockCycles (APFEL_READ_N_HEADER_BITS + APFEL_N_ValueBits + APFEL_READ_N_TRAILING_BITS)
+#define APFEL_COMMAND_ReadDac_CommandClockCycles_Trailer 3
+#define APFEL_COMMAND_AutoCalibration_CommandClockCycles ((0x1 << APFEL_N_ValueBits)<<2)
+#define APFEL_COMMAND_TestPulseSequence_CommandClockCycles 3
+#define APFEL_COMMAND_SetAmplification_CommandClockCycles 3
+#define APFEL_COMMAND_ResetAmplification_CommandClockCycles 3
+
+#define APFEL_READ_N_HEADER_BITS 2
+#define APFEL_READ_HEADER 0x2
+#define APFEL_READ_HEADER_MASK 0x3
+#define APFEL_READ_N_TRAILING_BITS 3
+#define APFEL_READ_TRAILER 0x7
+#define APFEL_READ_TRAILER_MASK 0x7
+#define APFEL_READ_CHECK_MASK  (( {static const uint16_t a = (((APFEL_READ_HEADER_MASK << (APFEL_N_ValueBits + APFEL_READ_N_TRAILING_BITS)) | APFEL_READ_TRAILER_MASK));a;}))
+#define APFEL_READ_CHECK_VALUE (( {static const uint16_t a = (((APFEL_READ_HEADER      << (APFEL_N_ValueBits + APFEL_READ_N_TRAILING_BITS)) | APFEL_READ_TRAILER));a;}))
+
+#define APFEL_N_PINS 4
+#define APFEL_PIN_DIN1 	PINA0
+#define APFEL_PIN_DOUT1 PINA1
+#define APFEL_PIN_CLK1 	PINA2
+#define APFEL_PIN_SS1 	PINA3
+
+#define APFEL_PIN_DIN2 	PINA4
+#define APFEL_PIN_DOUT2 PINA5
+#define APFEL_PIN_CLK2 	PINA6
+#define APFEL_PIN_SS2 	PINA7
+
+#define APFEL_PIN_MASK1    ( {static const uint8_t a = (0xFF & (1 << APFEL_PIN_CLK1 | 1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_SS1 ));a;})
+#define APFEL_PIN_MASK2    ( {static const uint8_t a = (0xFF & (1 << APFEL_PIN_CLK2 | 1 << APFEL_PIN_DOUT2 | 1 << APFEL_PIN_SS2 ));a;})
+#define APFEL_PIN_MASK_DIN ( {static const uint8_t a = (0xFF & (1 << APFEL_PIN_DIN1 | 1 << APFEL_PIN_DIN2 ))                      ;a;})
+
+#define APFEL_writePort_CalcPattern(val,A,pinSetIndex)\
+	    0xFF & (((0 == pinSetIndex-1) ? \
+		(~(APFEL_PIN_MASK_DIN)) &  (( PIN##A & APFEL_PIN_MASK2) | (val & APFEL_PIN_MASK1)): \
+		(~(APFEL_PIN_MASK_DIN)) &  (( PIN##A & APFEL_PIN_MASK1) | (val & APFEL_PIN_MASK2))))
+#define APFEL_writePort(val,A,pinSetIndex) \
+		    {PORT##A = (APFEL_writePort_CalcPattern(val,A,pinSetIndex));\
+		               _delay_us(APFEL_US_TO_DELAY_DEFAULT);}
+#define APFEL_readPort(A,pinSetIndex) ((PIN##A >> (APFEL_PIN_DIN##pinSetIndex )) & 0x1)
+
+
+
+
+
+void apfelInit(void);
 
 /*---*/
-
+/*
 #define APFEL_MAX_N_PORT_ADDRESS_SETS APFEL_PORT_ADDRESS_SET_MAXIMUM
-#define APFEL_DEFAULT_US_TO_DELAY 1.0
 
-#define APFEL_N_COMMAND_BITS  4
-#define APFEL_N_VALUE_BITS    10
-#define APFEL_N_CHIP_ID_BITS  8
-
-#define APFEL_COMMAND_SET_DAC         0x0
-#define APFEL_COMMAND_READ_DAC        0x4
-#define APFEL_COMMAND_AUTOCALIBRATION 0xc
-#define APFEL_COMMAND_TESTPULSE       0x9
-#define APFEL_COMMAND_SET_AMPLITUDE   0xe
-#define APFEL_COMMAND_RESET_AMPLITUDE 0xb
-
-#define APFEL_TEST_PULSE_HEIGHT_PATTERN_MAX 0x1F
+enum apfelChipSelects
+{
+	APFEL_PORT_ADDRESS_SET_0 = 0,
+	APFEL_PORT_ADDRESS_SET_1,
+	APFEL_PORT_ADDRESS_SET_2,
+	APFEL_PORT_ADDRESS_SET_3,
+	APFEL_PORT_ADDRESS_SET_4,
+	APFEL_PORT_ADDRESS_SET_5,
+	APFEL_PORT_ADDRESS_SET_MAXIMUM
+};
 
 typedef struct apfelPinSetStruct
 {
@@ -131,7 +209,6 @@ typedef struct apfelChipAddressStruct
 } apfelChipAddressStruct;
 
 
-void apfel_Inline(void);
 
 uint8_t apfelSetClockAndDataLine( uint8_t portAddress, uint8_t value, uint8_t mask);
 
@@ -159,7 +236,6 @@ apiCommandResult apfelTestPulse(uint8_t pulseHeight, uint8_t channel, uint8_t ch
 apiCommandResult apfelSetAmplitude(uint8_t channelId,                 uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
 apiCommandResult apfelResetAmplitude(uint8_t channelId,               uint8_t chipID, uint8_t portAddress, uint8_t ss, uint8_t pinCLK, uint8_t pinDOUT, uint8_t pinSS);
 
-void apfelInit(void);
 apiCommandResult apfelAddOrModifyPortAddressSet(uint8_t portAddressSetIndex, volatile uint8_t *ptrCurrentPort, uint8_t pinIndexDIN, uint8_t pinIndexDOUT, uint8_t pinIndexCLK, uint8_t pinIndexSS);
 apiCommandResult apfelRemovePortAddressSet(uint8_t portAddressSetIndex);
 apiCommandResult apfelInitPortAddressSet(uint8_t portAddressSetIndex);
@@ -170,4 +246,5 @@ double apfelGetUsToDelay(void);
 volatile uint8_t * apfelGetPortFromPortAddressSet(uint8_t portAddressSetIndex);
 apfelPortAddressStatusUnion apfelGetStatusFromPortAddressSet(uint8_t portAddressSetIndex);
 apfelPinSetUnion apfelGetPinsFromPortAddressSet(uint8_t portAddressSetIndex);
+*/
 #endif /* APFEL_H_ */
