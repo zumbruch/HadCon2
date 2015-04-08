@@ -31,7 +31,6 @@ static const char const string_bracket_5_bracket[] 		      PROGMEM = "[5]";
 static const char const string_bracket_6_bracket[] 		      PROGMEM = "[6]";
 static const char const string_bracket_7_bracket[] 		      PROGMEM = "[7]";
 static const char const string_address[]                      PROGMEM = "port:%c pinSet:%x side:%x chip:%x";
-static const char const string_dac_[]                         PROGMEM = "dac:%x ";
 static const char const string_blank[]                        PROGMEM = " ";
 
 bool apfelOscilloscopeTestFrameMode = false;
@@ -415,8 +414,11 @@ int16_t apfelReadDac_Inline(apfelAddress *address, uint8_t dacNr, uint8_t quiet)
 	{
 		if (0 == quiet)
 		{
+			snprintf_P(resultString, BUFFER_SIZE - 1, string_address,
+					resultString, address->port, address->pinSetIndex, address->sideSelection, address->chipId);
+			snprintf_P(resultString, BUFFER_SIZE - 1, PSTR("%s dac:%x"), resultString, dacNr);
 			CommunicationError_p(ERRA, -1, 1,
-					PSTR("%S %S- read validity check failed, raw value:0x%x"), string_address, string_dac_, address->port, address->pinSetIndex, address->sideSelection, address->chipId, dacNr, value);
+					PSTR("%s -read validity check failed, raw value:0x%x"), resultString, value);
 		}
 		return -10;
 	}
@@ -428,11 +430,9 @@ int16_t apfelReadDac_Inline(apfelAddress *address, uint8_t dacNr, uint8_t quiet)
 
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL,
 					apfelApiCommandKeyNumber_DAC, apfelApiCommandKeywords);
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, string_address,
-					uart_message_string, address->port, address->pinSetIndex, address->sideSelection, address->chipId);
-			strncat_P(uart_message_string, string_blank, BUFFER_SIZE - 1);
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, string_dac_,
-					uart_message_string, dacNr);
+    		snprintf_P(resultString, BUFFER_SIZE -1, string_address, address->port, address->pinSetIndex, address->sideSelection, address->chipId );
+			strncat(uart_message_string, resultString, BUFFER_SIZE - 1);
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s dac:%x "), uart_message_string, dacNr);
 			apiShowValue(uart_message_string, &value, apiVarType_UINT16);
 			apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 		}
@@ -540,8 +540,8 @@ void apfelListIds_Inline(apfelAddress *address, bool all, uint8_t nElements, uin
     	{
 			createExtendedSubCommandReceiveResponseHeader(ptr_uartStruct, commandKeyNumber_APFEL,
 					apfelApiCommandKeyNumber_LIST, apfelApiCommandKeywords);
-			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%S "),
-					uart_message_string, string_address, address->port, address->pinSetIndex, address->sideSelection, chipId);
+    		snprintf_P(resultString, BUFFER_SIZE -1, string_address, address->port, address->pinSetIndex, address->sideSelection, chipId );
+			snprintf_P(uart_message_string, BUFFER_SIZE - 1, PSTR("%s%s "), uart_message_string, resultString);
 			strncat_P(uart_message_string, (result[chipId >> 3] & 1 << (chipId % 8 )) ? PSTR("yes") : PSTR("no"), BUFFER_SIZE - 1);
 			UART0_Send_Message_String_p(NULL, 0);
     	}
