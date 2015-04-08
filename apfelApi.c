@@ -24,6 +24,11 @@
 
 static const char filename[] PROGMEM = __FILE__;
 
+static const char const string_wrong_number_of_arguments_PS[] PROGMEM = "wrong number of arguments: %S";
+static const char const string_bracket_5_bracket[] 		      PROGMEM = "[5]";
+static const char const string_bracket_6_bracket[] 		      PROGMEM = "[6]";
+static const char const string_bracket_7_bracket[] 		      PROGMEM = "[7]";
+
 //static const char string_3dots[] 	PROGMEM = "...";
 ////static const char string_empty[]  PROGMEM = "";
 //static const char string_sX[]   	PROGMEM = "%s%X";
@@ -75,6 +80,400 @@ void apfelApiInit(void)
 	/* initial configuration*/
 	ptr_apfelApiConfiguration->hardwareInit         = false;
 //	ptr_apfelApiConfiguration->apfelConfiguration     = apfelGetConfiguration();
+}
+
+
+void apfelApi_Inline(void)
+{
+	uint32_t arg[8] =
+	{ -1, -1, -1, -1, -1, -1, -1, -1 };
+	int8_t nArguments = ptr_uartStruct->number_of_arguments;
+	int8_t nSubCommandsArguments = nArguments - 1;
+
+	apfelAddress address;
+	uint8_t dacNr = 0;
+
+	switch (nArguments)
+	{
+		case 0:
+			return;
+			break;
+		default:
+			for (uint8_t index=1; index <= min((uint8_t)(nArguments),sizeof(arg)/sizeof(uint32_t)); index++)
+			{
+				apiAssignParameterToValue(index, &(arg[index-1]),apiVarType_UINT32, 0, 0xFFFF);
+			}
+			break;
+	}
+
+	//parse address
+	switch(arg[0])
+	{
+		case apfelApiCommandKeyNumber_AutoCalibration:
+			if (nSubCommandsArguments >= 4)
+			{
+				if (apiCommandResult_SUCCESS_QUIET != apfelApiParseAddress(&address,4,3,2,1))
+				{
+					return;
+				}
+			}
+			break;
+		case apfelApiCommandKeyNumber_ReadDac:
+		case apfelApiCommandKeyNumber_TestPulseSingle:
+		case apfelApiCommandKeyNumber_SetAmplification:
+		case apfelApiCommandKeyNumber_ResetAmplification:
+		case apfelApiCommandKeyNumber_ListId:
+			if (nSubCommandsArguments >= 5)
+			{
+				if (apiCommandResult_SUCCESS_QUIET != apfelApiParseAddress(&address,5,4,3,2))
+				{
+					return;
+				}
+			}
+			break;
+		case apfelApiCommandKeyNumber_SetDac:
+		case apfelApiCommandKeyNumber_TestPulseReset:
+		case apfelApiCommandKeyNumber_ListIdExtended:
+			if (nSubCommandsArguments >= 6)
+			{
+				if (apiCommandResult_SUCCESS_QUIET != apfelApiParseAddress(&address,6,5,4,3))
+				{
+					return;
+				}
+			}
+			break;
+	}
+
+	switch(arg[0])
+	{
+
+#ifdef DEBUG_APFEL
+		static const apfelAddress address={.port='A',.pinSetIndex=1,.sideSelection=0};
+		case 0: /*apfelOscilloscopeTestFrameMode*/
+		{
+			PORTG =(1 << PG0 | 1 << PG1 | 0 << PG2) | (PORTG & 0x18);
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 1:
+					apiAssignParameterToValue(2, &apfelOscilloscopeTestFrameMode, apiVarType_BOOL, 0, 1);
+					//apfelOscilloscopeTestFrameMode = arg[1];
+				case 0:
+					createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
+					strncat_P(uart_message_string, PSTR("Oscilloscope Test Frame "),BUFFER_SIZE-1);
+					apiShowValue(uart_message_string, &apfelOscilloscopeTestFrameMode, apiVarType_BOOL_OnOff);
+					apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
+					break;
+			}
+		}
+		break;
+		case 1: /* write High*/
+		{
+			PORTG = (0 << PG0 | 1 << PG1 | 0 << PG2) | (PORTG & 0x18);
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 0:
+					apfelWriteBit_Inline(1, 'A', 1, 1);
+					break;
+			}
+		}
+		break;
+		case 2: /* write Low*/
+		{
+			PORTG =(1 << PG0 | 0 << PG1 | 0 << PG2) | (PORTG & 0x18);
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 0:
+					apfelWriteBit_Inline(0, 'A', 1, 1);
+					break;
+			}
+		}
+		break;
+		case 3: /* write High/Low*/
+		{
+			PORTG =(0 << PG0 | 0 << PG1 | 0 << PG2) | (PORTG & 0x18);
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 0:
+					apfelWriteBit_Inline(1, 'A', 1, 1);
+					apfelWriteBit_Inline(0, 'A', 1, 1);
+					break;
+			}
+		}
+		break;
+		case 4: /* read sequence 1x6bit*/
+		{
+			uint16_t value = 0;
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 0:
+				{
+					value = apfelReadBitSequence_Inline('A', 1, 1, 6);
+				}
+				break;
+				case 1:
+				{
+					value = apfelReadBitSequence_Inline('A', 1, 1, arg[1]);
+				}
+				break;
+			}
+			createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
+			apiShowValue(uart_message_string, &value, apiVarType_UINT16);
+			apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
+		}
+		break;
+		case 5: /* write sequence */
+		{
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 0:
+					apfelWriteClockSequence_Inline('A', 1, 1, 16);
+					break;
+				case 1:
+					apfelWriteClockSequence_Inline('A', 1, 1, arg[1]);
+					break;
+				case 3:
+					apfelWriteClockSequence_Inline('A', arg[2], arg[3], arg[1]);
+					break;
+			}
+		}
+		break;
+		case 6:
+		{
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 0:
+					apfelClearDataInput_Inline('A', 1, 1);
+					break;
+			}
+		}
+		break;
+		case 7:
+		{
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 0:
+					apfelStartStreamHeader_Inline('A', 1, 1);
+					break;
+			}
+		}
+		break;
+		case 8:
+		{
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 0:
+					apfelWriteBitSequence_Inline('A', 1, 1, 6, 0x12, APFEL_DEFAULT_ENDIANNESS);
+					break;
+				case 2:
+					apfelWriteBitSequence_Inline('A', 1, 1, arg[1], arg[2], APFEL_DEFAULT_ENDIANNESS);
+					break;
+				case 3:
+					apfelWriteBitSequence_Inline('A', 1, 1, arg[1], arg[2], arg[3]);
+					break;
+			}
+		}
+		break;
+#endif
+		case apfelApiCommandKeyNumber_SetDac:
+		{
+			bool quiet = false;
+			switch (nSubCommandsArguments /* arguments of argument */)
+			{
+				case 7:
+					quiet = arg[7];
+				case 6:
+					dacNr = arg[2];
+					break;
+				default:
+					CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, PSTR("[7,8]"));
+					return;
+					break;
+			}
+			apfelSetDac_Inline(&address, arg[1], dacNr, quiet);
+		}
+		break;
+		case apfelApiCommandKeyNumber_ReadDac:
+		{
+			bool quiet = false;
+			if (5 == nSubCommandsArguments )
+			{
+				dacNr = arg[1];
+				apfelReadDac_Inline(&address, dacNr, quiet);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
+				return;
+			}
+			apfelReadDac_Inline(&address, dacNr, quiet);
+		}
+		break;
+		case apfelApiCommandKeyNumber_AutoCalibration:
+		{
+			if (4 == nSubCommandsArguments )
+			{
+				apfelAutoCalibration_Inline(&address);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_5_bracket);
+				return;
+			}
+		}
+		break;
+		case apfelApiCommandKeyNumber_TestPulseSingle:
+		{
+			if (5 == nSubCommandsArguments )
+			{
+				apfelTestPulseSequence_Inline(&address, arg[1]);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
+				return;
+			}
+		}
+		break;
+		case apfelApiCommandKeyNumber_TestPulseReset:
+		{
+			if (6 == nSubCommandsArguments )
+			{
+				apfelTestPulse_Inline(&address, arg[1], arg[2]);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_7_bracket);
+				return;
+			}
+		}
+		break;
+
+		case apfelApiCommandKeyNumber_SetAmplification:
+		{
+			if (5 == nSubCommandsArguments )
+			{
+				apfelSetAmplitude_Inline(&address, arg[1]);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
+				return;
+			}
+		}
+		break;
+		case apfelApiCommandKeyNumber_ResetAmplification:
+		{
+			if (5 == nSubCommandsArguments )
+			{
+				apfelResetAmplitude_Inline(&address, arg[1]);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
+				return;
+			}
+		}
+		break;
+		case apfelApiCommandKeyNumber_ListId:
+		{
+			if (5 == nSubCommandsArguments )
+			{
+				apfelListIds_Inline(&address, arg[1], arg[2], 0);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
+				return;
+			}
+		}
+		break;
+		case apfelApiCommandKeyNumber_ListIdExtended:
+		{
+			if (6 == nSubCommandsArguments )
+			{
+				apfelListIds_Inline(&address, arg[1], arg[2], arg[3]);
+			}
+			else
+			{
+				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_7_bracket);
+				return;
+			}
+		}
+		break;
+		case apfelApiCommandKeyNumber_Trigger: /*apfelEnableTrigger*/
+		{
+			switch(nSubCommandsArguments)
+			{
+				case 3:
+				case 1:
+				case 0:
+					apfelTriggerCommand(nSubCommandsArguments);
+					break;
+				default:
+					CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, PSTR("[0,1,3]"));
+					return;
+			}
+		}
+		break;
+
+		default:
+			CommunicationError_p(ERRA, SERIAL_ERROR_invalid_sub_command_name, 1, PSTR("'%s'"), setParameter[1]);
+			return;
+			break;
+	}
+}
+
+
+
+/*
+  apfelApiParseAddress
+
+  Parses the input string's setParameter array for the port, sideSelection, pinSetIndex, and chipId
+  into the apfelAddress struct.
+  The respective index is relative to the sub-command keyword starting from 1
+
+  It returns the result in the form of apiCommandResult.
+  Everything ok: apiCommandResult_SUCCESS_QUIET
+  Else         : apiCommandResult_FAILURE_QUIET;
+
+  Example:
+  	  input (autocalib): "APFEL B <chipId> <pinSetId> <sideSelectId> <port>"
+  	  is parsed with apfelApiParseAddress(address,4,3,2,1)
+  	  and results into
+  	  address.port          = <port>;
+  	  address.sideSelection = <sideSelectId>;
+  	  address.pinSetIndex   = <pinSetId>;
+  	  address.chipId        = <chipId>;
+*/
+apiCommandResult apfelApiParseAddress(apfelAddress *address, uint8_t portArgumentIndex, uint8_t sideSelectionArgumentIndex, uint8_t pinSetIndexArgumentIndex, uint8_t chipIdArgumentIndex )
+{
+	if (NULL == address)
+	{
+		return apiCommandResult_FAILURE_QUIET;
+	}
+	if (0 == portArgumentIndex || MAX_PARAMETER -1 < portArgumentIndex)
+	{
+		return apiCommandResult_FAILURE_QUIET;
+	}
+	else
+	{
+		address->port = setParameter[portArgumentIndex + 1][0];
+	}
+
+	if ( apiCommandResult_SUCCESS_QUIET != apiAssignParameterToValue(  pinSetIndexArgumentIndex + 1, &(address->  pinSetIndex),apiVarType_UINT8,1,2))
+	{
+		return apiCommandResult_FAILURE_QUIET;
+	}
+	if ( apiCommandResult_SUCCESS_QUIET != apiAssignParameterToValue(sideSelectionArgumentIndex + 1, &(address->sideSelection),apiVarType_UINT8,0,1))
+	{
+		return apiCommandResult_FAILURE_QUIET;
+	}
+	if ( apiCommandResult_SUCCESS_QUIET != apiAssignParameterToValue(       chipIdArgumentIndex + 1, &(address->       chipId),apiVarType_UINT8,0,0xFF))
+	{
+		return apiCommandResult_FAILURE_QUIET;
+	}
+
+	return apiCommandResult_SUCCESS_QUIET;
 }
 
 

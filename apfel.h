@@ -27,12 +27,12 @@ typedef struct apfelAddressStruct
 typedef struct apfelPinStruct
 {
   volatile uint8_t *ptrPort;
+  char portLetter;
   uint8_t pinNumber;
   bool isUsed;
 } apfelPin;
 
 
-void	 apfelApi_Inline(void);
 void 	 apfelAutoCalibration_Inline(apfelAddress *address);
 void     apfelClearDataInput_Inline(apfelAddress *address);
 void 	 apfelInit_Inline(void);
@@ -53,8 +53,9 @@ void     apfelWriteClockSequence_Inline(apfelAddress *address, uint16_t nClk);
 int8_t   apfelWritePort(uint8_t val, apfelAddress *address);
 
 void apfelEnable(bool enable);
-apiCommandResult apfelParseAddress(apfelAddress *address, uint8_t portArgumentIndex, uint8_t pinSetIndexArgumentIndex, uint8_t sideSelectionArgumentIndex, uint8_t chipIdArgumentIndex );
 void apfel_Inline(void);
+apiCommandResult apfelTriggerCommand(uint8_t nSubCommandsArguments);
+
 
 
 	/* definitions */
@@ -69,32 +70,6 @@ void apfel_Inline(void);
 #define APFEL_LITTLE_ENDIAN  0
 #define APFEL_BIG_ENDIAN  1
 #define APFEL_DEFAULT_ENDIANNESS APFEL_BIG_ENDIAN
-
-#define APFEL_COMMAND_KEY_SetDac             0x9
-#define APFEL_COMMAND_KEY_ReadDac            0xA
-#define APFEL_COMMAND_KEY_AutoCalibration    0xB
-#define APFEL_COMMAND_KEY_TestPulseSingle    0xC
-#define APFEL_COMMAND_KEY_TestPulseReset     0xD
-#define APFEL_COMMAND_KEY_SetAmplification   0xE
-#define APFEL_COMMAND_KEY_ResetAmplification 0xF
-#define APFEL_COMMAND_KEY_ListId             0x10
-#define APFEL_COMMAND_KEY_ListIdExtended     0x20
-#define APFEL_COMMAND_KEY_Trigger            0x11
-
-enum apfelApiCommandKeyNumber_Inline
-{
-	apfelApiCommandKeyNumber_SetDac             = APFEL_COMMAND_KEY_SetDac            ,
-	apfelApiCommandKeyNumber_ReadDac            = APFEL_COMMAND_KEY_ReadDac           ,
-	apfelApiCommandKeyNumber_AutoCalibration    = APFEL_COMMAND_KEY_AutoCalibration   ,
-	apfelApiCommandKeyNumber_TestPulseSingle    = APFEL_COMMAND_KEY_TestPulseSingle   ,
-	apfelApiCommandKeyNumber_TestPulseReset     = APFEL_COMMAND_KEY_TestPulseReset    ,
-	apfelApiCommandKeyNumber_SetAmplification   = APFEL_COMMAND_KEY_SetAmplification  ,
-	apfelApiCommandKeyNumber_ResetAmplification = APFEL_COMMAND_KEY_ResetAmplification,
-	apfelApiCommandKeyNumber_ListId             = APFEL_COMMAND_KEY_ListId            ,
-	apfelApiCommandKeyNumber_ListIdExtended     = APFEL_COMMAND_KEY_ListIdExtended    ,
-	apfelApiCommandKeyNumber_Trigger            = APFEL_COMMAND_KEY_Trigger
-
-};
 
 #define APFEL_COMMAND_SetDac  0x0
 #define APFEL_COMMAND_ReadDac  0x4
