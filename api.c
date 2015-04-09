@@ -8,6 +8,7 @@
  * modified: Florian Feldbauer
  * modified: Peter Zumbruch, Oct 2011
  * modified: Peter Zumbruch, May 2013
+ * modified: Peter Zumbruch, Mar 2015
  */
 
 #include <stdint.h>
@@ -458,11 +459,11 @@ static const char commandShortDescription50[]  PROGMEM = "returns device IDN";
 static const uint8_t commandImplementation50   PROGMEM = TRUE;
 
 // index: 51
-static const char commandKeyword51[]           PROGMEM = "APWI"; /* command (dummy name) */
-static const char commandSyntax51[]            PROGMEM = "<command> <portID> <posID> <chipID> [<Arguments>]";
+static const char commandKeyword51[]           PROGMEM = "CMD7"; /* command (dummy name) */
+static const char commandSyntax51[]            PROGMEM = "[???]";
 static const char commandSyntaxAlternative51[] PROGMEM = "";
-static const char commandShortDescription51[]  PROGMEM = "APFEL ASIC command set";
-static const uint8_t commandImplementation51   PROGMEM = TRUE;
+static const char commandShortDescription51[]  PROGMEM = "";
+static const uint8_t commandImplementation51   PROGMEM = FALSE;
 
 // index: 52
 static const char commandKeyword52[]           PROGMEM = "APFEL"; /* command (dummy name) */
@@ -789,7 +790,6 @@ void Process_Uart_Event(void)
 			case commandKeyNumber_I2C:
 			case commandKeyNumber_DEBG:
 			case commandKeyNumber_SPI:
-			case commandKeyNumber_DAC:
 			case commandKeyNumber_APFEL:
 				Choose_Function(ptr_uartStruct);
 				break;
@@ -1433,7 +1433,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
     case commandKeyNumber_SPI: /* command (dummy name) */
     	spiApi(ptr_uartStruct);
     	break;
-    case commandKeyNumber_DAC: /* command (dummy name) */
+    case commandKeyNumber_CMD7: /* command (dummy name) */
     	break;
     case commandKeyNumber_APFEL: /* command (dummy name) */
     	apfelApi(ptr_uartStruct);

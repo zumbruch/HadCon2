@@ -616,38 +616,10 @@ apiCommandResult apfelTriggerCommand(uint8_t nSubCommandsArguments)
 }
 
 
-void apfel_Inline()
-{
-	apfelInit_Inline();
-
-	static const apfelAddress address={.port='A',.pinSetIndex=1,.sideSelection=0};
-	if (apfelOscilloscopeTestFrameMode)
-	{
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
-	}
-
-	apfelApi_Inline();
-	//apfelApi_Inline_p();
-
-	if (apfelOscilloscopeTestFrameMode)
-	{
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
-		apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
-		apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
-
-	}
-}
-
-uint16_t apfelPortAddressSetMask = 0;
 
 #if 0
 apfelPortAddressSet apfelPortAddressSets[APFEL_MAX_N_PORT_ADDRESS_SETS];
+uint16_t apfelPortAddressSetMask = 0;
 #endif
 
 //----------------

@@ -40,40 +40,25 @@ static const char const string_bracket_7_bracket[] 		      PROGMEM = "[7]";
 //static char byte[3]= "00";
 
 static const char apfelApiCommandKeyword00[] PROGMEM = "dac";
-static const char apfelApiCommandKeyword01[] PROGMEM = "d";
-static const char apfelApiCommandKeyword02[] PROGMEM = "testpulse";
-static const char apfelApiCommandKeyword03[] PROGMEM = "t";
-static const char apfelApiCommandKeyword04[] PROGMEM = "autocalib";
-static const char apfelApiCommandKeyword05[] PROGMEM = "a";
-static const char apfelApiCommandKeyword06[] PROGMEM = "ampl";
-static const char apfelApiCommandKeyword07[] PROGMEM = "list";
-static const char apfelApiCommandKeyword08[] PROGMEM = "l";
-static const char apfelApiCommandKeyword09[] PROGMEM = "status";
-static const char apfelApiCommandKeyword10[] PROGMEM = "s";
-static const char apfelApiCommandKeyword11[] PROGMEM = "portAddressSetEnableMask";
-static const char apfelApiCommandKeyword12[] PROGMEM = "pasem";
-static const char apfelApiCommandKeyword13[] PROGMEM = "enablePortAddressSet";
-static const char apfelApiCommandKeyword14[] PROGMEM = "epas";
-static const char apfelApiCommandKeyword15[] PROGMEM = "disablePortAddressSet";
-static const char apfelApiCommandKeyword16[] PROGMEM = "dpas";
-static const char apfelApiCommandKeyword17[] PROGMEM = "addPortAddressSet";
-static const char apfelApiCommandKeyword18[] PROGMEM = "apas";
-static const char apfelApiCommandKeyword19[] PROGMEM = "removePortAddressSet";
-static const char apfelApiCommandKeyword20[] PROGMEM = "rpas";
-static const char apfelApiCommandKeyword21[] PROGMEM = "apfel_enable";
-static const char apfelApiCommandKeyword22[] PROGMEM = "reset";
+static const char apfelApiCommandKeyword01[] PROGMEM = "testpulse";
+static const char apfelApiCommandKeyword02[] PROGMEM = "autocalib";
+static const char apfelApiCommandKeyword03[] PROGMEM = "ampl";
+static const char apfelApiCommandKeyword04[] PROGMEM = "list";
+static const char apfelApiCommandKeyword05[] PROGMEM = "l";
+static const char apfelApiCommandKeyword06[] PROGMEM = "status";
+static const char apfelApiCommandKeyword07[] PROGMEM = "s";
+static const char apfelApiCommandKeyword08[] PROGMEM = "apfel_enable";
+static const char apfelApiCommandKeyword09[] PROGMEM = "reset";
 
 const char* const apfelApiCommandKeywords[] PROGMEM = {
         apfelApiCommandKeyword00, apfelApiCommandKeyword01, apfelApiCommandKeyword02, apfelApiCommandKeyword03, apfelApiCommandKeyword04,
-		apfelApiCommandKeyword05, apfelApiCommandKeyword06, apfelApiCommandKeyword07, apfelApiCommandKeyword08, apfelApiCommandKeyword09,
-		apfelApiCommandKeyword10, apfelApiCommandKeyword11, apfelApiCommandKeyword12, apfelApiCommandKeyword13, apfelApiCommandKeyword14,
-		apfelApiCommandKeyword15, apfelApiCommandKeyword16, apfelApiCommandKeyword17, apfelApiCommandKeyword18, apfelApiCommandKeyword19,
-		apfelApiCommandKeyword20, apfelApiCommandKeyword21, apfelApiCommandKeyword22
+		apfelApiCommandKeyword05, apfelApiCommandKeyword06, apfelApiCommandKeyword07, apfelApiCommandKeyword08, apfelApiCommandKeyword09
 };
 
 apfelApiConfig apfelApiConfiguration;
-bool apfelApiInitialized = false;
+bool apfelInitialized = false;
 apfelApiConfig *ptr_apfelApiConfiguration = &apfelApiConfiguration;
+extern bool apfelOscilloscopeTestFrameMode;
 
 void apfelApiInit(void)
 {
@@ -83,7 +68,7 @@ void apfelApiInit(void)
 }
 
 
-void apfelApi_Inline(void)
+void apfelApiVersion0(void)
 {
 	uint32_t arg[8] =
 	{ -1, -1, -1, -1, -1, -1, -1, -1 };
@@ -479,21 +464,53 @@ apiCommandResult apfelApiParseAddress(apfelAddress *address, uint8_t portArgumen
 
 void apfelApi(struct uartStruct *ptr_uartStruct)
 {
-	apfel_Inline();
-	return;
-#if 0 //TODO
-	if (!apfelApiInitialized )
+	if (!apfelInitialized )
 	{
-#warning apiInit to be implemented
-		//	apfelApiInit();
-		apfelApiInitialized = true;
+		apfelInit_Inline();
+		apfelInitialized = true;
 	}
 
+	if (0 < ptr_uartStruct->number_of_arguments && isNumericArgument(setParameter[1],4))
+	{
+
+		if (! apfelOscilloscopeTestFrameMode)
+		{
+			apfelApiVersion0();
+		}
+		else
+		{
+			static const apfelAddress address={.port='A',.pinSetIndex=1,.sideSelection=0};
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+
+			apfelApiVersion0();
+
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+			apfelWritePort((1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+			apfelWritePort((0 << APFEL_PIN_DOUT1 | 0 << APFEL_PIN_CLK1), (apfelAddress*) &address);
+		}
+	}
+	else
+	{
 #warning move to api and generalize it to be used via fcn pointer also by sub commands
+		apiCallCommands(1, ptr_uartStruct, apfelApiCommandKeywords, apfelApiCommandKeyNumber_MAXIMUM_NUMBER,
+				apfelApiSubCommands, apfelApiCommandKeyNumber_STATUS);
+	}
+	return;
+}
+
+void apiCallCommands(uint8_t parameterIndex, struct uartStruct *ptr_uartStruct, PGM_P const keywords[],
+		size_t keywordMaximumIndex, apiCommandResult (*apiCommands)(struct uartStruct*, int16_t, uint8_t), uint8_t defaultCommandIndex )
+{
 	switch(ptr_uartStruct->number_of_arguments)
 	{
 		case 0:
-//			apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_STATUS, 1);
+			apfelApiSubCommands(ptr_uartStruct, defaultCommandIndex, parameterIndex);
 			break;
 		default:
 		{
@@ -501,10 +518,10 @@ void apfelApi(struct uartStruct *ptr_uartStruct)
 			{
 				int subCommandIndex = -1;
 				// find matching command keyword
-				subCommandIndex = apiFindCommandKeywordIndex(setParameter[1], apfelApiCommandKeywords, apfelApiCommandKeyNumber_MAXIMUM_NUMBER);
+				subCommandIndex = apiFindCommandKeywordIndex(setParameter[parameterIndex], keywords, keywordMaximumIndex);
 				if ( 0 <= subCommandIndex )
 				{
-					apfelApiSubCommands(ptr_uartStruct, subCommandIndex, 2);
+					(*apiCommands)(ptr_uartStruct, subCommandIndex, parameterIndex+1);
 				}
 				else
 				{
@@ -518,10 +535,34 @@ void apfelApi(struct uartStruct *ptr_uartStruct)
 			break;
 		}
 	}
-	return;
-#endif
+//			switch(ptr_uartStruct->number_of_arguments)
+//			{
+//				case 0:
+//					apfelApiSubCommands(ptr_uartStruct, apfelApiCommandKeyNumber_STATUS, 1);
+//					break;
+//				default:
+//				{
+//					if (ptr_uartStruct->number_of_arguments > 0)
+//					{
+//						int subCommandIndex = -1;
+//						// find matching command keyword
+//						subCommandIndex = apiFindCommandKeywordIndex(setParameter[1], apfelApiCommandKeywords, apfelApiCommandKeyNumber_MAXIMUM_NUMBER);
+//						if ( 0 <= subCommandIndex )
+//						{
+//							apfelApiSubCommands(ptr_uartStruct, subCommandIndex, 2);
+//						}
+//						else
+//						{
+//							CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name, true, NULL);
+//						}
+//					}
+//					else
+//					{
+//						CommunicationError_p(ERRG, GENERAL_ERROR_invalid_argument, true, NULL);
+//					}
+//					break;
+//				}
 }
-
 
 /*
  * void apfelApiSubCommands(struct uartStruct *ptr_uartStruct, int16_t subCommandIndex)

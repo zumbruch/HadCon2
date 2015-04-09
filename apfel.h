@@ -53,7 +53,6 @@ void     apfelWriteClockSequence_Inline(apfelAddress *address, uint16_t nClk);
 int8_t   apfelWritePort(uint8_t val, apfelAddress *address);
 
 void apfelEnable(bool enable);
-void apfel_Inline(void);
 apiCommandResult apfelTriggerCommand(uint8_t nSubCommandsArguments);
 
 

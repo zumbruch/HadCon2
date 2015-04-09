@@ -234,7 +234,7 @@ enum cmdKeyNumber
                commandKeyNumber_WDOG,
                commandKeyNumber_VERS,
                commandKeyNumber_IDN,
-               commandKeyNumber_DAC,
+               commandKeyNumber_CMD7,
                commandKeyNumber_APFEL,
                commandKeyNumber_CMD8,
                commandKeyNumber_MAXIMUM_NUMBER

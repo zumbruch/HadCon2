@@ -20,26 +20,13 @@ extern const char* const apfelApiCommandKeywords[] PROGMEM;
 enum apfelApiCommandKeyNumber
 {
 	   apfelApiCommandKeyNumber_DAC                  = 0,
-	   apfelApiCommandKeyNumber_D                    ,
 	   apfelApiCommandKeyNumber_TESTPULSE            ,
-	   apfelApiCommandKeyNumber_T                    ,
 	   apfelApiCommandKeyNumber_AUTOCALIB            ,
-	   apfelApiCommandKeyNumber_A                    ,
 	   apfelApiCommandKeyNumber_AMPL                 ,
 	   apfelApiCommandKeyNumber_LIST                 ,
 	   apfelApiCommandKeyNumber_L                    ,
 	   apfelApiCommandKeyNumber_STATUS               ,
 	   apfelApiCommandKeyNumber_S                    ,
-	   apfelApiCommandKeyNumber_PORT_ADDRESS_SET_ENABLE_MASK,
-	   apfelApiCommandKeyNumber_PASEM,
-	   apfelApiCommandKeyNumber_ENABLE_PORT_ADDRESS_SET,
-	   apfelApiCommandKeyNumber_EPAS,
-	   apfelApiCommandKeyNumber_DISABLE_PORT_ADDRESS_SET,
-	   apfelApiCommandKeyNumber_DPAS,
-	   apfelApiCommandKeyNumber_ADD_PORT_ADDRESS_SET,
-	   apfelApiCommandKeyNumber_APAS,
-	   apfelApiCommandKeyNumber_REMOVE_PORT_ADDRESS_SET,
-	   apfelApiCommandKeyNumber_RPAS,
 	   apfelApiCommandKeyNumber_APFEL_ENABLE         ,
 	   apfelApiCommandKeyNumber_RESET                ,
 	   apfelApiCommandKeyNumber_MAXIMUM_NUMBER
@@ -70,6 +57,8 @@ enum apfelApiCommandKeyNumber_Inline
 	apfelApiCommandKeyNumber_Trigger            = APFEL_COMMAND_KEY_Trigger
 
 };
+void apiCallCommands(uint8_t parameterIndex, struct uartStruct *ptr_uartStruct, PGM_P const keywords[],
+		size_t keywordMaximumIndex, uint8_t (*apiCommands)(struct uartStruct*, int16_t, uint8_t), uint8_t defaultCommandIndex );
 
 typedef struct apfelApiConfig
 {
@@ -80,7 +69,7 @@ typedef struct apfelApiConfig
 extern apfelApiConfig apfelApiConfiguration;
 extern apfelApiConfig* ptr_apfelApiConfiguration;
 
-void	 apfelApi_Inline(void);
+void apfelApiVersion0(void);
 apiCommandResult apfelApiParseAddress(apfelAddress *address, uint8_t portArgumentIndex, uint8_t pinSetIndexArgumentIndex, uint8_t sideSelectionArgumentIndex, uint8_t chipIdArgumentIndex );
 
 void apfelApi(struct uartStruct *ptr_uartStruct);
@@ -96,13 +85,7 @@ apiCommandResult apfelApiSubCommandTestPulse               (void);
 apiCommandResult apfelApiSubCommandAutoCalib               (void);
 apiCommandResult apfelApiSubCommandAmplification           (void);
 apiCommandResult apfelApiSubCommandListIds                 (void);
-apiCommandResult apfelApiSubCommandChipIdIgnoreMask        (void);
-apiCommandResult apfelApiSubCommandAddPortAddressSet       (void);
-apiCommandResult apfelApiSubCommandRemovePortAddressSet    (void);
 apiCommandResult apfelApiSubCommandApfelEnable             (void);
 apiCommandResult apfelApiSubCommandReset                   (void);
-apiCommandResult apfelApiSubCommandPortAddressSetEnableMask(void);
-apiCommandResult apfelApiSubCommandEnablePortAddressSet    (void);
-apiCommandResult apfelApiSubCommandDisablePortAddressSet   (void);
 
 #endif /* APFELAPI_H_ */
