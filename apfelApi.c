@@ -70,7 +70,7 @@ void apfelApiInit(void)
 
 void apfelApiVersion0(void)
 {
-	uint32_t arg[8] =
+	uint16_t arg[8] =
 	{ -1, -1, -1, -1, -1, -1, -1, -1 };
 	int8_t nArguments = ptr_uartStruct->number_of_arguments;
 	int8_t nSubCommandsArguments = nArguments - 1;
@@ -84,9 +84,9 @@ void apfelApiVersion0(void)
 			return;
 			break;
 		default:
-			for (uint8_t index=1; index <= min((uint8_t)(nArguments),sizeof(arg)/sizeof(uint32_t)); index++)
+			for (uint8_t index=1; index <= min((uint8_t)(nArguments),sizeof(arg)/sizeof(uint16_t)); index++)
 			{
-				apiAssignParameterToValue(index, &(arg[index-1]),apiVarType_UINT32, 0, 0xFFFF);
+				apiAssignParameterToValue(index, &(arg[index-1]),apiVarType_UINT16, 0, 0xFFFF);
 			}
 			break;
 	}

@@ -410,11 +410,10 @@ int16_t apfelReadDac_Inline(apfelAddress *address, uint8_t dacNr, uint8_t quiet)
 	{
 		if (0 == quiet)
 		{
-			snprintf_P(resultString, BUFFER_SIZE - 1, string_address,
-					resultString, address->port, address->pinSetIndex, address->sideSelection, address->chipId);
+    		snprintf_P(resultString, BUFFER_SIZE -1, string_address, address->port, address->pinSetIndex, address->sideSelection, address->chipId );
 			snprintf_P(resultString, BUFFER_SIZE - 1, PSTR("%s dac:%x"), resultString, dacNr);
-			CommunicationError_p(ERRA, -1, 1,
-					PSTR("%s -read validity check failed, raw value:0x%x"), resultString, value);
+			CommunicationError(ERRA, -1, 1,
+					PSTR("%s - read validity check failed, raw value:0x%x"), resultString, value);
 		}
 		return -10;
 	}
@@ -501,7 +500,7 @@ void apfelListIds_Inline(apfelAddress *address, bool all, uint8_t nElements, uin
 
     if (0 == nElements)
     {
-    	nElements = 0xFF;
+    	nElements = 0xFE;
     }
     if (0 == min)
     {
