@@ -385,17 +385,18 @@ void apfelApiVersion0(void)
 			}
 		}
 		break;
-		case apfelApiCommandKeyNumber_Trigger: /*apfelEnableTrigger*/
+		case apfelApiCommandKeyNumber_Trigger: /*apfelTestPulseTriggerEnable*/
 		{
 			switch(nSubCommandsArguments)
 			{
+				case 4:
 				case 3:
 				case 1:
 				case 0:
 					apfelTriggerCommand(nSubCommandsArguments);
 					break;
 				default:
-					CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, PSTR("[0,1,3]"));
+					CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, PSTR("[0,1,3,4]"));
 					return;
 			}
 		}

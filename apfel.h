@@ -32,6 +32,12 @@ typedef struct apfelPinStruct
   bool isUsed;
 } apfelPin;
 
+enum apfelTestPulseTriggerPosition
+{
+	APFEL_TestPulse_TRIGGER_POSITION_AFTER_SET = 1,
+	APFEL_TestPulse_TRIGGER_POSITION_AFTER_RESET,
+	APFEL_TestPulse_TRIGGER_POSITION_MAXIMUM
+};
 
 void 	 apfelAutoCalibration_Inline(apfelAddress *address);
 void     apfelClearDataInput_Inline(apfelAddress *address);

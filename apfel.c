@@ -33,8 +33,9 @@ static const char const string_address_format[] PROGMEM = "%c %x %x %x";
 #define APFEL_ADDRESS_ORDER(port,pinSetIndex, sideSelection, chipId) (port),(pinSetIndex),(sideSelection),(chipId)
 
 bool apfelOscilloscopeTestFrameMode = false;
-bool apfelEnableTrigger = false;
-apfelPin apfelTrigger = {&PORTE, 'E', PINE6 + 1, 0};
+bool apfelTestPulseTriggerEnable = false;
+uint8_t apfelTestPulseTriggerPosition = APFEL_TestPulse_TRIGGER_POSITION_AFTER_SET;
+apfelPin apfelTestPulseTrigger = {&PORTE, 'E', PINE6 + 1, 0};
 
 /* functions */
 int8_t apfelWritePort(uint8_t val, apfelAddress *address)
@@ -166,7 +167,7 @@ void apfelInit_Inline(void)
 	DDRF = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
 
 	/*trigger data direction register*/
-	(*(apfelTrigger.ptrPort - 1)) &= (0xFF & (0x1 << (apfelTrigger.pinNumber -1)));
+	(*(apfelTestPulseTrigger.ptrPort - 1)) &= (0xFF & (0x1 << (apfelTestPulseTrigger.pinNumber -1)));
 
 	PORTA = 0;
 	PORTC = 0;
@@ -355,16 +356,6 @@ void apfelSendCommandValueChipIdClockSequence(uint8_t command, uint16_t value, u
 	// chipId
 	apfelWriteBitSequence_Inline(address, APFEL_N_ChipIdBits, address->chipId, APFEL_DEFAULT_ENDIANNESS);
 
-	// add  external trigger on opposite clock pin//
-	if (apfelEnableTrigger)
-	{
-		_delay_us(0);
-		*(apfelTrigger.ptrPort) = *(apfelTrigger.ptrPort) | (0xFF &  (0x1 << (apfelTrigger.pinNumber - 1)));
-		_delay_us(0);
-		*(apfelTrigger.ptrPort) = *(apfelTrigger.ptrPort) & (0xFF & ~(0x1 << (apfelTrigger.pinNumber - 1)));
-		_delay_us(0);
-	}
-
 	if (0 < clockCycles)
 	{
 		apfelWriteClockSequence_Inline(address, clockCycles);
@@ -471,8 +462,31 @@ void apfelTestPulseSequence_Inline(apfelAddress *address, uint16_t pulseHeightPa
 /* #testPulse pulseHeight[0 ... 1F] channel[1 .. 2 ] chipId[0 ... FF] */
 void apfelTestPulse_Inline(apfelAddress *address, uint16_t pulseHeight, uint8_t channel)
 {
+	/* "set" pulse sequence */
 	apfelTestPulseSequence_Inline(address, 0x3FF & (pulseHeight << ((channel==1)?1:6)));
+
+	// add external trigger
+	if (apfelTestPulseTriggerEnable && APFEL_TestPulse_TRIGGER_POSITION_AFTER_SET == apfelTestPulseTriggerPosition)
+	{
+		_delay_us(0);
+		*(apfelTestPulseTrigger.ptrPort) = *(apfelTestPulseTrigger.ptrPort) | (0xFF &  (0x1 << (apfelTestPulseTrigger.pinNumber - 1)));
+		_delay_us(0);
+		*(apfelTestPulseTrigger.ptrPort) = *(apfelTestPulseTrigger.ptrPort) & (0xFF & ~(0x1 << (apfelTestPulseTrigger.pinNumber - 1)));
+		_delay_us(0);
+	}
+
+	/* "reset" pulse sequence */
 	apfelTestPulseSequence_Inline(address, 0);
+
+	// add external trigger
+	if (apfelTestPulseTriggerEnable && APFEL_TestPulse_TRIGGER_POSITION_AFTER_RESET == apfelTestPulseTriggerPosition)
+	{
+		_delay_us(0);
+		*(apfelTestPulseTrigger.ptrPort) = *(apfelTestPulseTrigger.ptrPort) | (0xFF &  (0x1 << (apfelTestPulseTrigger.pinNumber - 1)));
+		_delay_us(0);
+		*(apfelTestPulseTrigger.ptrPort) = *(apfelTestPulseTrigger.ptrPort) & (0xFF & ~(0x1 << (apfelTestPulseTrigger.pinNumber - 1)));
+		_delay_us(0);
+	}
 }
 
 /*#setAmplitude channelId[1 ... 2] chipId[0 ... FF]*/
@@ -549,9 +563,15 @@ apiCommandResult apfelTriggerCommand(uint8_t nSubCommandsArguments)
 {
 	switch (nSubCommandsArguments /* arguments of argument */)
 	{
+		case 4:
+			/* trigger position */
+			if (apiCommandResult_FAILURE_QUIET == apiAssignParameterToValue(5, &apfelTestPulseTriggerPosition, apiVarType_UINT8, 1, 2))
+			{
+				return apiCommandResult_FAILURE_QUIET;
+			}
 		case 3:
 			/* pin */
-			if (apiCommandResult_FAILURE_QUIET == apiAssignParameterToValue(4, &apfelTrigger.pinNumber, apiVarType_UINT8, 1, 8))
+			if (apiCommandResult_FAILURE_QUIET == apiAssignParameterToValue(4, &apfelTestPulseTrigger.pinNumber, apiVarType_UINT8, 1, 8))
 			{
 				return apiCommandResult_FAILURE_QUIET;
 			}
@@ -560,19 +580,19 @@ apiCommandResult apfelTriggerCommand(uint8_t nSubCommandsArguments)
 			switch (setParameter[3][0])
 			{
 				case 'A':
-					apfelTrigger.ptrPort = &PORTA;
+					apfelTestPulseTrigger.ptrPort = &PORTA;
 					break;
 				case 'C':
-					apfelTrigger.ptrPort = &PORTC;
+					apfelTestPulseTrigger.ptrPort = &PORTC;
 					break;
 				case 'D':
-					apfelTrigger.ptrPort = &PORTD;
+					apfelTestPulseTrigger.ptrPort = &PORTD;
 					break;
 				case 'E':
-					apfelTrigger.ptrPort = &PORTE;
+					apfelTestPulseTrigger.ptrPort = &PORTE;
 					break;
 				case 'F':
-					apfelTrigger.ptrPort = &PORTF;
+					apfelTestPulseTrigger.ptrPort = &PORTF;
 					break;
 				default:
 					CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true,
@@ -581,30 +601,32 @@ apiCommandResult apfelTriggerCommand(uint8_t nSubCommandsArguments)
 					break;
 			}
 
-			apfelTrigger.portLetter = setParameter[3][0];
+			apfelTestPulseTrigger.portLetter = setParameter[3][0];
 
 			/* access DDR register by decrementing the address by 1 and set the trigger pin to be an output */
-			*(apfelTrigger.ptrPort - 1) = *(apfelTrigger.ptrPort - 1)
-										| (0xFF & (0x1 << (apfelTrigger.pinNumber - 1)));
+			*(apfelTestPulseTrigger.ptrPort - 1) = *(apfelTestPulseTrigger.ptrPort - 1)
+										| (0xFF & (0x1 << (apfelTestPulseTrigger.pinNumber - 1)));
 		case 1: /*enable/disable trigger */
-			apiAssignParameterToValue(2, &apfelEnableTrigger, apiVarType_BOOL, 0, 1);
-			apfelTrigger.isUsed = apfelEnableTrigger;
-			if (apfelEnableTrigger)
+			apiAssignParameterToValue(2, &apfelTestPulseTriggerEnable, apiVarType_BOOL, 0, 1);
+			apfelTestPulseTrigger.isUsed = apfelTestPulseTriggerEnable;
+			if (apfelTestPulseTriggerEnable)
 			{
 				/*trigger data direction register*/
-				if (!((*(apfelTrigger.ptrPort - 1)) & (0xFF & (0x1 << (apfelTrigger.pinNumber - 1)))))
+				if (!((*(apfelTestPulseTrigger.ptrPort - 1)) & (0xFF & (0x1 << (apfelTestPulseTrigger.pinNumber - 1)))))
 				{
-					(*(apfelTrigger.ptrPort - 1)) &= (0xFF & (0x1 << (apfelTrigger.pinNumber - 1)));
+					(*(apfelTestPulseTrigger.ptrPort - 1)) &= (0xFF & (0x1 << (apfelTestPulseTrigger.pinNumber - 1)));
 				}
 				/* set trigger to low */
-				*(apfelTrigger.ptrPort) = *(apfelTrigger.ptrPort) & (0xFF & ~(0x1 << (apfelTrigger.pinNumber - 1)));
+				*(apfelTestPulseTrigger.ptrPort) = *(apfelTestPulseTrigger.ptrPort) & (0xFF & ~(0x1 << (apfelTestPulseTrigger.pinNumber - 1)));
 			}
 		case 0: /* status */
 			createReceiveHeader(ptr_uartStruct, uart_message_string, BUFFER_SIZE);
 			strncat_P(uart_message_string, PSTR("trigger "), BUFFER_SIZE - 1);
-			apiShowValue(uart_message_string, &apfelEnableTrigger, apiVarType_BOOL_OnOff);
-			snprintf(uart_message_string, BUFFER_SIZE -1 , "%s %c ", uart_message_string, apfelTrigger.portLetter);
-			apiShowValue(uart_message_string, &apfelTrigger.pinNumber, apiVarType_UINT8);
+			apiShowValue(uart_message_string, &apfelTestPulseTriggerEnable, apiVarType_BOOL_OnOff);
+			snprintf(uart_message_string, BUFFER_SIZE -1 , "%s %c ", uart_message_string, apfelTestPulseTrigger.portLetter);
+			apiShowValue(uart_message_string, &apfelTestPulseTrigger.pinNumber, apiVarType_UINT8);
+			strncat_P(uart_message_string, PSTR(" "), BUFFER_SIZE - 1);
+			apiShowValue(uart_message_string, &apfelTestPulseTriggerPosition, apiVarType_UINT8);
 			apiSubCommandsFooter(apiCommandResult_SUCCESS_WITH_OUTPUT);
 			break;
 	}
