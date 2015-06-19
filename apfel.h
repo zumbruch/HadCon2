@@ -108,12 +108,12 @@ apiCommandResult apfelTriggerCommand(uint8_t nSubCommandsArguments);
 #define APFEL_PIN_SS1 	PINA3
 
 #define APFEL_PIN_DIN2 	PINA4
-#define APFEL_PIN_DOUT2 PINA5
+#define APFEL_PIN_DOUT2    PINA5
 #define APFEL_PIN_CLK2 	PINA6
 #define APFEL_PIN_SS2 	PINA7
 
-#define APFEL_PIN_MASK1    ( {static const uint8_t a = (0xFF & (1 << APFEL_PIN_CLK1 | 1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_SS1 ));a;})
-#define APFEL_PIN_MASK2    ( {static const uint8_t a = (0xFF & (1 << APFEL_PIN_CLK2 | 1 << APFEL_PIN_DOUT2 | 1 << APFEL_PIN_SS2 ));a;})
+#define APFEL_PIN_MASK1    ( {static const uint8_t a = (0xFF & (1 << APFEL_PIN_DOUT1 | 1 << APFEL_PIN_CLK1 | 1 << APFEL_PIN_SS1 ));a;})
+#define APFEL_PIN_MASK2    ( {static const uint8_t a = (0xFF & (1 << APFEL_PIN_DOUT2 | 1 << APFEL_PIN_CLK2 | 1 << APFEL_PIN_SS2 ));a;})
 #define APFEL_PIN_MASK_DIN ( {static const uint8_t a = (0xFF & (1 << APFEL_PIN_DIN1 | 1 << APFEL_PIN_DIN2 ))                      ;a;})
 
 #define APFEL_writePort_CalcPattern(val,A,pinSetIndex)\
