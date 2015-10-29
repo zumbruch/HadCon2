@@ -371,8 +371,9 @@ void apfelSetDac_Inline(apfelAddress *address, uint16_t value, uint8_t dacNr, ui
 	apfelSendCommandValueChipIdClockSequence_p(APFEL_COMMAND_SetDac + dacNr, value, APFEL_COMMAND_SetDac_CommandClockCycles, address);
 	//inkl. 3 intermediate clock cycles equiv. 3 writeDataLow
 
-	if (! quiet) {
-			apfelReadDac_Inline(address, dacNr, false);
+	if (! quiet) 
+	{
+		apfelReadDac_Inline(address, dacNr, false);
 	}
 }
 
@@ -456,7 +457,11 @@ void apfelAutoCalibration_Inline(apfelAddress *address)//char port, uint8_t pinS
 /* #testPulseSequence pulseHeightPattern[0 ... 1F] chipId[0 ... FF] */
 void apfelTestPulseSequence_Inline(apfelAddress *address, uint16_t pulseHeightPattern)
 {
-	apfelSendCommandValueChipIdClockSequence_p(APFEL_COMMAND_TestPulse, pulseHeightPattern, APFEL_COMMAND_TestPulseSequence_CommandClockCycles, address);
+	/* to reduce the width between the test pulse and the external trigger
+	 * clock cycles have to be added "by-hand" after the trigger signal
+	 * therefore the clock_cycles are set to 0 and not to APFEL_COMMAND_TestPulseSequence_CommandClockCycles
+	 */
+	apfelSendCommandValueChipIdClockSequence_p(APFEL_COMMAND_TestPulse, pulseHeightPattern, 0, address);
 }
 
 /* #testPulse pulseHeight[0 ... 1F] channel[1 .. 2 ] chipId[0 ... FF] */
@@ -475,6 +480,9 @@ void apfelTestPulse_Inline(apfelAddress *address, uint16_t pulseHeight, uint8_t 
 		_delay_us(0);
 	}
 
+	// to reduce the width between the test pulse and the external trigger clock cycles are added "by-hand" after the trigger signal
+	apfelWriteClockSequence_Inline(address, APFEL_COMMAND_TestPulseSequence_CommandClockCycles);
+
 	/* "reset" pulse sequence */
 	apfelTestPulseSequence_Inline(address, 0);
 
@@ -487,6 +495,9 @@ void apfelTestPulse_Inline(apfelAddress *address, uint16_t pulseHeight, uint8_t 
 		*(apfelTestPulseTrigger.ptrPort) = *(apfelTestPulseTrigger.ptrPort) & (0xFF & ~(0x1 << (apfelTestPulseTrigger.pinNumber - 1)));
 		_delay_us(0);
 	}
+
+	// to reduce the width between the test pulse and the external trigger clock cycles are added "by-hand" after the trigger signal
+	apfelWriteClockSequence_Inline(address, APFEL_COMMAND_TestPulseSequence_CommandClockCycles);
 }
 
 /*#setAmplitude channelId[1 ... 2] chipId[0 ... FF]*/
