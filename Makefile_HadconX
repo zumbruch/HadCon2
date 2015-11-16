@@ -119,6 +119,9 @@ endif
 
 endif
 
+# Create object files directory
+$(shell mkdir -p $(OBJDIR) 2>/dev/null)
+
 # List C++ source files here. (C dependencies are automatically generated.)
 CPPSRC = 
 
@@ -705,9 +708,6 @@ clean_list :
 	$(REMOVE) $(SRC:.c=.d)
 	$(REMOVEDIR) .dep
 
-
-# Create object files directory
-$(shell mkdir -p $(OBJDIR) 2>/dev/null)
 
 
 # Include the dependency files.
