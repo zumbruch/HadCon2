@@ -12,12 +12,14 @@
 #include "api.h"
 #include "apfel.h"
 #include "apfelApi.h"
+#include "jtag.h"
 #include "read_write_register.h"
 #include <avr/io.h>
 #include <avr/wdt.h>
 #include <stdbool.h>
 #define __DELAY_BACKWARD_COMPATIBLE__
 #include <util/delay.h>
+#include <avr/cpufunc.h>
 #include <string.h>
 
 /*eclipse specific setting, not used during build process*/
@@ -163,7 +165,15 @@ void apfelInit_Inline(void)
 	/* init IO ports */
 	//configure I/O port A
 	DDRA = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
+
+	//configure I/O port C
 	DDRC = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
+
+	//configure I/O port F
+	/* Disable ADC */
+	ADCSRA &= (0xFF & ~(BIT (ADEN)));
+	/* Disable JTAG */
+    disableJTAG(TRUE);
 	DDRF = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
 
 	/*trigger data direction register*/
@@ -216,6 +226,7 @@ uint16_t apfelReadBitSequence_Inline(apfelAddress *address, uint8_t nBits)
 	// clock low
 	apfelWritePort((0 << pinClk), address);
 	// read data in
+	_delay_us(0); // i.e. delay by one tick ( F_CPU / 3e6 )
 	value |= (apfelReadPort(address) << (nBits - bitIndex));
 
 	while (bitIndex < nBits)
@@ -224,6 +235,8 @@ uint16_t apfelReadBitSequence_Inline(apfelAddress *address, uint8_t nBits)
 		// clock high
 		apfelWritePort((1 << pinClk), address);
 		// read data in
+                _NOP();
+	        _delay_us(0);
 		value |= (apfelReadPort(address) << (nBits - bitIndex));
 		// clock low
 		apfelWritePort((0 << pinClk), address);
