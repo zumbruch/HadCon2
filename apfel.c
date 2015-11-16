@@ -163,25 +163,64 @@ int8_t apfelWriteBit_Inline(uint8_t bit, apfelAddress *address)
 void apfelInit_Inline(void)
 {
 	/* init IO ports */
+	/* When switching between tri-state ({DDxn, PORTxn} = 0b00) and output high ({DDxn, PORTxn}
+       = 0b11), an intermediate state with either pull-up enabled {DDxn, PORTxn} = 0b01) or output
+       low ({DDxn, PORTxn} = 0b10) occurs. Normally, the pull-up enabled state is fully acceptable, as
+       a high-impedant environment will not notice the difference between a strong high driver and a
+       pull-up. If this is not the case, the PUD bit in the MCUCR Register can be set to disable all pullups
+       in all ports.
+
+       Switching between input with pull-up and output low generates the same problem. The user
+       must use either the tri-state ({DDxn, PORTxn} = 0b00) or the output high state ({DDxn, PORTxn}
+       = 0b11) as an intermediate step
+
+       (chapter 9.2.3 AT90CAN128 Manual )
+	*/
+
 	//configure I/O port A
+	DDRA = 0;
+	PORTA = 0;
 	DDRA = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
+	PORTA = 0;
 
 	//configure I/O port C
+	DDRC = 0;
+	PORTC = 0;
 	DDRC = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
+	PORTC = 0;
 
 	//configure I/O port F
 	/* Disable ADC */
 	ADCSRA &= (0xFF & ~(BIT (ADEN)));
 	/* Disable JTAG */
     disableJTAG(TRUE);
-	DDRF = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
 
-	/*trigger data direction register*/
-	(*(apfelTestPulseTrigger.ptrPort - 1)) &= (0xFF & (0x1 << (apfelTestPulseTrigger.pinNumber -1)));
+    /*
+     * 21.8.5 Digital Input Disable Register 0 – DIDR0
+     *
+     *  Bit 7:0 – ADC7D..ADC0D: ADC7:0 Digital Input Disable
+     * When this bit is written logic one, the digital input buffer on the corresponding ADC pin is disabled.
+     * The corresponding PIN Register bit will always read as zero when this bit is set. When an
+     * analog signal is applied to the ADC7..0 pin and the digital input from this pin is not needed, this
+     * bit should be written logic one to reduce power consumption in the digital input buffer
+     */
 
-	PORTA = 0;
-	PORTC = 0;
+    DIDR0 = APFEL_PIN_MASK1 | APFEL_PIN_MASK2; // disable/enable (all) digital inputs
+
+    DDRF = 0;
 	PORTF = 0;
+    DDRF = APFEL_PIN_MASK1 | APFEL_PIN_MASK2;
+	PORTF = 0;
+
+
+
+	/*trigger data direction register* - via tri-state {DDxn, PORTxn} = 0b00 */
+	(*(apfelTestPulseTrigger.ptrPort-1)) &= (0xFF & ~(0x1 << (apfelTestPulseTrigger.pinNumber-1)));
+	(*(apfelTestPulseTrigger.ptrPort  )) &= (0xFF & ~(0x1 << (apfelTestPulseTrigger.pinNumber-1)));
+
+	(*(apfelTestPulseTrigger.ptrPort-1)) |= (0xFF &  (0x1 << (apfelTestPulseTrigger.pinNumber-1)));
+	(*(apfelTestPulseTrigger.ptrPort  )) &= (0xFF & ~(0x1 << (apfelTestPulseTrigger.pinNumber-1)));
+
 }
 
 uint16_t apfelReadBitSequence_Inline(apfelAddress *address, uint8_t nBits)
@@ -628,17 +667,22 @@ apiCommandResult apfelTriggerCommand(uint8_t nSubCommandsArguments)
 			apfelTestPulseTrigger.portLetter = setParameter[3][0];
 
 			/* access DDR register by decrementing the address by 1 and set the trigger pin to be an output */
-			*(apfelTestPulseTrigger.ptrPort - 1) = *(apfelTestPulseTrigger.ptrPort - 1)
-										| (0xFF & (0x1 << (apfelTestPulseTrigger.pinNumber - 1)));
+			/* - via tri-state {DDxn, PORTxn} = 0b00 */
+			(*(apfelTestPulseTrigger.ptrPort-1)) &= (0xFF & ~(0x1 << (apfelTestPulseTrigger.pinNumber-1)));
+			(*(apfelTestPulseTrigger.ptrPort  )) &= (0xFF & ~(0x1 << (apfelTestPulseTrigger.pinNumber-1)));
+			(*(apfelTestPulseTrigger.ptrPort-1)) |= (0xFF &  (0x1 << (apfelTestPulseTrigger.pinNumber-1)));
 		case 1: /*enable/disable trigger */
 			apiAssignParameterToValue(2, &apfelTestPulseTriggerEnable, apiVarType_BOOL, 0, 1);
 			apfelTestPulseTrigger.isUsed = apfelTestPulseTriggerEnable;
 			if (apfelTestPulseTriggerEnable)
 			{
 				/*trigger data direction register*/
-				if (!((*(apfelTestPulseTrigger.ptrPort - 1)) & (0xFF & (0x1 << (apfelTestPulseTrigger.pinNumber - 1)))))
+				if (!((*(apfelTestPulseTrigger.ptrPort - 1)) & (0xFF & (0x1 << (apfelTestPulseTrigger.pinNumber-1)))))
 				{
-					(*(apfelTestPulseTrigger.ptrPort - 1)) &= (0xFF & (0x1 << (apfelTestPulseTrigger.pinNumber - 1)));
+					/*trigger data direction register* - via tri-state {DDxn, PORTxn} = 0b00 */
+					(*(apfelTestPulseTrigger.ptrPort  )) &= (0xFF & ~(0x1 << (apfelTestPulseTrigger.pinNumber-1)));
+
+					(*(apfelTestPulseTrigger.ptrPort-1)) &= (0xFF &  (0x1 << (apfelTestPulseTrigger.pinNumber-1)));
 				}
 				/* set trigger to low */
 				*(apfelTestPulseTrigger.ptrPort) = *(apfelTestPulseTrigger.ptrPort) & (0xFF & ~(0x1 << (apfelTestPulseTrigger.pinNumber - 1)));
