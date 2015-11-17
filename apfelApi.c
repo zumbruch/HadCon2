@@ -290,7 +290,6 @@ void apfelApiVersion0(void)
 				CommunicationError_p(ERRA, -1, 1, string_wrong_number_of_arguments_PS, string_bracket_6_bracket);
 				return;
 			}
-			apfelReadDac_Inline(&address, dacNr, quiet);
 		}
 		break;
 		case apfelApiCommandKeyNumber_AutoCalibration:
@@ -337,7 +336,7 @@ void apfelApiVersion0(void)
 		{
 			if (5 == nSubCommandsArguments )
 			{
-				apfelSetAmplitude_Inline(&address, arg[1]);
+				apfelSetAmplification_Inline(&address, arg[1]);
 			}
 			else
 			{
@@ -350,7 +349,7 @@ void apfelApiVersion0(void)
 		{
 			if (5 == nSubCommandsArguments )
 			{
-				apfelResetAmplitude_Inline(&address, arg[1]);
+				apfelResetAmplification_Inline(&address, arg[1]);
 			}
 			else
 			{
@@ -444,6 +443,21 @@ apiCommandResult apfelApiParseAddress(apfelAddress *address, uint8_t portArgumen
 	else
 	{
 		address->port = setParameter[portArgumentIndex + 1][0];
+		switch(address->port)
+		{
+			case 'A':
+			case 'B':
+			case 'C':
+			case 'D':
+			case 'E':
+			case 'F':
+			case 'G':
+				break;
+			default:
+				CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[A-G] %c"), address->port);
+				address->port = 0;
+				return apiCommandResult_FAILURE_QUIET;
+		}
 	}
 
 	if ( apiCommandResult_SUCCESS_QUIET != apiAssignParameterToValue(  pinSetIndexArgumentIndex + 1, &(address->  pinSetIndex),apiVarType_UINT8,1,2))
@@ -498,7 +512,7 @@ void apfelApi(struct uartStruct *ptr_uartStruct)
 	}
 	else
 	{
-#warning move to api and generalize it to be used via fcn pointer also by sub commands
+#warning TODO: move to api and generalize it to be used via fcn pointer also by sub commands
 		apiCallCommands(1, ptr_uartStruct, apfelApiCommandKeywords, apfelApiCommandKeyNumber_MAXIMUM_NUMBER,
 				apfelApiSubCommands, apfelApiCommandKeyNumber_STATUS);
 	}
@@ -806,9 +820,6 @@ apiCommandResult apfelApiSubCommandEnablePortAddressSet(void)
 printDebug_p(debugLevelVerboseDebug, debugSystemAPFEL, __LINE__, filename, PSTR("EnablePortAddressSet    "));
 return apiCommandResult_SUCCESS_QUIET;
 }
-#if 0
-
-#endif
 
 #if 0
 //just a paste and copy of spi to be adopted

@@ -46,9 +46,9 @@ void 	 apfelListIds_Inline(apfelAddress *address, bool all, uint8_t nElements, u
 uint16_t apfelReadBitSequence_Inline(apfelAddress *address, uint8_t nBits);
 int16_t	 apfelReadDac_Inline(apfelAddress *address, uint8_t dacNr, uint8_t quiet);
 int8_t	 apfelReadPort(apfelAddress *address);
-void	 apfelResetAmplitude_Inline(apfelAddress *address, uint8_t channel);
+void	 apfelResetAmplification_Inline(apfelAddress *address, uint8_t channel);
 void     apfelSendCommandValueChipIdClockSequence(uint8_t command, uint16_t value, uint16_t clockCycles, apfelAddress *address);
-void     apfelSetAmplitude_Inline(apfelAddress *address, uint8_t channel);
+void     apfelSetAmplification_Inline(apfelAddress *address, uint8_t channel);
 void     apfelSetDac_Inline(apfelAddress *address, uint16_t value, uint8_t dacNr, uint8_t quiet);
 void     apfelStartStreamHeader_Inline(apfelAddress *address);
 void     apfelTestPulse_Inline(apfelAddress *address, uint16_t pulseHeight, uint8_t channel);
