@@ -2,7 +2,7 @@
 #define API_DEFINE__H
 /*the define.h header file contents all define variable*/
 
-#define CODE_VERSION "4.6.2.1"
+#define CODE_VERSION "4.6.2"
 
 #ifndef HADCON_VERSION
 #define HADCON_VERSION 2
