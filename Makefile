@@ -146,5 +146,5 @@ set_fuses help touch
 # User added targets (PZ)
 debug_makefile:
 	DEBUG=yes $(MAKE) -n
-touch: touch.sh
-	@$$PWD/touch.sh
+touch: 
+	@TOTOUCH=api_version.c && [ -f $$TOTOUCH ] && touch $$TOTOUCH && echo touching $$TOTOUCH || echo failed touching $$TOTOUCH
