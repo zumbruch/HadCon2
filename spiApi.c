@@ -419,7 +419,7 @@ void spiApiSubCommandsFooter( uint16_t result )
 		case apiCommandResult_SUCCESS_WITH_OUTPUT:
 			UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
 			break;
-		case apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT:
+		case apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK:
 			/* verbose response to commands*/
 			if (debugLevelVerboseDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemSPI) & 1))
 			{
@@ -479,7 +479,7 @@ uint8_t spiApiSubCommandWrite(struct uartStruct *ptr_uartStruct, uint16_t parame
 			}
 			else
 			{
-				result = apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+				result = apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK;
 			}
 		}
 	}
@@ -513,7 +513,7 @@ uint8_t spiApiSubCommandAdd(struct uartStruct *ptr_uartStruct)
 		default:
 	   		if ( apiCommandResult_FAILURE > spiApiAddToWriteArray(ptr_uartStruct, 2))
 			{
-				return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+				return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK;
 			}
 			else
 			{
@@ -627,7 +627,7 @@ uint8_t spiApiSubCommandTransmit(void)
 		spiApiSubCommandShowWriteBuffer(ptr_uartStruct);
 		return apiCommandResult_SUCCESS_QUIET;
 	}
-	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK;
 }
 
 uint8_t spiApiSubCommandWriteBuffer(void)
@@ -670,7 +670,7 @@ uint8_t spiApiSubCommandWriteBuffer(void)
 		}
 		else
 		{
-			result = apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+			result = apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK;
 		}
 	}
 
@@ -687,7 +687,7 @@ uint8_t spiApiSubCommandReset(void)
 	spiInit();
 	spiApiInit();
 	spiEnable(true);
-	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK;
 }
 
 uint8_t spiApiSubCommandPurge(void)
@@ -695,19 +695,19 @@ uint8_t spiApiSubCommandPurge(void)
 	spiApiSubCommandPurgeWriteBuffer();
 	spiApiSubCommandPurgeReadBuffer();
 
-	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK;
 }
 
 uint8_t spiApiSubCommandPurgeWriteBuffer(void)
 {
 	spiPurgeWriteData();
-	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK;
 }
 
 uint8_t spiApiSubCommandPurgeReadBuffer(void)
 {
 	spiPurgeReadData();
-	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK;
 }
 
 uint8_t spiApiSubCommandRead(void)
@@ -1556,7 +1556,7 @@ uint8_t spiApiAddNumericParameterToByteArray(const char string[], uint8_t index)
 			return result;
 		}
 	}
-	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK;
 }
 
 uint8_t spiApiAddNumericStringToByteArray(const char string[])
@@ -1651,7 +1651,7 @@ uint8_t spiApiAddNumericStringToByteArray(const char string[])
 		return apiCommandResult_FAILURE_QUIET;
 	}
 
-	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT;
+	return apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK;
 }
 
 /* uint8_t spiApiShowBufferContent(spiByteDataArray *buffer, int16_t nRequestedBytes, int8_t commandKeywordIndex, int8_t subCommandKeywordIndex, PGM_P commandKeywords[])
