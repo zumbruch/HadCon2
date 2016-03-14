@@ -8,6 +8,7 @@
  * modified: Florian Feldbauer
  * modified: Peter Zumbruch, Oct 2011
  * modified: Peter Zumbruch, May 2013
+ * modified: Peter Zumbruch, Mar 2016
  */
 
 #include <stdint.h>
@@ -2667,7 +2668,7 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 
 	if ( (min > inputValue) || (max < inputValue) )
 	{
-		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[%ul,%ul] %ul"), min, max, inputValue);
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[%i,%i] %i"), min, max, inputValue);
 		return apiCommandResult_FAILURE_QUIET;
 	}
 
