@@ -2681,7 +2681,7 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 
 	if ( (min > inputValue) || (max < inputValue) )
 	{
-		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[%i,%i] %i"), min, max, inputValue);
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[%ul,%ul] %ul"), min, max, inputValue);
 		return apiCommandResult_FAILURE_QUIET;
 	}
 
