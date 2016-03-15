@@ -60,6 +60,7 @@
 #include "api_define.h"
 #include "api_global.h"
 #include "api.h"
+#include "api_dac.h"
 #ifdef TESTING_ENABLE
 #include "testing.h"
 #endif
@@ -457,11 +458,11 @@ static const char commandShortDescription50[]  PROGMEM = "returns device IDN";
 static const uint8_t commandImplementation50   PROGMEM = TRUE;
 
 // index: 51
-static const char commandKeyword51[]           PROGMEM = "CMD6"; /* command (dummy name) */
-static const char commandSyntax51[]            PROGMEM = "[???]";
+static const char commandKeyword51[]           PROGMEM = "DAC"; /* command (dummy name) */
+static const char commandSyntax51[]            PROGMEM = "[<channel> [<value>]]";
 static const char commandSyntaxAlternative51[] PROGMEM = "";
-static const char commandShortDescription51[]  PROGMEM = "";
-static const uint8_t commandImplementation51   PROGMEM = FALSE;
+static const char commandShortDescription51[]  PROGMEM = "set/get DAC";
+static const uint8_t commandImplementation51   PROGMEM = TRUE;
 
 // index: 52
 static const char commandKeyword52[]           PROGMEM = "CMD7"; /* command (dummy name) */
@@ -478,7 +479,7 @@ static const char commandShortDescription53[]  PROGMEM = "";
 static const uint8_t commandImplementation53   PROGMEM = FALSE;
 
 // index: 54
-static const char commandKeyword54[]           PROGMEM = "CMD8"; /* command (dummy name) */
+static const char commandKeyword54[]           PROGMEM = "CMD9"; /* command (dummy name) */
 static const char commandSyntax54[]            PROGMEM = "[???]";
 static const char commandSyntaxAlternative54[] PROGMEM = "";
 static const char commandShortDescription54[]  PROGMEM = "";
@@ -614,6 +615,7 @@ const char* const errorTypes[] PROGMEM = {
 int8_t uart0_init = 0; /* return variable of UART0_Init function*/
 int8_t can_init = 0; /* return variable of  canInit function*/
 int8_t twim_init = 0; /* return variable of TWIM_Init function*/
+int8_t dac_init = 0; /* return variable of DAC_Init function*/
 int8_t owi_init = 0; /* return variable of OWI_Init function*/
 int8_t timer0_init = 0; /* return variable of Timer0_Init function*/
 int8_t timer0A_init = 0;/* return variable of Timer0A_Init function*/
@@ -1449,6 +1451,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
     case commandKeyNumber_IDN: /* version */
     	identification();
        break;
+    case commandKeyNumber_DAC: /* DACn */
+    	DAC(ptr_uartStruct);
+       break;
     default:
 		ptr_uartStruct->commandKeywordIndex = -1;
 		Check_Error(ptr_uartStruct);
@@ -1852,7 +1857,8 @@ void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, int16_t line, PGM_
  */
 void Initialization( void )
 {
-#warning TODO find a generalized way to check for correct init and a modular possibility to fail and still run, e.g. relay
+	#warning move messages and flags to the corresponding init functions
+	#warning TODO find a generalized way to check for correct init and a modular possibility to fail and still run, e.g. relay
 
    uint16_t status = 0;
 
@@ -1906,6 +1912,13 @@ void Initialization( void )
 
    disableJTAG(FALSE);
 
+   dac_init = DAC_Init();
+
+   if( FALSE == dac_init)
+   {
+#warning Dac INIT failure: create realistic error message
+   }
+
    twim_init = Twim_Init (250000);
 
    if( FALSE == twim_init)
@@ -1917,7 +1930,7 @@ void Initialization( void )
 
    if( FALSE == owi_init)
    {
-#warning OWI INIT create realistic error message
+#warning OWI INIT failure; create realistic error message
    }
 
    can_init = canInit(CAN_DEFAULT_BAUD_RATE); /* initialize can-controller with a baudrate 250kps */
@@ -2668,7 +2681,7 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 
 	if ( (min > inputValue) || (max < inputValue) )
 	{
-		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[%i,%i] %i"), min, max, inputValue);
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[%ul,%ul] %ul"), min, max, inputValue);
 		return apiCommandResult_FAILURE_QUIET;
 	}
 
@@ -2741,7 +2754,7 @@ uint8_t apiShowValue(char string[], void *value, uint8_t type )
 			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint64_t*)value));
 			break;
 		case apiVarType_DOUBLE:
-			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((double*)value));
+			snprintf_P(string, BUFFER_SIZE - 1, PSTR("%s%f") , string, *((double*)value));
 			break;
 		default:
 			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);

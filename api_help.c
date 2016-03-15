@@ -477,7 +477,7 @@ void help(struct uartStruct *ptr_uartStruct)
 					case commandKeyNumber_CMD2: /* command (dummy name) */
 					case commandKeyNumber_CMD3: /* command (dummy name) */
 						//case commandKeyNumber_CMD4: /* command (dummy name) */
-					case commandKeyNumber_CMD6: /* command (dummy name) */
+					case commandKeyNumber_DAC: /* command (dummy name) */
 					case commandKeyNumber_CMD7: /* command (dummy name) */
 					case commandKeyNumber_CMD8: /* command (dummy name) */
 						/* command */

@@ -27,6 +27,7 @@ extern uint8_t resetSource; /* reason of a reset */
 extern int8_t uart0_init; /* return variable of canInit function*/
 extern int8_t can_init; /* return variable of canInit function*/
 extern int8_t twim_init; /* return variable of TWIM_Init function*/
+extern int8_t dac_init; /* return variable of DAC_Init function*/
 extern int8_t owi_init; /* return variable of TWIM_Init function*/
 extern int8_t timer0_init; /* return variable of Timer0_Init function*/
 extern int8_t timer0A_init;/* return variable of Timer0A_Init function*/
@@ -102,6 +103,8 @@ extern uint16_t adcBusMask;
 
 extern uint8_t mcusr;
 extern unsigned char watchdogIncarnationsCounter __attribute__ ((section (".noinit")));
+
+extern uint8_t DacValueUndefinedByteArray;
 
 #endif
 
