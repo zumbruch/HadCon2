@@ -8,6 +8,7 @@
  * modified: Florian Feldbauer
  * modified: Peter Zumbruch, Oct 2011
  * modified: Peter Zumbruch, May 2013
+ * modified: Peter Zumbruch, Mar 2016
  */
 
 #include <stdint.h>
@@ -19,6 +20,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stddef.h>
+#define __DELAY_BACKWARD_COMPATIBLE__
 #include <util/delay.h>
 #include <util/atomic.h>
 #include <avr/io.h>
@@ -58,6 +60,7 @@
 #include "api_define.h"
 #include "api_global.h"
 #include "api.h"
+#include "api_dac.h"
 #ifdef TESTING_ENABLE
 #include "testing.h"
 #endif
@@ -455,11 +458,11 @@ static const char commandShortDescription50[]  PROGMEM = "returns device IDN";
 static const uint8_t commandImplementation50   PROGMEM = TRUE;
 
 // index: 51
-static const char commandKeyword51[]           PROGMEM = "CMD6"; /* command (dummy name) */
-static const char commandSyntax51[]            PROGMEM = "[???]";
+static const char commandKeyword51[]           PROGMEM = "DAC"; /* command (dummy name) */
+static const char commandSyntax51[]            PROGMEM = "[<channel> [<value>]]";
 static const char commandSyntaxAlternative51[] PROGMEM = "";
-static const char commandShortDescription51[]  PROGMEM = "";
-static const uint8_t commandImplementation51   PROGMEM = FALSE;
+static const char commandShortDescription51[]  PROGMEM = "set/get DAC";
+static const uint8_t commandImplementation51   PROGMEM = TRUE;
 
 // index: 52
 static const char commandKeyword52[]           PROGMEM = "CMD7"; /* command (dummy name) */
@@ -476,7 +479,7 @@ static const char commandShortDescription53[]  PROGMEM = "";
 static const uint8_t commandImplementation53   PROGMEM = FALSE;
 
 // index: 54
-static const char commandKeyword54[]           PROGMEM = "CMD8"; /* command (dummy name) */
+static const char commandKeyword54[]           PROGMEM = "CMD9"; /* command (dummy name) */
 static const char commandSyntax54[]            PROGMEM = "[???]";
 static const char commandSyntaxAlternative54[] PROGMEM = "";
 static const char commandShortDescription54[]  PROGMEM = "";
@@ -612,6 +615,7 @@ const char* const errorTypes[] PROGMEM = {
 int8_t uart0_init = 0; /* return variable of UART0_Init function*/
 int8_t can_init = 0; /* return variable of  canInit function*/
 int8_t twim_init = 0; /* return variable of TWIM_Init function*/
+int8_t dac_init = 0; /* return variable of DAC_Init function*/
 int8_t owi_init = 0; /* return variable of OWI_Init function*/
 int8_t timer0_init = 0; /* return variable of Timer0_Init function*/
 int8_t timer0A_init = 0;/* return variable of Timer0A_Init function*/
@@ -1312,13 +1316,13 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
 		/* command      : RGWR Register Value */
 		/* response now : RECV the value %x has been written in Register */
 		/* response TODO: RECV RGWR Register Value (OldValue) */
-		writeRegister(ptr_uartStruct); /* call function with name writeRegister  */
+		registerWriteRegister(ptr_uartStruct); /* call function with name registerWriteRegister  */
 		break;
 	case commandKeyNumber_RGRE:
 		/* command      : RGRE Register*/
 		/* response now : RECV the value %x has been written in Register */
 		/* response TODO: RECV RGWR Register Value */
-		readRegister(ptr_uartStruct); /* call function with name  readRegister */
+		registerReadRegister(ptr_uartStruct); /* call function with name  registerReadRegister */
 		break;
 	case commandKeyNumber_RADC: /* read AVR's ADCs */
 		atmelReadADCs(ptr_uartStruct);
@@ -1341,7 +1345,7 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
         init(ptr_uartStruct);
 		break;
 	case commandKeyNumber_OWSS:
-		read_status_simpleSwitches(ptr_uartStruct); /* call function with name  readRegister */
+		read_status_simpleSwitches(ptr_uartStruct); /* call function with name  registerReadRegister */
 		break;
 	case commandKeyNumber_OWLS:
        /* command : OWLS
@@ -1446,6 +1450,9 @@ void Choose_Function( struct uartStruct *ptr_uartStruct )
        break;
     case commandKeyNumber_IDN: /* version */
     	identification();
+       break;
+    case commandKeyNumber_DAC: /* DACn */
+    	DAC(ptr_uartStruct);
        break;
     default:
 		ptr_uartStruct->commandKeywordIndex = -1;
@@ -1850,7 +1857,8 @@ void printDebug( uint8_t debugLevel, uint32_t debugMaskIndex, int16_t line, PGM_
  */
 void Initialization( void )
 {
-#warning TODO find a generalized way to check for correct init and a modular possibility to fail and still run, e.g. relay
+	#warning move messages and flags to the corresponding init functions
+	#warning TODO find a generalized way to check for correct init and a modular possibility to fail and still run, e.g. relay
 
    uint16_t status = 0;
 
@@ -1904,6 +1912,13 @@ void Initialization( void )
 
    disableJTAG(FALSE);
 
+   dac_init = DAC_Init();
+
+   if( FALSE == dac_init)
+   {
+#warning Dac INIT failure: create realistic error message
+   }
+
    twim_init = Twim_Init (250000);
 
    if( FALSE == twim_init)
@@ -1915,7 +1930,7 @@ void Initialization( void )
 
    if( FALSE == owi_init)
    {
-#warning OWI INIT create realistic error message
+#warning OWI INIT failure; create realistic error message
    }
 
    can_init = canInit(CAN_DEFAULT_BAUD_RATE); /* initialize can-controller with a baudrate 250kps */
@@ -2666,7 +2681,7 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 
 	if ( (min > inputValue) || (max < inputValue) )
 	{
-		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, NULL);
+		CommunicationError_p(ERRA, SERIAL_ERROR_arguments_exceed_boundaries, true, PSTR("[%ul,%ul] %ul"), min, max, inputValue);
 		return apiCommandResult_FAILURE_QUIET;
 	}
 
@@ -2693,6 +2708,9 @@ uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t t
 			break;
 		case apiVarType_UINTPTR:
 			*((uintptr_t*)value) = UINTPTR_MAX & inputValue;
+			break;
+		case apiVarType_DOUBLE:
+			*((double*)value) = inputValue;
 			break;
 		default:
 			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
@@ -2735,11 +2753,55 @@ uint8_t apiShowValue(char string[], void *value, uint8_t type )
 		case apiVarType_UINT64:
 			snprintf_P(string, BUFFER_SIZE - 1, string_sX , string, *((uint64_t*)value));
 			break;
+		case apiVarType_DOUBLE:
+			snprintf_P(string, BUFFER_SIZE - 1, PSTR("%s%f") , string, *((double*)value));
+			break;
 		default:
 			CommunicationError_p(ERRG, SERIAL_ERROR_arguments_have_invalid_type, 0, NULL);
 			return apiCommandResult_FAILURE_QUIET;
 			break;
 	}
 	return apiCommandResult_SUCCESS_WITH_OUTPUT;
+}
 
+void apiSubCommandsFooter( uint16_t result )
+{
+	switch (result)
+	{
+		case apiCommandResult_SUCCESS_WITH_OUTPUT:
+			UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
+			break;
+		case apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK:
+			/* verbose response to commands*/
+			if (debugLevelVerboseDebug <= globalDebugLevel && ((globalDebugSystemMask >> debugSystemApi) & 1))
+			{
+				strncat_P(uart_message_string, PSTR("OK"), BUFFER_SIZE - 1);
+				UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
+			}
+			else
+			{
+				clearString(uart_message_string, BUFFER_SIZE);
+			}
+			break;
+		case apiCommandResult_SUCCESS_WITH_OUTPUT__OK:
+				strncat_P(uart_message_string, PSTR("OK"), BUFFER_SIZE - 1);
+				UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
+			break;
+		case apiCommandResult_SUCCESS_WITH_OUTPUT__DONE:
+				strncat_P(uart_message_string, PSTR("DONE"), BUFFER_SIZE - 1);
+				UART0_Send_Message_String_p(uart_message_string, BUFFER_SIZE - 1);
+			break;
+		case apiCommandResult_FAILURE_NOT_A_SUB_COMMAND:
+			CommunicationError_p(ERRA, SERIAL_ERROR_no_valid_command_name, true, PSTR("not a sub command"));
+			break;
+		case apiCommandResult_SUCCESS_QUIET:
+		case apiCommandResult_FAILURE_QUIET:
+			clearString(uart_message_string, BUFFER_SIZE);
+			/* printouts elsewhere generated */
+			break;
+		case apiCommandResult_FAILURE:
+		default:
+			CommunicationError_p(ERRA, dynamicMessage_ErrorIndex, true, PSTR("command failed"));
+			break;
+	}
 }

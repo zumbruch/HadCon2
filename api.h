@@ -124,6 +124,8 @@ uint8_t apiShowOrAssignParameterToValue(int16_t nArgumentArgs, uint8_t parameter
 uint8_t apiAssignParameterToValue(uint8_t parameterIndex, void *value, uint8_t type, uint64_t min, uint64_t max);
 uint8_t apiShowValue(char string[], void *value, uint8_t type );
 
+void apiSubCommandsFooter( uint16_t result );
+
 typedef uint8_t apiCommandResult;
 
 #ifndef API_CONSTANTS_H_
@@ -232,9 +234,10 @@ enum cmdKeyNumber
                commandKeyNumber_WDOG,
                commandKeyNumber_VERS,
                commandKeyNumber_IDN,
-               commandKeyNumber_CMD6,
+               commandKeyNumber_DAC,
                commandKeyNumber_CMD7,
                commandKeyNumber_CMD8,
+               commandKeyNumber_CMD9,
                commandKeyNumber_MAXIMUM_NUMBER
 };
 
@@ -276,7 +279,9 @@ enum resetSources
 enum apiCommandResults
 {
 	apiCommandResult_SUCCESS_WITH_OUTPUT 			= 0,
-	apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT,
+	apiCommandResult_SUCCESS_WITH_OPTIONAL_OUTPUT__OK,
+	apiCommandResult_SUCCESS_WITH_OUTPUT__OK,
+	apiCommandResult_SUCCESS_WITH_OUTPUT__DONE,
 	apiCommandResult_SUCCESS_QUIET,
 	apiCommandResult_FAILURE 						= 100,
 	apiCommandResult_FAILURE_NOT_A_SUB_COMMAND,
@@ -296,6 +301,7 @@ enum apiVarTypes
 	apiVarType_UINT32,
 	apiVarType_UINT64,
 	apiVarType_UINTPTR,
+	apiVarType_DOUBLE,
 	apiVarType_MAXIMUM_INDEX,
 };
 

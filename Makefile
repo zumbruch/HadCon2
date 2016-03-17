@@ -25,8 +25,8 @@ endif
 all: all$(HADCON_TARGET_SUFFIX)$(HADCON_VERSION)
 	
 #all_hadcon_%: 
-all$(HADCON_TARGET_SUFFIX)%: 
-	HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@) 
+all$(HADCON_TARGET_SUFFIX)%: touch
+	@HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@) 
 
 both: $(foreach hadcon, $(HADCON_TYPES), all$(HADCON_TARGET_SUFFIX)$(hadcon))
 	
@@ -65,7 +65,6 @@ program_hadcon_%:
 #make sure api_version.c gets newest compile date
 	@if [ -c "$(OLIMEX_JTAG_DEV)" ]; \
 	then \
-	    [ -f "api_version.c" ] && touch api_version.c \
 		echo 'HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@)'; \
 		HADCON_VERSION=$(*F) TARGET=$(HADCON_TARGET_BASE)_hadcon$(*F) $(MAKE) -f $(HADCON_MAKEFILE) $(subst $(HADCON_TARGET_SUFFIX)$(*F),,$@); \
 	else \
@@ -142,8 +141,10 @@ clean_hadcon_%:
 .PHONY : all begin finish end sizebefore sizeafter gccversion \
 build elf hex eep lss sym coff extcoff \
 clean clean_list program debug gdb-config \
-set_fuses help
+set_fuses help touch
 
 # User added targets (PZ)
 debug_makefile:
 	DEBUG=yes $(MAKE) -n
+touch: 
+	@TOTOUCH=api_version.c && [ -f $$TOTOUCH ] && touch $$TOTOUCH && echo touching $$TOTOUCH || echo failed touching $$TOTOUCH

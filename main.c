@@ -108,6 +108,8 @@ uint8_t canBusStoredState = canChannelMode_UNDEFINED;
 double canBusStateResetInterval_seconds = CAN_BUS_STATE_RESET_INTERVAL_SECONDS;
 int32_t canDefaultBaudRate = CAN_DEFAULT_BAUD_RATE;
 
+uint8_t DacValueUndefinedByteArray = 0xFF;
+
 uint8_t usercommand;
 /*variable to store values*/
 
